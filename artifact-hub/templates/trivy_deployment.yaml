@@ -1,0 +1,56 @@
+{{- if .Values.trivy.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chart.resourceNamePrefix" . }}trivy
+  labels:
+    app.kubernetes.io/component: trivy
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: trivy
+      {{- include "chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: trivy
+        {{- include "chart.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.trivy.deploy.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: trivy
+          image: {{ .Values.trivy.deploy.image }}
+          command: ['trivy', '--debug', '--cache-dir', '/trivy', 'server', '--listen', '0.0.0.0:8081']
+          volumeMounts:
+            - name: trivy
+              mountPath: "/trivy"
+            {{- if .Values.trivy.deploy.extraVolumeMounts }}
+              {{- include "chart.tplvalues.render" (dict "value" .Values.trivy.deploy.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          {{- with .Values.trivy.deploy.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: trivy
+        {{- if .Values.trivy.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "chart.resourceNamePrefix" . }}trivy
+        {{- else }}
+          emptyDir: {}
+        {{- end -}}
+        {{- if .Values.trivy.deploy.extraVolumes }}
+          {{- include "chart.tplvalues.render" (dict "value" .Values.trivy.deploy.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
+{{- end }}

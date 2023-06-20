@@ -1,0 +1,70 @@
+name: Run checkov
+
+on:
+  workflow_call:
+    inputs:
+
+      iteration:
+        required: true
+        type: string
+
+      chart_folder:
+        required: true
+        type: string
+
+
+jobs:
+
+  run_checkov:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4 
+        with:
+          python-version: 3.8
+
+      - uses: azure/setup-helm@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Define template chart folder - original
+        if: ${{ inputs.iteration == '1'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_template.yaml" >> $GITHUB_ENV
+
+      - name: Define template chart folder - fixed
+        if: ${{ inputs.iteration == '2'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_fixed_template.yaml" >> $GITHUB_ENV
+
+      - name: Define template chart folder - functionalities
+        if: ${{ inputs.iteration == '3'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
+
+      - name: Test with Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          file: ${{ env.TEMPLATE }}
+          quiet: true # optional: display only failed checks
+          soft_fail: true # optional: do not return an error code if there are failed checks
+          framework: kubernetes
+          output_format: cli,json
+          output_file_path: console,results_${{ inputs.iteration }}.json
+        continue-on-error: true
+        # Reference: https://github.com/marketplace/actions/checkov-github-action
+
+      - name: Print checkov result
+        shell: bash
+        run: jq . results_${{ inputs.iteration }}.json
+
+      - name: Upload the JSON results artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: results_${{ inputs.iteration }}
+          path: results_${{ inputs.iteration }}.json
+          if-no-files-found: error

@@ -1,0 +1,49 @@
+name: Run KICS
+
+on:
+  workflow_call:
+    inputs:
+
+      iteration:
+        required: true
+        type: string
+
+      chart_folder:
+        required: true
+        type: string
+
+jobs:
+
+  run_kics:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+
+      - name: Run kics Scan
+        uses: checkmarx/kics-github-action@v1.6.3
+        with:
+          path: ${{ inputs.chart_folder }}
+          ignore_on_exit: results
+          output_path: .
+        # Reference: https://github.com/Checkmarx/kics-github-action
+        continue-on-error: true
+
+      - name: Rename KICS results
+        shell: bash
+        run: mv results.json results_${{ inputs.iteration }}.json
+
+      - name: Print KICS result
+        shell: bash
+        run: cat results_${{ inputs.iteration }}.json
+
+      - name: Upload the JSON results artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: results_${{ inputs.iteration }}
+          path: results_${{ inputs.iteration }}.json
+          if-no-files-found: error

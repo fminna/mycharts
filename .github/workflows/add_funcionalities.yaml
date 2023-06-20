@@ -1,0 +1,58 @@
+name: Add functionalities
+
+on:
+  workflow_call:
+    inputs:
+
+      chart_folder:
+        required: true
+        type: string
+
+jobs:
+
+  add_functionalities:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install python packages
+        shell: bash
+        run: |
+          cd .github/scripts
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run the functionalities script
+        shell: bash
+        run: python .github/scripts/main.py --add-func
+        env:
+          chart_folder: ${{ inputs.chart_folder }}
+
+      - name: Print updated template
+        shell: bash
+        run: cat templates/${{ inputs.chart_folder }}_func_template.yaml
+
+      - name: Print diff issues vs functionalities
+        shell: bash
+        run: diff templates/${{ inputs.chart_folder }}_fixed_template.yaml templates/${{ inputs.chart_folder }}_func_template.yaml
+        continue-on-error: true
+
+      - name: Commit and push changes
+        shell: bash
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add templates/${{ inputs.chart_folder }}_func_template.yaml
+          git commit -m "Updated ${{ inputs.chart_folder }} template chart"
+          git push
+        continue-on-error: true

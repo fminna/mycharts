@@ -1,0 +1,108 @@
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Support for Argo templates
+    - kind: added
+      description: Support for KubeArmor policies
+    - kind: added
+      description: Reduced motion support (accessibility)
+    - kind: added
+      description: Document how to embed artifacts on other websites
+    - kind: changed
+      description: Request charts content uncompressed
+    - kind: changed
+      description: Some minor UI improvements
+    - kind: changed
+      description: Updated official status definition
+    - kind: changed
+      description: Improve Kyverno policies docs
+    - kind: changed
+      description: Improve container images docs (add regctl commands)
+    - kind: changed
+      description: Bump Alpine to 3.17.3
+    - kind: changed
+      description: Bump Go to 1.20.2
+    - kind: changed
+      description: Upgrade Bootstrap to 5.2.3
+    - kind: changed
+      description: Upgrade react-router-dom to v6
+    - kind: changed
+      description: Upgrade backend and frontend dependencies
+    - kind: fixed
+      description: Include registry (if available) in check db image
+    - kind: fixed
+      description: Clean repeated keywords ignoring case
+    - kind: fixed
+      description: Some other minor bugs and improvements
+  artifacthub.io/containsSecurityUpdates: "true"
+  artifacthub.io/images: |
+    - name: db-migrator
+      image: artifacthub/db-migrator:v1.14.0
+    - name: hub
+      image: artifacthub/hub:v1.14.0
+    - name: tracker
+      image: artifacthub/tracker:v1.14.0
+    - name: scanner
+      image: artifacthub/scanner:v1.14.0
+    - name: trivy
+      image: aquasec/trivy:0.37.3
+  artifacthub.io/links: |
+    - name: source
+      url: https://github.com/artifacthub/hub
+    - name: support
+      url: https://github.com/artifacthub/hub/issues
+  artifacthub.io/screenshots: |
+    - title: Home page
+      url: https://artifacthub.github.io/hub/screenshots/screenshot1.jpg
+    - title: Packages search
+      url: https://artifacthub.github.io/hub/screenshots/screenshot2.jpg
+    - title: Package details
+      url: https://artifacthub.github.io/hub/screenshots/screenshot3.jpg
+    - title: Security report
+      url: https://artifacthub.github.io/hub/screenshots/screenshot4.jpg
+    - title: Values schema
+      url: https://artifacthub.github.io/hub/screenshots/screenshot5.jpg
+    - title: Changelog
+      url: https://artifacthub.github.io/hub/screenshots/screenshot6.jpg
+apiVersion: v2
+appVersion: 1.14.0
+dependencies:
+- condition: postgresql.enabled
+  name: postgresql
+  repository: https://charts.helm.sh/stable
+  version: 8.2.1
+description: Artifact Hub is a web-based application that enables finding, installing,
+  and publishing Kubernetes packages.
+home: https://artifacthub.io
+icon: https://artifacthub.github.io/helm-charts/logo.png
+keywords:
+- kubernetes
+- helm
+- falco
+- opa
+- olm
+- tinkerbell actions
+- krew
+- tekton
+- keda scalers
+- coredns
+- keptn
+- containers images
+- kubewarden
+- gatekeeper
+- kyverno
+- knative
+- backstage
+- argo
+- kubearmor
+kubeVersion: '>= 1.19.0-0'
+maintainers:
+- email: tegioz@icloud.com
+  name: Sergio
+- email: cynthiasg@icloud.com
+  name: Cintia
+- email: matt@mattfarina.com
+  name: Matt
+name: artifact-hub
+type: application
+version: 1.14.0

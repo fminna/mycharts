@@ -1,0 +1,59 @@
+{{- if .Capabilities.APIVersions.Has "batch/v1/CronJob" }}
+apiVersion: batch/v1
+{{- else }}
+apiVersion: batch/v1beta1
+{{- end }}
+kind: CronJob
+metadata:
+  name: {{ include "chart.resourceNamePrefix" . }}tracker
+spec:
+  schedule: "1,30 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+        {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+          restartPolicy: Never
+          initContainers:
+            - {{- include "chart.checkDbIsReadyInitContainer" . | nindent 14 }}
+          containers:
+            - name: tracker
+              image: {{ .Values.tracker.cronjob.image.repository }}:{{ .Values.imageTag | default (printf "v%s" .Chart.AppVersion) }}
+              imagePullPolicy: {{ .Values.pullPolicy }}
+              {{- with .Values.tracker.cronjob.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- if .Values.tracker.cacheDir }}
+              env:
+                - name: XDG_CACHE_HOME
+                  value: {{ .Values.tracker.cacheDir | quote }}
+              {{- end }}
+              volumeMounts:
+                - name: tracker-config
+                  mountPath: {{ .Values.tracker.configDir | quote }}
+                  readOnly: true
+                {{- if .Values.tracker.cacheDir }}
+                - name: cache-dir
+                  mountPath: {{ .Values.tracker.cacheDir | quote }}
+                {{- end }}
+                {{- if .Values.tracker.cronjob.extraVolumeMounts }}
+                  {{- include "chart.tplvalues.render" (dict "value" .Values.tracker.cronjob.extraVolumeMounts "context" $) | nindent 16 }}
+                {{- end }}
+          volumes:
+            - name: tracker-config
+              secret:
+                secretName: {{ include "chart.resourceNamePrefix" . }}tracker-config
+            {{- if .Values.tracker.cacheDir }}
+            - name: cache-dir
+              emptyDir: {}
+            {{- end }}
+            {{- if .Values.tracker.cronjob.extraVolumes }}
+              {{- include "chart.tplvalues.render" (dict "value" .Values.tracker.cronjob.extraVolumes "context" $) | nindent 12 }}
+            {{- end }}

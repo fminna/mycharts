@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chart.resourceNamePrefix" . }}hub
+  labels:
+    app.kubernetes.io/component: hub
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.hub.deploy.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: hub
+      {{- include "chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8001"
+      labels:
+        app.kubernetes.io/component: hub
+        {{- include "chart.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.hub.deploy.readinessGates }}
+      readinessGates:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hub.deploy.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Release.IsInstall }}
+      serviceAccountName: {{ include "chart.serviceAccountName" . }}
+      {{- end }}
+      initContainers:
+        - {{- include "chart.checkDbIsReadyInitContainer" . | nindent 10 }}
+        {{- if .Release.IsInstall }}
+        - name: check-db-migrator-run
+          image: "{{ .Values.hub.deploy.initContainers.checkDbMigrator.image.repository }}:{{ .Values.hub.deploy.initContainers.checkDbMigrator.image.tag | default (include "chart.KubernetesVersion" . ) }}"
+          imagePullPolicy: {{ .Values.pullPolicy }}
+          {{- with .Values.hub.deploy.initContainers.checkDbMigrator.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command: ['kubectl', 'wait', '--namespace={{ .Release.Namespace }}', '--for=condition=complete', 'job/{{ include "chart.resourceNamePrefix" . }}db-migrator-install', '--timeout=60s']
+        {{- end }}
+      containers:
+        - name: hub
+          image: {{ .Values.hub.deploy.image.repository }}:{{ .Values.imageTag | default (printf "v%s" .Chart.AppVersion) }}
+          imagePullPolicy: {{ .Values.pullPolicy }}
+          {{- if .Values.hub.server.cacheDir }}
+          env:
+            - name: XDG_CACHE_HOME
+              value: {{ .Values.hub.server.cacheDir | quote }}
+          {{- end }}
+          volumeMounts:
+            - name: hub-config
+              mountPath: {{ .Values.hub.server.configDir | quote }}
+              readOnly: true
+            {{- if .Values.hub.server.cacheDir }}
+            - name: cache-dir
+              mountPath: {{ .Values.hub.server.cacheDir | quote }}
+            {{- end }}
+            {{- if .Values.hub.deploy.extraVolumeMounts }}
+              {{- include "chart.tplvalues.render" (dict "value" .Values.hub.deploy.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          {{- with .Values.hub.deploy.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.hub.deploy.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.hub.deploy.livenessProbe | nindent 12}}
+          {{- end }}
+          {{- if .Values.hub.deploy.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.hub.deploy.readinessProbe | nindent 12}}
+          {{- end }}
+      volumes:
+        - name: hub-config
+          secret:
+            secretName: {{ include "chart.resourceNamePrefix" . }}hub-config
+        {{- if .Values.hub.server.cacheDir }}
+        - name: cache-dir
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.hub.deploy.extraVolumes }}
+          {{- include "chart.tplvalues.render" (dict "value" .Values.hub.deploy.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

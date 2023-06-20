@@ -1,0 +1,61 @@
+{{- if .Values.scanner.enabled -}}
+{{- if .Capabilities.APIVersions.Has "batch/v1/CronJob" }}
+apiVersion: batch/v1
+{{- else }}
+apiVersion: batch/v1beta1
+{{- end }}
+kind: CronJob
+metadata:
+  name: {{ include "chart.resourceNamePrefix" . }}scanner
+spec:
+  schedule: "15,45 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+        {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+          restartPolicy: Never
+          initContainers:
+            - {{- include "chart.checkDbIsReadyInitContainer" . | nindent 14 }}
+          containers:
+            - name: scanner
+              image: {{ .Values.scanner.cronjob.image.repository }}:{{ .Values.imageTag | default (printf "v%s" .Chart.AppVersion) }}
+              imagePullPolicy: {{ .Values.pullPolicy }}
+              {{- with .Values.scanner.cronjob.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- if .Values.scanner.cacheDir }}
+              env:
+                - name: TRIVY_CACHE_DIR
+                  value: {{ .Values.scanner.cacheDir | quote }}
+              {{- end }}
+              volumeMounts:
+                - name: scanner-config
+                  mountPath: {{ .Values.scanner.configDir | quote }}
+                  readOnly: true
+                {{- if .Values.scanner.cacheDir }}
+                - name: cache-dir
+                  mountPath: {{ .Values.scanner.cacheDir | quote }}
+                {{- end }}
+                {{- if .Values.scanner.cronjob.extraVolumeMounts }}
+                  {{- include "chart.tplvalues.render" (dict "value" .Values.scanner.cronjob.extraVolumeMounts "context" $) | nindent 16 }}
+                {{- end }}
+          volumes:
+            - name: scanner-config
+              secret:
+                secretName: {{ include "chart.resourceNamePrefix" . }}scanner-config
+            {{- if .Values.scanner.cacheDir }}
+            - name: cache-dir
+              emptyDir: {}
+            {{- end }}
+            {{- if .Values.scanner.cronjob.extraVolumes }}
+              {{- include "chart.tplvalues.render" (dict "value" .Values.scanner.cronjob.extraVolumes "context" $) | nindent 12 }}
+            {{- end }}
+{{- end }}

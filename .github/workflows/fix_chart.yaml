@@ -1,0 +1,75 @@
+name: Fix all Issues
+
+on:
+  workflow_call:
+    inputs:
+
+      iteration:
+        required: true
+        type: string
+
+      template:
+        type: string
+      
+      chart_folder:
+        required: true
+        type: string
+
+      first_tool:
+        required: true
+        type: string
+
+jobs:
+
+  fix_chart:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+
+      - name: Download result scan artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: results_${{ inputs.iteration }}
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install python packages
+        shell: bash
+        run: |
+          cd .github/scripts
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run fixer script
+        shell: bash
+        run: python .github/scripts/main.py --check
+        env:
+          chart_folder: ${{ inputs.chart_folder }}
+          iteration: ${{ inputs.iteration }}
+          first_tool: ${{ inputs.first_tool }}
+
+      - name: Print fixed template
+        shell: bash
+        run: cat templates/${{ inputs.chart_folder }}_fixed_template.yaml
+
+      - name: Delete results file
+        shell: bash
+        run: rm results_${{ inputs.iteration }}.json
+
+      - name: Commit and push changes
+        shell: bash
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add templates/${{ inputs.chart_folder }}_fixed_template.yaml
+          git commit -m "Fixed ${{ inputs.chart_folder }} template chart"
+          git push
+        continue-on-error: true

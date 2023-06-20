@@ -1,0 +1,15 @@
+.DS_Store
+./*/.DS_Store
+./*/*/.DS_Store
+
+.ignore/
+.vscode/
+
+.github/scripts/Pipfile
+.github/scripts/Pipfile.lock
+.github/scripts/*.json
+.github/scripts/busybox-pod
+.github/scripts/*_template.yaml
+.github/scripts/__pycache__
+
+test_files/

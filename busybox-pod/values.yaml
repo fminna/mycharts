@@ -1,0 +1,92 @@
+replicaCount: 1
+
+image:
+  digest: sha256:1d8a02c7a89283870e8dd6bb93dc66bc258e294491a6bbeb193a044ed88773ea
+  pullPolicy: Always
+  repository: busybox
+  tag: 1.36.0-musl
+
+imagePullSecrets: []
+
+nameOverride: ''
+
+fullnameOverride: ''
+
+serviceAccount:
+  annotations: {}
+  create: true
+  name: ''
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: all
+  fsGroup: 2000
+  privileged: false
+  readOnlyRootFilesystem: true
+  runAsGroup: 3000
+  runAsNonRoot: false
+  runAsUser: 25000
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  port: 80
+  type: ClusterIP
+
+ingress:
+  annotations: {}
+  className: ''
+  enabled: false
+  hosts:
+  - host: chart-example.local
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 128Mi
+  requests:
+    cpu: 250m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  maxReplicas: 100
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+livenessProbe:
+  exec:
+    command:
+    - ls
+    - /
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  exec:
+    command:
+    - ls
+    - /
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+automountServiceAccountToken: false
+
+serviceAccountName: SAtest
+
+namespace: test

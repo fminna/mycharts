@@ -1,0 +1,136 @@
+restrictedHTTPClient: true
+
+log:
+  level: debug
+  pretty: false
+
+events:
+  scanningErrors: true
+  trackingErrors: true
+
+dbMigrator:
+  loadSampleData: false
+
+hub:
+  ingress:
+    annotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{ "HTTP": 80 }, { "HTTPS": 443 }]'
+      alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301" }}'
+      alb.ingress.kubernetes.io/actions.artifacthub-redirect: '{"Type":"redirect", "RedirectConfig": {"Host": "artifacthub.io", "Port": "443", "Protocol": "HTTPS", "StatusCode": "HTTP_301"}}'
+    rules:
+      - host: hub.helm.sh
+        http:
+          paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: artifacthub-redirect
+                  port:
+                    name: use-annotation
+      - http:
+          paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: ssl-redirect
+                  port:
+                    name: use-annotation
+            - path: /
+              pathType: Prefix
+              backend:
+                # This reference expects a static name of the service.
+                # If dynamicResourceNamePrefixEnabled=true, the serviceName needs to be changed to include the dynamic prefix.
+                # The "dynamic-prefix" is generated in the helper function `chart.resourceNamePrefix`.
+                service:
+                  name: hub
+                  port:
+                    number: 80
+  deploy:
+    replicaCount: 3
+    resources:
+      requests:
+        cpu: 2
+        memory: 8000Mi
+  server:
+    bannersURL: https://cncf.github.io/banners/banners.yml
+    baseURL: https://artifacthub.io
+    shutdownTimeout: 20s
+    oauth:
+      github:
+        enabled: true
+        redirectURL: https://artifacthub.io/oauth/github/callback
+      google:
+        enabled: true
+        redirectURL: https://artifacthub.io/oauth/google/callback
+  theme:
+    reportURL: "https://github.com/artifacthub/hub/issues/new?assignees=&labels=abuse+report&template=report-abuse.md&title=%5BABUSE-REPORT%5D+Repository+or+package+name"
+    sampleQueries:
+      - name: OLM operators for databases
+        querystring: "kind=3&category=2"
+      - name: Packages of any kind related to etcd
+        querystring: "ts_query_web=etcd"
+      - name: Falco rules for CVE
+        querystring: "kind=1&ts_query_web=cve"
+      - name: OLM operators in the monitoring category
+        querystring: "kind=3&category=4"
+      - name: Packages from verified publishers
+        querystring: "verified_publisher=true"
+      - name: Official Prometheus packages
+        querystring: "ts_query_web=prometheus&official=true"
+      - name: Operators with auto pilot capabilities
+        querystring: "capabilities=auto+pilot"
+      - name: Helm Charts in the storage category
+        querystring: "kind=0&category=7"
+      - name: Packages with Apache-2.0 license
+        querystring: "license=Apache-2.0"
+      - name: OPA policies with MIT license
+        querystring: "kind=2&license=MIT"
+      - name: Helm plugins
+        querystring: "kind=6"
+      - name: Kubectl plugins
+        querystring: "kind=5"
+      - name: Tekton tasks and pipelines
+        querystring: "kind=7&kind=11"
+      - name: Gatekeeper policies
+        querystring: "kind=14"
+      - name: Kubewarden policies
+        querystring: "kind=13"
+      - name: KEDA scalers
+        querystring: "kind=8"
+      - name: Keptn integrations
+        querystring: "kind=10"
+
+scanner:
+  cronjob:
+    resources:
+      requests:
+        cpu: 2
+        memory: 8000Mi
+  concurrency: 5
+
+tracker:
+  cronjob:
+    resources:
+      requests:
+        cpu: 2
+        memory: 4000Mi
+
+trivy:
+  deploy:
+    resources:
+      requests:
+        cpu: 1
+        memory: 4000Mi
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClassName: gp2
+  authURL: https://registry.hub.docker.com
+
+postgresql:
+  enabled: false

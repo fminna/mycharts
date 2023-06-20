@@ -1,0 +1,66 @@
+name: Run checker tool
+
+on:
+  workflow_call:
+    inputs:
+
+      iteration:
+        required: true
+        type: string
+
+      chart_folder:
+        required: true
+        type: string
+
+      first_tool:
+        type: string
+      
+      second_tool:
+        type: string  
+
+
+jobs:
+
+  run_checkov_first:
+    if: ${{ inputs.first_tool == 'checkov' }}
+    uses: ./.github/workflows/run_checkov.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_checkov_second:
+    if: ${{ inputs.second_tool == 'checkov' }}
+    uses: ./.github/workflows/run_checkov.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_datree_first:
+    if: ${{ inputs.first_tool == 'datree' }}
+    uses: ./.github/workflows/run_datree.yaml      
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+    secrets: inherit
+
+  run_datree_second:
+    if: ${{ inputs.second_tool == 'datree' }}
+    uses: ./.github/workflows/run_datree.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+    secrets: inherit
+
+  run_kics_first:
+    if: ${{ inputs.first_tool == 'kics' }}
+    uses: ./.github/workflows/run_kics.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_kics_second:
+    if: ${{ inputs.second_tool == 'kics' }}
+    uses: ./.github/workflows/run_kics.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}

@@ -1,0 +1,65 @@
+name: Main Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+
+      chart_folder:
+        description: 'The path to the Helm Chart folder'
+        required: true
+        default: 'busybox-pod'
+        type: string
+
+      first_tool:
+        description: 'The first tool to analyze the chart'
+        required: true
+        default: 'checkov'
+        type: string
+      
+      second_tool:
+        description: 'The second tool to analyze the chart'
+        required: true
+        default: 'checkov'
+        type: string 
+
+jobs:
+
+  step_1:
+    uses: ./.github/workflows/run_checker.yaml
+    with:
+      iteration: 1
+      chart_folder: ${{ inputs.chart_folder }}
+      first_tool: ${{ inputs.first_tool }}
+    secrets: inherit
+
+  step_2:
+    needs: [step_1]
+    uses: ./.github/workflows/fix_chart.yaml
+    with:
+      iteration: 1
+      chart_folder: ${{ inputs.chart_folder }}
+      first_tool: ${{ inputs.first_tool }}
+
+  debug:
+    needs: [step_1, step_2]
+    uses: ./.github/workflows/run_checker.yaml
+    with:
+      iteration: 2
+      chart_folder: ${{ inputs.chart_folder }}
+      first_tool: ${{ inputs.first_tool }}
+    secrets: inherit
+
+  step_3:
+    needs: [step_1, step_2, debug]
+    uses: ./.github/workflows/add_funcionalities.yaml
+    with:
+      chart_folder: ${{ inputs.chart_folder }}
+
+  step_4:
+    needs: [step_1, step_2, debug, step_3]
+    uses: ./.github/workflows/run_checker.yaml
+    with:
+      iteration: 3
+      chart_folder: ${{ inputs.chart_folder }}
+      second_tool: ${{ inputs.second_tool }}
+    secrets: inherit

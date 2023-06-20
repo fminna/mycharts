@@ -1,0 +1,54 @@
+name: Run Datree
+
+on:
+  workflow_call:
+    inputs:
+
+      iteration:
+        required: true
+        type: string
+      
+      chart_folder:
+        required: true
+        type: string
+
+    secrets:
+
+      DATREE_TOKEN: 
+        description: 'Datree API token'
+        required: true
+
+env:
+  DATREE_TOKEN: ${{ secrets.DATREE_TOKEN }}
+
+jobs:
+
+  run_datree:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+
+      - name: Run Datree Policy Check
+        uses: datreeio/action-datree@main
+        with:
+          path: 'templates/${{ inputs.chart_folder }}_template.yaml'
+          cliArguments: '--only-k8s-files --quiet sarif'
+        continue-on-error: true
+
+      - name: Print Datree result
+        shell: bash
+        run: |
+          jq '.[]' datree.sarif > results_${{ inputs.iteration }}.json
+          cat results_${{ inputs.iteration }}.json
+
+      - name: Upload the JSON results artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: results_${{ inputs.iteration }}
+          path: results_${{ inputs.iteration }}.json
+          if-no-files-found: error
