@@ -20,8 +20,11 @@ import os
 import json
 import argparse
 import checkov_fix_chart
-import kics_fix_chart
 import datree_fix_chart
+import kics_fix_chart
+import kubelinter_fix_chart
+import kubeaudit_fix_chart
+import kubescape_fix_chart
 import add_functionalities
 import generate_docker_run
 
@@ -88,7 +91,7 @@ def main():
 
     # Get chart_folder from ENV
     chart_folder = os.environ.get("chart_folder")
-    chart_folder = "mysql"
+    # chart_folder = "mysql"
 
     # Fix the chart based on the results of a tool
     if args.check:
@@ -98,8 +101,8 @@ def main():
         result_path = "results_" + iteration + ".json"
         tool = os.environ.get("first_tool")
 
-        # result_path = "test_files/checkov_results.json"
-        # tool = "checkov"
+        # result_path = "test_files/kubescape_results.json"
+        # tool = "kubescape"
 
         # Generate chart template on the fly
         # generate_helm_template(chart_folder)
@@ -120,11 +123,20 @@ def main():
                 # Iterate the failed checks
                 kics_fix_chart.iterate_checks(chart_folder, result_path)
 
-        # elif tool == "kubeaudit": ...
-        # elif tool == "kube-linter": ...
-        # elif tool == "kubescape": ...
+        elif tool == "kubelinter":
+            # check if result["Summary"]["ChecksStatus"] == "Failed"
+            kubelinter_fix_chart.iterate_checks(chart_folder, result_path)
+
+        elif tool == "kubeaudit":
+            # JSON format is not valid; failed checks are only given by file lines
+            kubeaudit_fix_chart.iterate_checks(chart_folder, result_path)
+
+        elif tool == "kubescape":
+            # "resourcesSeverityCounters"
+            kubescape_fix_chart.iterate_checks(chart_folder, result_path)
+
         # elif tool == "terrascan": ...
-        # elif tool == "snyk CLI": ...
+
 
         else:
             print("Tool not supported. Exiting...")
