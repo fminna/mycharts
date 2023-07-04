@@ -36,7 +36,7 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     print("Starting to fix chart's issues ...\n")
 
     for check in results["policyValidationResults"][0]["ruleResults"]:
-        print(check["identifier"])
+        print(f"{check['identifier']}: {check['name']}")
         fix_issue(check, template)
 
     print("\nAll issues fixed!")
@@ -127,7 +127,7 @@ class LookupClass:
         "CRONJOB_MISSING_CONCURRENCYPOLICY_KEY": "",
         "INGRESS_INCORRECT_HOST_VALUE_PERMISSIVE": "",
         "SERVICE_INCORRECT_TYPE_VALUE_NODEPORT": "",
-        "CONTAINERS_INCORRECT_RUNASUSER_VALUE_LOWUID": "",
+        "CONTAINERS_INCORRECT_RUNASUSER_VALUE_LOWUID": "check_13",
         "CONTAINERS_INCORRECT_KEY_HOSTPORT": "check_29",
         "CONTAINER_CVE2021_25741_INCORRECT_SUBPATH_KEY": "check_50",
     }

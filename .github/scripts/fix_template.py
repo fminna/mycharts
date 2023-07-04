@@ -53,7 +53,7 @@ def parse_yaml_template(chart_folder: str) -> list:
 
     # Parse and return the multi-document YAML file while preserving comments
     file_path = "templates/" + chart_folder + "_template.yaml"
-    # file_path = "test_files/mysql_template.yaml"
+    file_path = "test_files/mysql_template.yaml"
     with open(file_path, "r", encoding="utf-8") as file:
         return list(yaml.load_all(file, Loader=yaml.FullLoader))
 
@@ -72,7 +72,7 @@ def save_yaml_template(template: str, chart_folder: str):
     # comments = parse_yaml_comments(chart_folder)
 
     file_path = "templates/" + chart_folder + "_template.yaml"
-    # file_path = "test_files/mysql_fixed_template.yaml"
+    file_path = "test_files/mysql_fixed_template.yaml"
     with open(file_path, 'w', encoding="utf-8") as file:
         yaml.safe_dump_all(template, file, sort_keys=False)
         # yaml.safe_dump_all(json.dumps(template).strip())
@@ -251,10 +251,14 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                     keys = check["obj_path"].split("/")
                     obj = document
 
-                    no_path_checks = ["check_13", "check_14", "check_28", "check_31", "check_29", \
-                                      "check_26", "check_32", "check_49"]
+                    no_path_checks = ["check_14", "check_28", "check_31", "check_29", \
+                                      "check_26"]
                     if check_id in no_path_checks:
                         process_func(obj)
+                        break
+
+                    if check_id == "check_32":
+                        process_func(obj, check["obj_path"])
                         break
 
                     if check_id == "check_35":
@@ -262,18 +266,16 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                         break
 
                     if check_id == "check_33":
-                        secret = obj
-                        for key in keys:
-                            if key:
-                                if key.isdigit():
-                                    key = int(key)
-                                secret = secret[key]
-
-                        if "template" in keys:
-                            process_func(obj["spec"]["template"]["spec"], secret)
+                        if "template" in obj["spec"]:
+                            process_func(obj["spec"]["template"]["spec"])
                         else:
-                            process_func(obj["spec"], secret)
+                            process_func(obj["spec"])
                         break
+
+                    # For KICS, do not iterate keys
+                    if check_id == "check_36":
+                        if "automountServiceAccountToken" in obj:
+                            keys = []
 
                     for key in keys:
                         if key:
@@ -290,6 +292,16 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                             process_func(obj, "", check["drop"])
                         else:
                             process_func(obj, "", ["ALL"])
+
+                    elif check_id == "check_48":
+                        # Append namespace LimitRange to the template
+                        limit_range = process_func(obj)
+                        template.append(limit_range)
+
+                    elif check_id == "check_49":
+                        # Append namespace ResourceQuota to the template
+                        resource_quota = process_func(obj)
+                        template.append(resource_quota)
 
                     elif "value" in check:
                         process_func(obj, check["value"])
@@ -380,12 +392,10 @@ def set_capabilities(obj: dict, add="", drop=""):
             }
         }
 
-    # If no "capabilities" in securityContext, set it and drop all capabilities
+    # If no "capabilities" in securityContext, add "capabilities" and set drop to all
     elif "capabilities" not in obj["securityContext"]:
-        obj["securityContext"] = {
-            "capabilities": {
-                "drop": drop
-            }
+        obj["securityContext"]["capabilities"] = {
+            "drop": drop
         }
 
     # If "capabilities" in securityContext, but insecure capabilities are granted,
@@ -541,19 +551,46 @@ def set_memory_request(obj: dict, value="128Mi"):
         obj["resources"]["requests"]["memory"] = value
 
 
-def set_limit_range(obj: dict, value=""):
+def set_limit_range(obj: dict) -> dict:
     """Set cpu and memory limits to each K8s object.
 
     Policy: CPU and Memory limits should be set
     
     Args:
         obj (dict): K8s object to modify.
+
+    Returns:
+        dict: LimitRange object
     """
 
-    print("TODO")
+    namespace = obj["metadata"]["namespace"]
+    if namespace == "default":
+        namespace = "test-ns"
+    limit_range = {
+        "apiVersion": "v1",
+        "kind": "LimitRange",
+        "metadata": {
+            "name": "cpu-min-max-demo-lr",
+            "namespace": namespace
+        },
+        "spec": {
+            "limits": [
+                {
+                    "max": {
+                        "cpu": "800m"
+                    },
+                    "min": {
+                        "cpu": "250m"
+                    },
+                    "type": "Container"
+                }
+            ]
+        }
+    }
+    return limit_range
 
 
-def set_resource_quota(obj: dict, value=""):
+def set_resource_quota(obj: dict) -> dict:
     """Set priorityClassName to each K8s object.
 
     Policy: Each namespace should have a ResourceQuota policy associated to limit the total amount
@@ -561,9 +598,39 @@ def set_resource_quota(obj: dict, value=""):
     
     Args:
         obj (dict): K8s object to modify.
+
+    Returns:
+        dict: ResourceQuota object
     """
 
-    print("TODO")
+    namespace = obj["metadata"]["namespace"]
+    if namespace == "default":
+        namespace = "test-ns"
+    resource_quota = {
+        "apiVersion": "v1",
+        "kind": "ResourceQuota",
+        "metadata": {
+            "name": "pods-high",
+            "namespace": namespace
+        },
+        "spec": {
+            "hard": {
+                "cpu": "1000",
+                "memory": "200Gi",
+                "pods": "10"
+            },
+            "scopeSelector": {
+                "matchExpressions": [
+                    {
+                        "operator": "In",
+                        "scopeName": "PriorityClass",
+                        "values": ["high"]
+                    }
+                ]
+            }
+        }
+    }
+    return resource_quota
 
 
 def set_root(obj: dict, value=True, uid=25000, gid=3000, fsg=2000):
@@ -597,14 +664,47 @@ def set_root(obj: dict, value=True, uid=25000, gid=3000, fsg=2000):
         obj["securityContext"]["runAsNonRoot"] = value
 
     # If runAsUser is not set in securityContext, Set it
-    if "runAsUser" not in obj["securityContext"]:
+    if "runAsUser" not in obj["securityContext"] or \
+        int(obj["securityContext"]["runAsUser"]) < 9999:
         obj["securityContext"]["runAsUser"] = uid
     # If runAsGroup is not set in securityContext, Set it
     if "runAsGroup" not in obj["securityContext"]:
         obj["securityContext"]["runAsGroup"] = gid
     # If fsGroup is not set in securityContext, Set it
-    if "fsGroup" not in obj["securityContext"]:
+    if "fsGroup" not in obj["securityContext"] or \
+        int(obj["securityContext"]["fsGroup"]) < 9999:
         obj["securityContext"]["fsGroup"] = fsg
+
+
+def set_non_root(obj: dict, value=True, uid=25000):
+    """Set the root user to each K8s object.
+
+    Policy: Minimize the admission of root containers
+    
+    Args:
+        obj (dict): K8s object to modify.
+        value (bool): The value to set the root user to.
+        uid (int): The value to set the runAsUser to.
+    """
+
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+
+    # If securityContext is not set in containers, Set it
+    if "securityContext" not in obj:
+        obj["securityContext"] = {
+            "runAsNonRoot": value,
+            "runAsUser": uid,
+        }
+    # If runAsNonRoot is not set in securityContext, Set it
+    else:
+        obj["securityContext"]["runAsNonRoot"] = value
+
+    # Set runAsUser to uid
+    if int(obj["securityContext"]["runAsUser"]) < 9999:
+        obj["securityContext"]["runAsUser"] = uid
 
 
 def set_priv_esc(obj: dict, value=False):
@@ -628,8 +728,6 @@ def set_priv_esc(obj: dict, value=False):
     # else, set allowPrivilegeEscalation to value
     else:
         obj["securityContext"]["allowPrivilegeEscalation"] = value
-
-    set_read_only(obj)
 
 
 def set_host_port(obj: dict):
@@ -716,7 +814,7 @@ def set_seccomp(obj: dict, profile="runtime/default"):
             }
 
 
-def set_apparmor(obj: dict, profile="runtime/default"):
+def set_apparmor(obj: dict, cont_name: str, profile="runtime/default"):
     """Set the runtime AppArmor default profile to each K8s object.
 
     Policy: Containers should be configured with an AppArmor profile to 
@@ -724,24 +822,52 @@ def set_apparmor(obj: dict, profile="runtime/default"):
     
     Args:
         obj (dict): K8s object to modify.
+        cont_name (str): The name of the container to set the apparmorProfile to.
         profile (str): The name to set the apparmorProfile to.
     """
 
-    if "name" in obj:
-        resource_name = obj["name"]
-    else:
-        resource_name = obj["metadata"]["name"]
+    aux = "container.apparmor.security.beta.kubernetes.io/" + cont_name
 
-    aux = "container.apparmor.security.beta.kubernetes.io/" + resource_name
+    if "template" in obj["spec"]:
+        obj = obj["spec"]["template"]
+
+    # If metadata not in obj, add it
+    if "metadata" not in obj:
+        obj["metadata"] = {
+            "annotations": {
+                aux: profile
+            }
+        }
 
     # If annotations not in metadata, add it
-    if "annotations" not in obj["metadata"]:
+    elif "annotations" not in obj["metadata"]:
         obj["metadata"]["annotations"] = {
             aux: profile
         }
     # If annotations in metadata, add the apparmor annotation
     else:
         obj["metadata"]["annotations"][aux] = profile
+
+
+def remove_storage(obj: dict):
+    """Remove storage request from StatefulSet and Deployment objects.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    del obj["requests"]
+
+
+def set_statefulset_service_name(obj: dict, name: str):
+    """Set the serviceName to each StatefulSet object.
+    
+    Args:
+        obj (dict): K8s object to modify.
+        name (str): The name to set the serviceName to.
+    """
+
+    obj["spec"]["serviceName"] = name
 
 
 def set_security_context(obj: dict):
@@ -836,14 +962,13 @@ def set_subpath(obj: dict):
             del volume["subPath"]
 
 
-def set_secrets_as_files(obj: dict, secret: dict, volume_name="secret-volume"):
+def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret-volume"):
     """
     
     Policy: Prefer using secrets as files over secrets as environment variables
     
     Args:
         obj (dict): K8s object to modify.
-        secret (dict): The secret to add to the object.
         volume_name (str): The name of the volume to add to the object.
     """
 
@@ -858,7 +983,7 @@ def set_secrets_as_files(obj: dict, secret: dict, volume_name="secret-volume"):
         obj["volumes"] = [{
             'name': volume_name,
             'secret': {
-                'secretName': secret["name"]
+                'secretName': secret_name
             }
         }]
     # If volumes in obj, add secret volume
@@ -866,7 +991,7 @@ def set_secrets_as_files(obj: dict, secret: dict, volume_name="secret-volume"):
         obj["volumes"].append({
             'name': volume_name,
             'secret': {
-                'secretName': secret["name"]
+                'secretName': secret_name
             }
         })
 
@@ -877,10 +1002,9 @@ def set_secrets_as_files(obj: dict, secret: dict, volume_name="secret-volume"):
             del container["envFrom"]
 
         if "env" in container:
-            # Find secret env variable
-            for env_var in container["env"]:
-                if env_var["name"] == secret["name"]:
-                    container["env"].remove(env_var)
+            for idx, env_var in enumerate(container["env"]):
+                if 'valueFrom' in env_var:
+                    del container["env"][idx]
 
         # Bind secret volume to container
         # If volumeMounts not in container, add secret volume
@@ -1051,7 +1175,7 @@ class FuncLookupClass:
     "check_10": set_pid_ns,
     "check_11": set_ipc_ns,
     "check_12": set_net_ns,
-    "check_13": set_root,
+    "check_13": set_non_root,
     "check_14": set_root,
     "check_15": todo, # mounting Docker socket
     "check_16": todo,
@@ -1089,6 +1213,8 @@ class FuncLookupClass:
     "check_48": set_limit_range, # limit range
     "check_49": set_resource_quota, # resource quota
     "check_50": set_subpath,
+    "check_52": remove_storage,
+    "check_53": set_statefulset_service_name,
     }
 
     @classmethod

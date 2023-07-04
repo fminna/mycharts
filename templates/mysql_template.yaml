@@ -28,8 +28,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 type: Opaque
 data:
-  mysql-root-password: "UHlKMzJBOGhNUw=="
-  mysql-password: "S1RHOWpvYlVyMw=="
+  mysql-root-password: "OVB6aHBscmQ2aA=="
+  mysql-password: "enVSVDd6eVJpSA=="
 ---
 # Source: mysql/templates/primary/configmap.yaml
 apiVersion: v1

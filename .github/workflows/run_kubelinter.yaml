@@ -1,0 +1,59 @@
+name: Run Kube-linter
+
+on:
+  workflow_call:
+    inputs:
+
+      iteration:
+        required: true
+        type: string
+
+      chart_folder:
+        required: true
+        type: string
+
+
+jobs:
+
+  run_kubelinter:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+
+      - name: Define template chart folder - original
+        if: ${{ inputs.iteration == '1'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_template.yaml" >> $GITHUB_ENV
+
+      - name: Define template chart folder - fixed
+        if: ${{ inputs.iteration == '2'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_fixed_template.yaml" >> $GITHUB_ENV
+
+      - name: Define template chart folder - functionalities
+        if: ${{ inputs.iteration == '3'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
+
+      - name: Test with Kube-linter
+        id: kube-lint-scan
+        uses: stackrox/kube-linter-action@v1
+        with:
+          directory: ${{ env.TEMPLATE }}
+          format: json
+          output-file: results_${{ inputs.iteration }}.json
+        continue-on-error: true
+        # Reference: https://github.com/stackrox/kube-linter-action/blob/main/.github/workflows/kube-linter-sample.yml
+
+      - name: Print Kube-linter result
+        shell: bash
+        run: jq . results_${{ inputs.iteration }}.json
+
+      - name: Upload the JSON results artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: results_${{ inputs.iteration }}
+          path: results_${{ inputs.iteration }}.json
+          if-no-files-found: error

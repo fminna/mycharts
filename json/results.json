@@ -1,0 +1,139 @@
+{
+	"kics_version": "1.7.2",
+	"files_scanned": 1,
+	"lines_scanned": 332,
+	"files_parsed": 1,
+	"lines_parsed": 332,
+	"files_failed_to_scan": 0,
+	"queries_total": 144,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"HIGH": 2,
+		"INFO": 0,
+		"LOW": 3,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 5,
+	"total_bom_resources": 0,
+	"start": "2023-07-03T18:51:09.108341+02:00",
+	"end": "2023-07-03T18:51:15.92649+02:00",
+	"paths": [
+		"test_files/mysql_fixed_template.yaml",
+		"/usr/local/opt/kics/share/kics/assets/queries"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "test_files/mysql_fixed_template.yaml",
+					"similarity_id": "4b10493ad122e19ce69dd3a19ce26e7c800f35c1b3d512fe3ae3c14eaafdaf3e",
+					"line": 29,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				},
+				{
+					"file_name": "test_files/mysql_fixed_template.yaml",
+					"similarity_id": "9fd22b59995feafb5b5c5d3bbf5f6e75bd27f49fa721960c8c2d0bcd72825af0",
+					"line": 28,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"category": "Access Control",
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "test_files/mysql_fixed_template.yaml",
+					"similarity_id": "7e10ae06666d3731f47401096211b6086dc8b8d342ad20f3b09bc2c9a0ec32ad",
+					"line": 177,
+					"resource_type": "StatefulSet",
+					"resource_name": "release-name-mysql",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{release-name-mysql}}.spec.template.metadata",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "metadata.name={{release-name-mysql}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{mysql}}",
+					"actual_value": "metadata.name={{release-name-mysql}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{mysql}}"
+				}
+			]
+		},
+		{
+			"query_name": "StatefulSet Requests Storage",
+			"query_id": "8cf4671a-cf3d-46fc-8389-21e7405063a2",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"category": "Build Process",
+			"description": "A StatefulSet requests volume storage.",
+			"description_id": "6210afe6",
+			"files": [
+				{
+					"file_name": "test_files/mysql_fixed_template.yaml",
+					"similarity_id": "07a68d37d63e8e40473f11f3271d44020b734b6593771ca009b3e9538c453718",
+					"line": 301,
+					"resource_type": "StatefulSet",
+					"resource_name": "release-name-mysql",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{release-name-mysql}}.spec.volumeClaimTemplates.spec.resources.requests.storage=8Gi",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "metadata.name={{release-name-mysql}}.spec.volumeClaimTemplates.spec.resources.requests.storage should not be set",
+					"actual_value": "metadata.name={{release-name-mysql}}.spec.volumeClaimTemplates.spec.resources.requests.storage is set to 8Gi"
+				}
+			]
+		},
+		{
+			"query_name": "StatefulSet Without Service Name",
+			"query_id": "bb241e61-77c3-4b97-9575-c0f8a1e008d0",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"category": "Availability",
+			"description": "StatefulSets should have an existing headless 'serviceName'. The headless service labels should also be implemented on StatefulSets labels.",
+			"description_id": "2ce554f2",
+			"files": [
+				{
+					"file_name": "test_files/mysql_fixed_template.yaml",
+					"similarity_id": "69e4f6c50bf9bfb4aba65fe986531f0bab1f64b138cc3f9f858b6191c304c27e",
+					"line": 172,
+					"resource_type": "StatefulSet",
+					"resource_name": "release-name-mysql",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name=release-name-mysql.spec.serviceName",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "metadata.name=release-name-mysql.spec.serviceName should refer to a Headless Service",
+					"actual_value": "metadata.name=release-name-mysql.spec.serviceName doesn't refers to a Headless Service"
+				}
+			]
+		}
+	]
+}

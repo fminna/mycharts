@@ -64,3 +64,59 @@ jobs:
     with:
       iteration: ${{ inputs.iteration }}
       chart_folder: ${{ inputs.chart_folder }}
+
+  run_kubelinter_first:
+    if: ${{ inputs.first_tool == 'kube-linter' }}
+    uses: ./.github/workflows/run_kubelinter.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_kubelinter_second:
+    if: ${{ inputs.second_tool == 'kube-linter' }}
+    uses: ./.github/workflows/run_kubelinter.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_kubeaudit_first:
+    if: ${{ inputs.first_tool == 'kubeaudit' }}
+    uses: ./.github/workflows/run_kubeaudit.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_kubeaudit_second:
+    if: ${{ inputs.second_tool == 'kubeaudit' }}
+    uses: ./.github/workflows/run_kubeaudit.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_kubescape_first:
+    if: ${{ inputs.first_tool == 'kubescape' }}
+    uses: ./.github/workflows/run_kubescape.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_kubescape_second:
+    if: ${{ inputs.second_tool == 'kubescape' }}
+    uses: ./.github/workflows/run_kubescape.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_terrascan_first:
+    if: ${{ inputs.first_tool == 'terrascan' }}
+    uses: ./.github/workflows/run_terrascan.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+
+  run_terrascan_second:
+    if: ${{ inputs.second_tool == 'terrascan' }}
+    uses: ./.github/workflows/run_terrascan.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}

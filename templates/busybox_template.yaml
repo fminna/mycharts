@@ -1,0 +1,15 @@
+---
+# Source: busybox-pod/templates/busybox-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox-pod
+spec:
+  containers:
+  - name: busybox-container
+    image: busybox
+    command:
+    - /bin/sh
+    args:
+    - -c
+    - while true; do echo "Hello, World!"; sleep 10; done

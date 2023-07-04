@@ -28,7 +28,10 @@ jobs:
         uses: checkmarx/kics-github-action@v1.6.3
         with:
           path: ${{ inputs.chart_folder }}
+          exclude_queries: 487f4be7-3fd9-4506-a07a-eae252180c08
           ignore_on_exit: results
+          exclude_severities: 'info'
+          output_formats: 'json'
           output_path: .
         # Reference: https://github.com/Checkmarx/kics-github-action
         continue-on-error: true

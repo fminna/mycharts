@@ -16,12 +16,14 @@
 """
 
 from typing import Callable
+import yaml
 import json
+import re
 import fix_template
 
 
 def iterate_checks(chart_folder: str, json_path: str) -> None:
-    """Parses JSON data and iterates "check_id" keys.
+    """Parses JSON data and iterates "query_id" keys.
 
     Args:
         chart_folder (str): The name of the chart to fix.
@@ -36,7 +38,11 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     print("Starting to fix chart's issues ...\n")
 
     for check in results["queries"]:
-        print(check["query_name"])
+        print(f"{check['query_id']}: {check['query_name']}")
+
+        # if check["query_id"] == "487f4be7-3fd9-4506-a07a-eae252180c08":
+        #     remove_password(chart_folder, check["files"])
+
         fix_issue(check, template)
 
     print("\nAll issues fixed!")
@@ -66,7 +72,15 @@ def find_resource_idx(template: dict, resource_path: str, obj_path: str, obj_nam
             # Find the object
             keys = obj_path.split("/")
             objects = document
+
             for key in keys:
+
+                if key == "containers" and "template" in objects:
+                    objects = objects["template"]["spec"]
+
+                if key == "env":
+                    break
+
                 objects = objects[key]
 
             for idx, obj in enumerate(objects):
@@ -92,50 +106,118 @@ def fix_issue(check: str, template: dict) -> None:
 
     # Check if the function exists and call it
     if check_id is not None:
+        for file in check["files"]:
 
-        resource_path = check["files"][0]["resource_type"] + "/" + \
-                        check["files"][0]["resource_name"]
-        obj_path = check["files"][0]["search_key"]
+            resource_path = file["resource_type"] + "/" + \
+                            file["resource_name"]
+            obj_path = file["search_key"]
 
-        no_path_checks = ["check_26", "check_32", "check_49", "check_50"]
-        if check_id in no_path_checks:
-            obj_path = ""
+            no_path_checks = ["check_26", "check_48", "check_49", "check_53"]
+            if check_id in no_path_checks:
+                obj_path = ""
 
-        else:
-            obj_path = obj_path.split("}}.")[1]
+            elif check_id == "check_32":
+                pattern = r"\{\{([^}]*)\}\}"
+                matches = re.findall(pattern, file["expected_value"])
+                obj_path = matches[-1]
 
-            obj_name = ""
-            if ".name=" in obj_path:
-                obj_name = obj_path.split(".name=")[1]
-                obj_name = obj_name.replace("{{", "")
-                obj_name = obj_name.replace("}}", "")
-                if "." in obj_name:
-                    obj_name = obj_name.split(".")[0]
+            else:
+                obj_path = obj_path.split("}}.")[1]
 
-                obj_path = obj_path.split(".name=")[0]
+                obj_name = ""
+                if ".name=" in obj_path:
+                    obj_name = obj_path.split(".name=")[1]
+                    obj_name = obj_name.replace("{{", "")
+                    obj_name = obj_name.replace("}}", "")
+                    if "." in obj_name:
+                        obj_name = obj_name.split(".")[0]
+
+                    obj_path = obj_path.split(".name=")[0]
+                    obj_path = obj_path.replace(".", "/")
+
+                    idx = find_resource_idx(template, resource_path, obj_path, obj_name)
+                    if idx:
+                        obj_path += "/" + idx
+
+            if check_id == "check_23":
+                obj_path = "spec/template/spec/containers/" + str(idx)
+
+            elif check_id == "check_52":
                 obj_path = obj_path.replace(".", "/")
+                obj_path = obj_path.replace("volumeClaimTemplates", "volumeClaimTemplates/0")
+                # Delete the last part of obj_path after requests
+                obj_path = "/".join(obj_path.split("/")[:-2])
 
-                idx = find_resource_idx(template, resource_path, obj_path, obj_name)
-                if idx:
-                    obj_path += "/" + idx
+            check = {
+                "resource_path": resource_path,
+                "obj_path": obj_path
+            }
 
-        check = {
-            "resource_path": resource_path,
-            "obj_path": obj_path
-        }
+            if check_id == "check_53":
+                check["value"] = get_headless_service_name(template)
 
-        print("ADD POLICIES")
-        print("https://docs.kics.io/latest/queries/all-queries/")
-
-        fix_template.set_template(template, check_id, check)
+            fix_template.set_template(template, check_id, check)
 
     else:
         print("No fix found for check ID: " + check["query_id"])
 
 
+def get_headless_service_name(template: dict) -> str:
+    """Gets the name of the headless service.
+    
+    Args:
+        template (dict): The parsed YAML template.
+    
+    Returns:
+        name (str): The name of the headless service.
+    """
+
+    for document in template:
+        if document["kind"] == "Service" and \
+            document["spec"]["clusterIP"] == "None":
+            return document["metadata"]["name"]
+
+    return ""
+
+
+def remove_password(chart_folder: str, files: list):
+    """Remove password from K8s object.
+
+    Policy: KICS - Passwords And Secrets - Generic Password
+    
+    Args:
+        chart_folder (str): The name of the chart to fix.
+        files (list): The list of files to fix.
+    """
+
+    file_path = "templates/" + chart_folder + "_template.yaml"
+    file_path = "test_files/mysql_fixed_template.yaml"
+
+    for file in files:
+
+        # Read the contents of the file
+        with open(file_path, 'r', encoding="utf-8") as file:
+            lines = file.readlines()
+
+        line = int(file["line"])
+        # Check if the line_number is valid
+        if line < 1 or line > len(lines):
+            print("Invalid line number.")
+            return
+
+        # Remove the specified line from the list of lines
+        lines.pop(line - 1)
+
+        # Write the modified lines back to the file
+        with open(file_path, 'w', encoding="utf-8") as file:
+            file.writelines(lines)
+
+
 class LookupClass:
     """This class is used to lookup the function to be called for each check.
     """
+
+    # KICS Policies: https://docs.kics.io/latest/queries/all-queries/
 
     _LOOKUP = {
         "5572cc5e-1e4c-4113-92a6-7a8a3bd25e6d": "check_22",
@@ -157,8 +239,8 @@ class LookupClass:
         "ade74944-a674-4e00-859e-c6eab5bde441": "check_7",
         "8b36775e-183d-4d46-b0f7-96a6f34a723f": "check_32",
         "268ca686-7fb7-4ae9-b129-955a2a89064e": "check_23",
-        "4a20ebac-1060-4c81-95d1-1f7f620e983b": "check_49",
-        "48a5beba-e4c0-4584-a2aa-e6894e4cf424": "check_50",
+        "4a20ebac-1060-4c81-95d1-1f7f620e983b": "check_48",
+        "48a5beba-e4c0-4584-a2aa-e6894e4cf424": "check_49",
         "a97a340a-0063-418e-b3a1-3028941d0995": "check_30",
         "a9c2f49d-0671-4fc9-9ece-f4e261e128d0": "check_27",
         "dd29336b-fe57-445b-a26e-e6aa867ae609": "check_21",
@@ -169,7 +251,9 @@ class LookupClass:
         "6b6bdfb3-c3ae-44cb-88e4-7405c1ba2c8a": "check_11",
         "cd290efd-6c82-4e9d-a698-be12ae31d536": "check_12",
         "caa3479d-885d-4882-9aac-95e5e78ef5c2": "check_25",
-        "3d658f8b-d988-41a0-a841-40043121de1e": "check_33"
+        "3d658f8b-d988-41a0-a841-40043121de1e": "check_33",
+        "8cf4671a-cf3d-46fc-8389-21e7405063a2": "check_52",
+        "bb241e61-77c3-4b97-9575-c0f8a1e008d0": "check_53"
     }
 
     @classmethod
