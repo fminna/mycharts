@@ -45,9 +45,6 @@ jobs:
         if: ${{ inputs.iteration == '3'}}
         run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
 
-      - name: Run Datree Policy Check
-        uses: datreeio/action-datree@main
-
       - name: Datree CLI
         uses: datreeio/action-datree@v1.1.0
         with:
