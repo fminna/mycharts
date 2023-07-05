@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
   annotations: null
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 secrets:
 - name: release-name-mysql
 ---
@@ -152,13 +152,14 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
+    app: my-app
 spec:
   replicas: 1
   podManagementPolicy: ''
@@ -174,14 +175,15 @@ spec:
     metadata:
       annotations:
         checksum/configuration: 74f6d694934e49250ce5cfc5e93637df13431c704ef8367a3f69b565dd4aee71
-        container.apparmor.security.beta.kubernetes.io/mysql: runtime/default
         seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/spec/template/spec/containers/0: runtime/default
       labels:
         app.kubernetes.io/name: mysql
         helm.sh/chart: mysql-9.7.1
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: primary
+        app: my-app
     spec:
       serviceAccountName: release-name-mysql
       affinity:
@@ -200,6 +202,7 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
+        allowPrivilegeEscalation: false
       initContainers: null
       containers:
       - name: mysql
@@ -211,9 +214,8 @@ spec:
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          privileged: false
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -269,8 +271,8 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           requests: {}
         volumeMounts:
         - name: data
@@ -282,6 +284,7 @@ spec:
       - name: config
         configMap:
           name: release-name-mysql
+      automountServiceAccountToken: false
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -296,3 +299,47 @@ spec:
       resources:
         requests:
           storage: 8Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
