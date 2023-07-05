@@ -55,6 +55,7 @@ jobs:
       - name: Print Datree result
         shell: bash
         run: |
+          ls -la
           jq '.[]' datree.sarif > results_${{ inputs.iteration }}.json
           cat results_${{ inputs.iteration }}.json
 
