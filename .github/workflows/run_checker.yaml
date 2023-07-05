@@ -66,14 +66,14 @@ jobs:
       chart_folder: ${{ inputs.chart_folder }}
 
   run_kubelinter_first:
-    if: ${{ inputs.first_tool == 'kube-linter' }}
+    if: ${{ inputs.first_tool == 'kubelinter' }}
     uses: ./.github/workflows/run_kubelinter.yaml
     with:
       iteration: ${{ inputs.iteration }}
       chart_folder: ${{ inputs.chart_folder }}
 
   run_kubelinter_second:
-    if: ${{ inputs.second_tool == 'kube-linter' }}
+    if: ${{ inputs.second_tool == 'kubelinter' }}
     uses: ./.github/workflows/run_kubelinter.yaml
     with:
       iteration: ${{ inputs.iteration }}
