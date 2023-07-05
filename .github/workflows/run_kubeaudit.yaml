@@ -43,7 +43,7 @@ jobs:
 
       - name: Install Kubeaudit
         shell: bash
-        run: go install -v github.com/Shopify/kubeaudit
+        run: go install -v github.com/Shopify/kubeaudit@latest
 
       - name: Kubeaudit Debug
         shell: bash
