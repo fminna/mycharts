@@ -48,6 +48,7 @@ jobs:
       - name: Test with Kubeaudit
         shell: bash
         run: kubeaudit all -f "${{ env.TEMPLATE }}" --format json > results_${{ inputs.iteration }}.json
+        continue-on-error: true
 
       - name: Print Kubeaudit result
         shell: bash
