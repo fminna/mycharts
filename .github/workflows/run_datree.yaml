@@ -49,7 +49,7 @@ jobs:
         uses: datreeio/action-datree@main
         with:
           path: '${{ env.TEMPLATE }}'
-          cliArguments: '--only-k8s-files --quiet sarif'
+          cliArguments: '--only-k8s-files --quiet --output json'
         continue-on-error: true
 
       - name: Print Datree result
