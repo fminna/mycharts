@@ -668,16 +668,19 @@ def set_uid(obj: dict, uid=25000):
     else:
         obj["securityContext"]["runAsUser"] = uid
 
-    # Set runAsUser for each container
-    for container in obj["containers"]:
-        if "securityContext" not in container:
-            container["securityContext"] = {
-                "runAsUser": uid
-            }
-        elif "runAsUser" not in container["securityContext"]:
-            container["securityContext"]["runAsUser"] = uid
-        else:
-            container["securityContext"]["runAsUser"] = uid
+    if "containers" in obj:
+        # Set runAsUser for each container
+        for container in obj["containers"]:
+            if "securityContext" not in container:
+                container["securityContext"] = {
+                    "runAsUser": uid
+                }
+            elif "runAsUser" not in container["securityContext"]:
+                container["securityContext"]["runAsUser"] = uid
+            else:
+                container["securityContext"]["runAsUser"] = uid
+    else:
+        obj["securityContext"]["runAsUser"] = uid
 
 
 def set_root(obj: dict, value=True, uid=25000):
