@@ -56,7 +56,7 @@ jobs:
       - name: Print Datree result
         shell: bash
         run: |
-          echo ${{ steps.datree.outputs.stdout }} > results_${{ inputs.iteration }}.json
+          echo ${{ steps.datree.outputs.* }} > results_${{ inputs.iteration }}.json
           cat results_${{ inputs.iteration }}.json
 
       - name: Upload the JSON results artifact
