@@ -35,6 +35,10 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         results = json.load(file)
 
     template = fix_template.parse_yaml_template(chart_folder)
+
+    # List of all checks
+    all_checks = []
+
     print("Starting to fix chart's issues ...\n")
 
     for check in results["queries"]:
@@ -43,9 +47,16 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         # if check["query_id"] == "487f4be7-3fd9-4506-a07a-eae252180c08":
         #     remove_password(chart_folder, check["files"])
 
-        fix_issue(check, template)
+        check_id = fix_issue(check, template)
+        all_checks.append(check_id)
 
-    print("\nAll issues fixed!")
+    print("\nAll issues fixed!\n")
+
+    # Print all found checks
+    all_checks = [x for x in all_checks if x is not None]
+    all_checks.sort()
+    print(", ".join(all_checks))
+
     name = chart_folder + "_fixed"
     fix_template.save_yaml_template(template, name)
 
@@ -90,7 +101,7 @@ def find_resource_idx(template: dict, resource_path: str, obj_path: str, obj_nam
     return ""
 
 
-def fix_issue(check: str, template: dict) -> None:
+def fix_issue(check: str, template: dict) -> str:
     """Fixes a check based on the checkov check ID.
 
     Source: https://www.checkov.io/5.Policy%20Index/kubernetes.html
@@ -148,18 +159,20 @@ def fix_issue(check: str, template: dict) -> None:
                 # Delete the last part of obj_path after requests
                 obj_path = "/".join(obj_path.split("/")[:-2])
 
-            check = {
+            paths = {
                 "resource_path": resource_path,
                 "obj_path": obj_path
             }
 
             if check_id == "check_53":
-                check["value"] = get_headless_service_name(template)
+                paths["value"] = get_headless_service_name(template)
 
-            fix_template.set_template(template, check_id, check)
+            fix_template.set_template(template, check_id, paths)
+            return check_id
 
     else:
         print("No fix found for check ID: " + check["query_id"])
+        return None
 
 
 def get_headless_service_name(template: dict) -> str:

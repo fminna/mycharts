@@ -229,8 +229,19 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
 
     # If Network Policy missing issue, create and append one
     if check_id == "check_40":
+        app = "my-app"
+
+        if check:
+        # Find resource name
+            for document in template:
+                if check_resource_path(check["resource_path"].split("/"), document):
+                    if "labels" in document["metadata"] and \
+                        "app" in document["metadata"]["labels"]:
+                        app = document["metadata"]["labels"]["app"]
+                        break
+
         # Append Network Policy to the template
-        net_policy = set_net_policy()
+        net_policy = set_net_policy(app)
         template.append(net_policy)
 
     else:
@@ -766,22 +777,26 @@ def set_seccomp(obj: dict, profile="runtime/default"):
     # For Datree CIS Benchmark check
     # If annotations not in metadata, add it
 
+    # "seccomp.security.alpha.kubernetes.io/defaultProfileName"
+    # "seccomp.security.alpha.kubernetes.io/pod"
+
     if "template" in obj["spec"]:
         if "annotations" not in obj["spec"]["template"]["metadata"]:
             obj["spec"]["template"]["metadata"]["annotations"] = {
-                "seccomp.security.alpha.kubernetes.io/pod": profile
+                "seccomp.security.alpha.kubernetes.io/defaultProfileName": profile
             }
-        # If annotations is set, but seccomp.security.alpha.kubernetes.io/pod is not, Set it
+        # If annotations is set, but seccomp.security.alpha.kubernetes.io/defaultProfileName is not, Set it
         else:
-            obj["spec"]["template"]["metadata"]["annotations"]["seccomp.security.alpha.kubernetes.io/pod"] = profile
+            obj["spec"]["template"]["metadata"]["annotations"]["seccomp.security.alpha.kubernetes.io/defaultProfileName"] = profile
 
     elif "annotations" not in obj["metadata"]:
         obj["metadata"]["annotations"] = {
-            "seccomp.security.alpha.kubernetes.io/pod": profile
+            "seccomp.security.alpha.kubernetes.io/defaultProfileName": profile
         }
-    # If annotations is set, but seccomp.security.alpha.kubernetes.io/pod is not, Set it
+    # If annotations is set, but seccomp.security.alpha.kubernetes.io/defaultProfileName is not, Set it
     else:
-        obj["metadata"]["annotations"]["seccomp.security.alpha.kubernetes.io/pod"] = profile
+        obj["metadata"]["annotations"]["seccomp.security.alpha.kubernetes.io/defaultProfileName"] = profile
+
     ###############################################
 
     # If template in obj spec, set obj to template
@@ -825,6 +840,13 @@ def set_apparmor(obj: dict, cont_name: str, profile="runtime/default"):
         cont_name (str): The name of the container to set the apparmorProfile to.
         profile (str): The name to set the apparmorProfile to.
     """
+
+    # if not cont_name, get the name of the first container in containers
+    if not cont_name:
+        if "template" in obj["spec"]:
+            cont_name = obj["spec"]["template"]["spec"]["containers"][0]["name"]
+        else:
+            cont_name = obj["spec"]["containers"][0]["name"]
 
     aux = "container.apparmor.security.beta.kubernetes.io/" + cont_name
 
@@ -1082,6 +1104,23 @@ def set_img_pull_policy(obj: dict, value="Always"):
     obj["imagePullPolicy"] = value
 
 
+def set_label_values(obj: dict):
+    """Set Label Values for a K8s resource.
+    
+    Policy: Ensure workload has valid label values
+
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    # Labels: app, tier, phase, version, owner, env
+
+    obj["metadata"]["labels"]["app"] = "my-app"
+
+    if "template" in obj["spec"]:
+        obj["spec"]["template"]["metadata"]["labels"]["app"] = "my-app"
+
+
 def set_img_tag(obj: dict):
     """Set Image Tag for each K8s object.
 
@@ -1119,7 +1158,9 @@ def set_img_digest(obj: dict):
         image_name, image_tag = obj["image"].split(":")
     else:
         image_name = obj["image"]
-        image_tag = get_latest_image_tag(image_name)
+
+    image_name = image_name.split("/")[-1]
+    image_tag = get_latest_image_tag(image_name)
 
     if image_tag:
         # Get the image digest
@@ -1127,7 +1168,7 @@ def set_img_digest(obj: dict):
         obj["image"] = image_name + ":" + image_tag + "@" + image_digest
 
 
-def set_net_policy(value="test-network-policy") -> dict:
+def set_net_policy(app="my-app", name="test-network-policy") -> dict:
     """Returns a network policy for each K8s object.
 
     Policy: Minimize the admission of pods which lack an associated NetworkPolicy
@@ -1136,17 +1177,55 @@ def set_net_policy(value="test-network-policy") -> dict:
         value (str): The name to set the networkPolicy to.
     """
 
-    # Network Policy that allows all ingress traffic
     net_policy = {
         'apiVersion': 'networking.k8s.io/v1',
         'kind': 'NetworkPolicy',
         'metadata': {
-            'name': value
+            'name': name,
+            'namespace': 'test-ns'
         },
         'spec': {
-            'podSelector': {},
-            'ingress': [{}],
-            'policyTypes': ['Ingress']
+            'podSelector': {
+                'matchLabels': {
+                    'app': app
+                }
+            },
+            'policyTypes': ['Ingress', 'Egress'],
+            'ingress': [{
+                'from': [{
+                    'ipBlock': {
+                        'cidr': '172.17.0.0/16',
+                        'except': ['172.17.1.0/24']
+                    }
+                }, {
+                    'namespaceSelector': {
+                        'matchLabels': {
+                            'project': 'myproject'
+                        }
+                    }
+                }, {
+                    'podSelector': {
+                        'matchLabels': {
+                            'role': 'frontend'
+                        }
+                    }
+                }],
+                'ports': [{
+                    'protocol': 'TCP',
+                    'port': 6379
+                }]
+            }],
+            'egress': [{
+                'to': [{
+                    'ipBlock': {
+                        'cidr': '10.0.0.0/24'
+                    }
+                }],
+                'ports': [{
+                    'protocol': 'TCP',
+                    'port': 5978
+                }]
+            }]
         }
     }
 
@@ -1205,7 +1284,7 @@ class FuncLookupClass:
     "check_40": set_net_policy, 
     "check_41": todo, # sysctls
     "check_42": todo, # container pre-stop hook
-    "check_43": todo, # valid label values
+    "check_43": set_label_values, # valid label values
     "check_44": todo, # valid restart policy
     "check_45": todo, # deployment >1 replicas
     "check_46": todo, # owner label
@@ -1214,7 +1293,7 @@ class FuncLookupClass:
     "check_49": set_resource_quota, # resource quota
     "check_50": set_subpath,
     "check_52": remove_storage,
-    "check_53": set_statefulset_service_name,
+    "check_53": set_statefulset_service_name
     }
 
     @classmethod

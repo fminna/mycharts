@@ -25,6 +25,7 @@ import kics_fix_chart
 import kubelinter_fix_chart
 import kubeaudit_fix_chart
 import kubescape_fix_chart
+import terrascan_fix_chart
 import add_functionalities
 import generate_docker_run
 
@@ -101,8 +102,8 @@ def main():
         result_path = "results_" + iteration + ".json"
         tool = os.environ.get("first_tool")
 
-        # result_path = "test_files/kubescape_results.json"
-        # tool = "kubescape"
+        # result_path = "test_files/terrascan_results.json"
+        # tool = "terrascan"
 
         # Generate chart template on the fly
         # generate_helm_template(chart_folder)
@@ -132,11 +133,12 @@ def main():
             kubeaudit_fix_chart.iterate_checks(chart_folder, result_path)
 
         elif tool == "kubescape":
-            # "resourcesSeverityCounters"
+            # "resourcesSeverityCounters" + "controlsSeverityCounters" + "ResourceCounters"
             kubescape_fix_chart.iterate_checks(chart_folder, result_path)
 
-        # elif tool == "terrascan": ...
-
+        elif tool == "terrascan":
+            # "runs" + "results"
+            terrascan_fix_chart.iterate_checks(chart_folder, result_path)
 
         else:
             print("Tool not supported. Exiting...")

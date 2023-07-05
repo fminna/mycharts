@@ -33,105 +33,163 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         results = json.load(file)
 
     template = fix_template.parse_yaml_template(chart_folder)
+
+    # List of all checks
+    all_checks = []
+
     print("Starting to fix chart's issues ...\n")
 
-    for check in results["results"]["failed_checks"]:
-        issue = check["check_id"] + ": " + check["check_name"]
-        print(issue)
-        fix_issue(check, template)
+    for resource in results["results"]:
+        # Extract current resource path
+        resource_path = resource["resourceID"].split("/")
+        resource_path = resource_path[-2] + "/" + resource_path[-3] + "/" + resource_path[-1]
 
-    print("\nAll issues fixed!")
+        # Extract only failed checks "status": { "status": "failed" }
+        for control in resource["controls"]:
+            if control["status"]["status"] == "failed":
+
+                print(f"{control['controlID']}: {control['name']}")
+                check_id = fix_issue(control, resource_path, template)
+                all_checks.append(check_id)
+
+    print("\nAll issues fixed!\n")
+
+    # Print all found checks
+    all_checks = [x for x in all_checks if x is not None]
+    all_checks.sort()
+    print(", ".join(all_checks))
+
     name = chart_folder + "_fixed"
     fix_template.save_yaml_template(template, name)
 
 
-def fix_issue(check: str, template: dict) -> None:
-    """Fixes an issue based on the checkov check ID.
+def fix_issue(control: str, resource_path: str, template: dict) -> str:
+    """Fixes an issue based on the Kubescape check ID.
 
-    Source: https://www.checkov.io/5.Policy%20Index/kubernetes.html
+    Source: https://hub.armosec.io/docs/controls
 
     Args:
-        check (dict): The dictionary representing a check to fix.
+        control (dict): The dictionary representing a check to fix.
+        resource_path (str): The path to the resource to fix.
         template (dict): The parsed YAML template.
     """
 
     # Get function from lookup dictionary
     my_lookup = LookupClass()
-    check_id = my_lookup.get_value(check["check_id"])
+    check_id = my_lookup.get_value(control["controlID"])
 
     # Check if the function exists and call it
     if check_id is not None:
+        for rule in control["rules"]:
 
-        # Resource path (e.g., Pod/default/name)
-        resource_path = check["resource"].replace(".", "/")
+            if control["controlID"] == "C-0030":
+                # then there is no "paths"
+                paths = {
+                        "resource_path": resource_path,
+                        "obj_path": ""
+                }
 
-        # Object path
-        obj_path = ""
-        # If specified, get the object path (e.g., spec/containers/0)
-        if check["check_result"]["evaluated_keys"]:
-            obj_path = check["check_result"]["evaluated_keys"][0]
-            index = obj_path.rfind("]/")
-            if index != -1:
-                obj_path = obj_path[:index+2]
-            obj_path = obj_path.replace("[", "").replace("]", "")
+            else:
+                for path in rule["paths"]:
+                    obj_path = path["fixPath"]["path"]
 
-        check = {
-            "resource_path": resource_path,
-            "obj_path": obj_path
-        }
+                    # Convert obj_path to the correct format
+                    # 'spec.template.spec.containers[0].securityContext.capabilities.drop[0]'
+                    if "containers" in obj_path:
 
-        fix_template.set_template(template, check_id, check)
+                        # find the index of the first ']' occurrence
+                        index = obj_path.find("]")
+                        obj_path = obj_path[:index]
+                        obj_path = obj_path.replace("[", "/")
+
+                    # Resource labels
+                    elif control["controlID"] == "C-0076" or control["controlID"] == "C-0077":
+                        obj_path = ""
+
+                    # 'spec.template.spec.securityContext.allowPrivilegeEscalation'
+                    # 'spec.template.spec.automountServiceAccountToken'
+                    else:
+                        obj_path = obj_path.split(".")[:-2]
+                        obj_path = ".".join(obj_path)
+
+                    obj_path = obj_path.replace(".", "/")
+
+                    paths = {
+                        "resource_path": resource_path,
+                        "obj_path": obj_path
+                    }
+
+            # Memory requests & limits
+            if control["controlID"] == "C-0004":
+                fix_template.set_template(template, "check_1", paths)
+                fix_template.set_template(template, "check_2", paths)
+                return "check_1, check_2"
+
+            # CPU requests & limits
+            elif control["controlID"] == "C-0050":
+                fix_template.set_template(template, "check_4", paths)
+                fix_template.set_template(template, "check_5", paths)
+                return "check_4, check_5"
+
+            # Memory & CPU limits
+            elif control["controlID"] == "C-0009":
+                fix_template.set_template(template, "check_2", paths)
+                fix_template.set_template(template, "check_5", paths)
+                return "check_2, check_5"
+
+            # Linux hardening - AppArmor/Seccomp/SELinux/Capabilities
+            elif control["controlID"] == "C-0055":
+                fix_template.set_template(template, "check_31", paths)
+                fix_template.set_template(template, "check_32", paths)
+                # SeLinux ?
+                fix_template.set_template(template, "check_34", paths)
+                return "check_31, check_32, check_34"
+
+            # Host PID/IPC privileges
+            elif control["controlID"] == "C-0038":
+                fix_template.set_template(template, "check_10", paths)
+                fix_template.set_template(template, "check_11", paths)
+                return "check_10, check_11"
+
+            else:
+                fix_template.set_template(template, check_id, paths)
+                return check_id
 
     else:
-        print("No fix found for check ID: " + check["check_id"])
+        print("No fix found for check ID: " + control["controlID"])
+        return None
 
-
-# We ignore checks CKV_K8S_1-CKV_K8S_8 because they refer to
-# Pod Security Policies, which are deprecated in Kubernetes 1.21.
 
 class LookupClass:
     """This class is used to lookup the function to be called for each check.
     """
 
     _LOOKUP = {
-        "CKV_K8S_8": "check_7", 
-        "CKV_K8S_9": "check_8", 
-        "CKV_K8S_10": "check_4", 
-        "CKV_K8S_11": "check_5", 
-        "CKV_K8S_12": "check_1", 
-        "CKV_K8S_13": "check_2", 
-        "CKV_K8S_14": "check_0", 
-        "CKV_K8S_15": "check_25", 
-        "CKV_K8S_16": "check_21", 
-        "CKV_K8S_17": "check_10", 
-        "CKV_K8S_18": "check_11", 
-        "CKV_K8S_19": "check_12",
-        "CKV_K8S_20": "check_22", 
-        "CKV_K8S_21": "check_26", 
-        "CKV_K8S_22": "check_27", 
-        "CKV_K8S_23": "check_28", 
-        "CKV_K8S_25": "check_34", 
-        "CKV_K8S_26": "", 
-        "CKV_K8S_27": "", 
-        "CKV_K8S_28": "check_34", 
-        "CKV_K8S_29": "check_30", 
-        "CKV_K8S_30": "", 
-        "CKV_K8S_31": "check_31", 
-        "CKV_K8S_33": "", 
-        "CKV_K8S_35": "check_33", 
-        "CKV_K8S_37": "check_34", 
-        "CKV_K8S_38": "check_35", 
-        "CKV_K8S_39": "check_34", 
-        "CKV_K8S_40": "check_28", 
-        "CKV_K8S_41": "check_35", 
-        "CKV_K8S_42": "check_35", 
-        "CKV_K8S_43": "check_9", 
-        "CKV_K8S_44": "", 
-        "CKV_K8S_49": "", 
-        "CKV_K8S_156": "", 
-        "CKV_K8S_157": "", 
-        "CKV_K8S_158": "",
-        "CKV2_K8S_6": "check_40"
+        "C-0075": "check_0",
+        "C-0004": "check_1",
+        "C-0009": "check_4",
+        "C-0050": "check_4",
+        "C-0056": "check_7",
+        "C-0018": "check_8",
+        "C-0038": "check_10",
+        "C-0041": "check_12",
+        "C-0074": "check_15",
+        "C-0057": "check_21",
+        "C-0016": "check_22",
+        "C-0086": "check_22",
+        "C-0046": "check_23",
+        "C-0061": "check_26",
+        "C-0017": "check_27",
+        "C-0013": "check_28",
+        "C-0044": "check_29",
+        "C-0045": "check_29",
+        "C-0055": "check_30",
+        "C-0034": "check_35",
+        "C-0014": "check_38",
+        "C-0076": "check_43",
+        "C-0077": "check_43",
+        "C-0048": "check_46",
+        "C-0030": "check_40",
     }
 
     @classmethod

@@ -33,50 +33,60 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         results = json.load(file)
 
     template = fix_template.parse_yaml_template(chart_folder)
+
+    # List of all checks
+    all_checks = []
+
     print("Starting to fix chart's issues ...\n")
 
-    for check in results["Checks"]:
-        print(f"{check['name']}: {check['description']}")
-        # fix_issue(check, template)
+    for check in results["Reports"]:
+        print(f"{check['Check']}: {check['Diagnostic']['Message']}")
+        check_id = fix_issue(check, template)
+        all_checks.append(check_id)
 
-    print("\nAll issues fixed!")
+    print("\nAll issues fixed!\n")
+
+    # Print all found checks
+    all_checks = [x for x in all_checks if x is not None]
+    all_checks.sort()
+    print(", ".join(all_checks))
+
     name = chart_folder + "_fixed"
     fix_template.save_yaml_template(template, name)
 
 
-def find_resource_idx(template: dict, resource_path: str, obj_path: str, obj_name: str) -> str:
-    """Finds the index of the resource in the YAML template.
-
+def get_container_path(template: dict, resource_path: str, cont_name: str) -> str:
+    """Returns the path to the container in the template.
+    
     Args:
         template (dict): The parsed YAML template.
-        resource_path (str): The path to the resource in the YAML template.
-        obj_path (str): The path to the object in the YAML template.
-        obj_name (str): The name of the resource.
-
+        resource_path (str): The path to the resource in the template.
+        cont_name (str): The name of the container.
+    
     Returns:
-        str: The index as a str of the resource in the YAML template.
+        str: The path to the container in the template.
     """
 
-    resource_path = resource_path.split("/")
+    cont_path = ""
 
     for document in template:
-        if document["kind"] == resource_path[0] and \
-            document["metadata"]["name"] == resource_path[1]:
+        if fix_template.check_resource_path(resource_path.split("/"), document):
 
-            # Find the object
-            keys = obj_path.split("/")
-            objects = document
-            for key in keys:
-                objects = objects[key]
+            document = document["spec"]
+            cont_path += "spec/"
 
-            for idx, obj in enumerate(objects):
-                if obj["name"] == obj_name:
-                    return str(idx)
+            if "template" in document:
+                document = document["template"]["spec"]
+                cont_path += "template/spec/"
 
-    return ""
+            for idx, container in enumerate(document["containers"]):
+                if container["name"] == cont_name:
+                    cont_path += "containers/" + str(idx)
+
+    return cont_path
 
 
-def fix_issue(check: str, template: dict) -> None:
+def fix_issue(check: str, template: dict) -> str:
     """Fixes a check based on the Kubelinter check ID.
 
     Source: https://docs.kubelinter.io/#/generated/checks
@@ -88,26 +98,59 @@ def fix_issue(check: str, template: dict) -> None:
 
     # Get function from lookup dictionary
     my_lookup = LookupClass()
-    check_id = my_lookup.get_value(check["name"])
+    check_id = my_lookup.get_value(check["Check"])
 
     # Check if the function exists and call it
     if check_id is not None:
 
         # resource["kind"]["namespace"]["name"]
-        resource_path = ""
+        kind = check["Object"]["K8sObject"]["GroupVersionKind"]["Kind"]
+        namespace = check["Object"]["K8sObject"]["Namespace"]
+        name = check["Object"]["K8sObject"]["Name"]
+        resource_path = f"{kind}/{namespace}/{name}"
 
         # spec/template/spec/containers/0/
         obj_path = ""
 
-        check = {
+        if "container" in check["Diagnostic"]["Message"]:
+            # Extract characters between \" and \"
+            cont_name = check["Diagnostic"]["Message"].split("\"")[1]
+            # Find container path based on container name
+            obj_path = get_container_path(template, resource_path, cont_name)
+
+        paths = {
             "resource_path": resource_path,
             "obj_path": obj_path
         }
 
-        fix_template.set_template(template, check_id, check)
+        print(obj_path)
+
+        # Memory limits & requests
+        if check["Check"] == "unset-memory-requirements":
+            fix_template.set_template(template, "check_1", paths)
+            fix_template.set_template(template, "check_2", paths)
+            return "check_1, check_2"
+
+        # CPU limits & requests
+        elif check["Check"] == "unset-cpu-requirements":
+            fix_template.set_template(template, "check_4", paths)
+            fix_template.set_template(template, "check_5", paths)
+            return "check_4, check_5"
+
+        # allowPrivilegeEscalation + privileged + Capabilities
+        elif check["Check"] == "privilege-escalation-container":
+            fix_template.set_template(template, "check_22", paths)
+            fix_template.set_template(template, "check_21", paths)
+            fix_template.set_template(template, "check_34", paths)
+            return "check_22, check_21, check_34"
+
+        else:
+            fix_template.set_template(template, check_id, paths)
+            return check_id
 
     else:
-        print("No fix found for check ID: " + check["name"])
+        print("No fix found for check ID: " + check["Check"])
+        return None
 
 
 class LookupClass:
@@ -115,8 +158,24 @@ class LookupClass:
     """
 
     _LOOKUP = {
-        "": "",
-        "": ""
+        "latest-tag": "check_0",
+        "unset-memory-requirements": "check_1",
+        "unset-cpu-requirements": "check_4",
+        "no-readiness-probe": "check_8",
+        "host-pid": "check_10",
+        "host-ipc": "check_11",
+        "host-network": "check_12",
+        "docker-sock": "check_15",
+        "privileged-container": "check_21",
+        "privilege-escalation-container": "check_22",
+        "drop-net-raw-capability": "check_23",
+        "no-read-only-root-fs": "check_27",
+        "run-as-non-root": "check_28",
+        "env-var-secret": "check_33",
+        "deprecated-service-account-field": "check_37",
+        "wildcard-in-rules": "check_39",
+        "unsafe-sysctls": "check_41",
+        "sensitive-host-mounts": "check_47"
     }
 
     @classmethod

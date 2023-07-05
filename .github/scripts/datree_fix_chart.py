@@ -33,18 +33,29 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         results = json.load(file)
 
     template = fix_template.parse_yaml_template(chart_folder)
+
+    # List of all checks
+    all_checks = []
+
     print("Starting to fix chart's issues ...\n")
 
     for check in results["policyValidationResults"][0]["ruleResults"]:
         print(f"{check['identifier']}: {check['name']}")
-        fix_issue(check, template)
+        check_id = fix_issue(check, template)
+        all_checks.append(check_id)
 
-    print("\nAll issues fixed!")
+    print("\nAll issues fixed!\n")
+
+    # Print all found checks
+    all_checks = [x for x in all_checks if x is not None]
+    all_checks.sort()
+    print(", ".join(all_checks))
+
     name = chart_folder + "_fixed"
     fix_template.save_yaml_template(template, name)
 
 
-def fix_issue(check: str, template: dict) -> None:
+def fix_issue(check: str, template: dict) -> str:
     """Fixes a check based on the Datree check identifier.
 
     Source: https://hub.datree.io/built-in-rules
@@ -71,15 +82,17 @@ def fix_issue(check: str, template: dict) -> None:
                 obj_path = obj_path[:idx+1]
                 break
 
-        check = {
+        paths = {
             "resource_path": resource_path,
             "obj_path": obj_path
         }
 
-        fix_template.set_template(template, check_id, check)
+        fix_template.set_template(template, check_id, paths)
+        return check_id
 
     else:
         print("No fix found for check ID: " + check["identifier"])
+        return None
 
 
 class LookupClass:

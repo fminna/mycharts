@@ -49,17 +49,17 @@ jobs:
       first_tool: ${{ inputs.first_tool }}
     secrets: inherit
 
-  step_3:
-    needs: [step_1, step_2, debug]
-    uses: ./.github/workflows/add_funcionalities.yaml
-    with:
-      chart_folder: ${{ inputs.chart_folder }}
+  # step_3:
+  #   needs: [step_1, step_2, debug]
+  #   uses: ./.github/workflows/add_funcionalities.yaml
+  #   with:
+  #     chart_folder: ${{ inputs.chart_folder }}
 
-  step_4:
-    needs: [step_1, step_2, debug, step_3]
-    uses: ./.github/workflows/run_checker.yaml
-    with:
-      iteration: 3
-      chart_folder: ${{ inputs.chart_folder }}
-      second_tool: ${{ inputs.second_tool }}
-    secrets: inherit
+  # step_4:
+  #   needs: [step_1, step_2, debug, step_3]
+  #   uses: ./.github/workflows/run_checker.yaml
+  #   with:
+  #     iteration: 3
+  #     chart_folder: ${{ inputs.chart_folder }}
+  #     second_tool: ${{ inputs.second_tool }}
+  #   secrets: inherit

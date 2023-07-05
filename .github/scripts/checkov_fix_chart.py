@@ -33,19 +33,29 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         results = json.load(file)
 
     template = fix_template.parse_yaml_template(chart_folder)
+
+    # List of all checks
+    all_checks = []
+
     print("Starting to fix chart's issues ...\n")
 
     for check in results["results"]["failed_checks"]:
-        issue = check["check_id"] + ": " + check["check_name"]
-        print(issue)
-        fix_issue(check, template)
+        print(f"{check['check_id']}: {check['check_name']}")
+        check_id = fix_issue(check, template)
+        all_checks.append(check_id)
 
-    print("\nAll issues fixed!")
+    print("\nAll issues fixed!\n")
+
+    # Print all found checks
+    all_checks = [x for x in all_checks if x is not None]
+    all_checks.sort()
+    print(", ".join(all_checks))
+
     name = chart_folder + "_fixed"
     fix_template.save_yaml_template(template, name)
 
 
-def fix_issue(check: str, template: dict) -> None:
+def fix_issue(check: str, template: dict) -> str:
     """Fixes an issue based on the checkov check ID.
 
     Source: https://www.checkov.io/5.Policy%20Index/kubernetes.html
@@ -75,15 +85,17 @@ def fix_issue(check: str, template: dict) -> None:
                 obj_path = obj_path[:index+2]
             obj_path = obj_path.replace("[", "").replace("]", "")
 
-        check = {
+        paths = {
             "resource_path": resource_path,
             "obj_path": obj_path
         }
 
-        fix_template.set_template(template, check_id, check)
+        fix_template.set_template(template, check_id, paths)
+        return check_id
 
     else:
         print("No fix found for check ID: " + check["check_id"])
+        return None
 
 
 # We ignore checks CKV_K8S_1-CKV_K8S_8 because they refer to

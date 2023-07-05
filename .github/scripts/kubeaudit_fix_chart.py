@@ -18,6 +18,7 @@
 from typing import Callable
 import json
 import fix_template
+from kubelinter_fix_chart import get_container_path
 
 
 def iterate_checks(chart_folder: str, json_path: str) -> None:
@@ -50,40 +51,29 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         results = json.load(file)
 
     template = fix_template.parse_yaml_template(chart_folder)
+
+    # List of all checks
+    all_checks = []
+
     print("Starting to fix chart's issues ...\n")
 
     for check in results["checks"]:
-        issue = check["AuditResultName"] + ": " + check["msg"]
-        print(issue)
-        fix_issue(check, template)
+        print(f"{check['AuditResultName']}: {check['msg']}")
+        check_id = fix_issue(check, template)
+        all_checks.append(check_id)
 
-    print("\nAll issues fixed!")
+    print("\nAll issues fixed!\n")
+
+    # Print all found checks
+    all_checks = [x for x in all_checks if x is not None]
+    all_checks.sort()
+    print(", ".join(all_checks))
+
     name = chart_folder + "_fixed"
     fix_template.save_yaml_template(template, name)
 
 
-def get_resource_dict(template: dict, resource_path: str) -> dict:
-    """Returns a dictionary of a K8s resource.
-    
-    Args:
-        template (dict): The parsed YAML template.
-
-    Returns:
-        dict: The dictionary of the resource.
-    """
-
-    resource_path = resource_path.split("/")
-
-    for document in template:
-        if document["kind"] == resource_path[0] and \
-           document["metadata"]["namespace"] == resource_path[1] and \
-           document["metadata"]["name"] == resource_path[2]:
-            return document
-
-    return {}
-
-
-def fix_issue(check: str, template: dict) -> None:
+def fix_issue(check: str, template: dict) -> str:
     """Fixes an issue based on the Kubeaudit check ID.
 
     Source: https://github.com/Shopify/kubeaudit#global-flags
@@ -104,27 +94,28 @@ def fix_issue(check: str, template: dict) -> None:
         resource_path = check["ResourceKind"] + "/" + check["ResourceNamespace"] + \
                         "/" + check["ResourceName"]
 
-        # Get YAML document of the resource
-        obj = get_resource_dict(template, resource_path)
-
-        print(obj)
-
-        # Set the object path based on check ID
+        # spec/template/spec/containers/0/
         obj_path = ""
 
-        check = {
+        if "Container" in check:
+            # Find container path based on container name
+            obj_path = get_container_path(template, resource_path, check["Container"])
+
+        if check["AuditResultName"] == "AppArmorAnnotationMissing":
+            obj_path = check["Container"]
+
+        paths = {
             "resource_path": resource_path,
             "obj_path": obj_path
         }
 
-        fix_template.set_template(template, check_id, check)
+        fix_template.set_template(template, check_id, paths)
+        return check_id
 
     else:
         print("No fix found for check ID: " + check["AuditResultName"])
+        return None
 
-
-# We ignore checks CKV_K8S_1-CKV_K8S_8 because they refer to
-# Pod Security Policies, which are deprecated in Kubernetes 1.21.
 
 class LookupClass:
     """This class is used to lookup the function to be called for each check.
