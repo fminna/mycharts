@@ -100,9 +100,10 @@ def main():
         # Get ENV variables
         iteration = os.environ.get("iteration")
         result_path = "results_" + iteration + ".json"
+        tool = os.environ.get("first_tool")
 
-        # result_path = "test_files/terrascan_results.json"
-        # tool = "terrascan"
+        # result_path = "test_files/kics_results.json"
+        # tool = "kics"
 
         # Generate chart template on the fly
         # generate_helm_template(chart_folder)
