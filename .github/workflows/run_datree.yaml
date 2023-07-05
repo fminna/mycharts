@@ -46,17 +46,17 @@ jobs:
         run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
 
       - name: Datree CLI
+        id: datree
         uses: datreeio/action-datree@v1.1.0
         with:
           path: '${{ env.TEMPLATE }}'
-          cliArguments: '--only-k8s-files --quiet --output json sarif'
+          cliArguments: '--only-k8s-files --quiet --output json'
         continue-on-error: true
 
       - name: Print Datree result
         shell: bash
         run: |
-          ls -la
-          jq '.[]' datree.sarif > results_${{ inputs.iteration }}.json
+          echo ${{ steps.datree.outputs.stdout }} > results_${{ inputs.iteration }}.json
           cat results_${{ inputs.iteration }}.json
 
       - name: Upload the JSON results artifact
