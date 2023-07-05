@@ -241,8 +241,9 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                         break
 
         # Append Network Policy to the template
-        net_policy = set_net_policy(app)
-        template.append(net_policy)
+        net_policy1, net_policy2 = set_net_policy(app)
+        template.append(net_policy1)
+        template.append(net_policy2)
 
     else:
 
@@ -262,8 +263,7 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                     keys = check["obj_path"].split("/")
                     obj = document
 
-                    no_path_checks = ["check_14", "check_28", "check_31", "check_29", \
-                                      "check_26"]
+                    no_path_checks = ["check_31", "check_29", "check_26"]
                     if check_id in no_path_checks:
                         process_func(obj)
                         break
@@ -644,7 +644,43 @@ def set_resource_quota(obj: dict) -> dict:
     return resource_quota
 
 
-def set_root(obj: dict, value=True, uid=25000, gid=3000, fsg=2000):
+def set_uid(obj: dict, uid=25000):
+    """Set the uid for a K8s object.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+
+    # If securityContext is not set, Set it
+    if "securityContext" not in obj:
+        obj["securityContext"] = {
+            "runAsUser": uid
+        }
+    # If securityContext is set, but runAsUser is not, Set it
+    elif "runAsUser" not in obj["securityContext"]:
+        obj["securityContext"]["runAsUser"] = uid
+
+    else:
+        obj["securityContext"]["runAsUser"] = uid
+
+    # Set runAsUser for each container
+    for container in obj["containers"]:
+        if "securityContext" not in container:
+            container["securityContext"] = {
+                "runAsUser": uid
+            }
+        elif "runAsUser" not in container["securityContext"]:
+            container["securityContext"]["runAsUser"] = uid
+        else:
+            container["securityContext"]["runAsUser"] = uid
+
+
+def set_root(obj: dict, value=True, uid=25000):
     """Set the root user to each K8s object.
 
     Policy: Minimize the admission of root containers
@@ -666,25 +702,15 @@ def set_root(obj: dict, value=True, uid=25000, gid=3000, fsg=2000):
     if "securityContext" not in obj:
         obj["securityContext"] = {
             "runAsNonRoot": value,
-            "runAsUser": uid,
-            "runAsGroup": gid,
-            "fsGroup": fsg
+            "runAsUser": uid
         }
     # If runAsNonRoot is not set in securityContext, Set it
     else:
         obj["securityContext"]["runAsNonRoot"] = value
 
     # If runAsUser is not set in securityContext, Set it
-    if "runAsUser" not in obj["securityContext"] or \
-        int(obj["securityContext"]["runAsUser"]) < 9999:
+    if "runAsUser" not in obj["securityContext"]:
         obj["securityContext"]["runAsUser"] = uid
-    # If runAsGroup is not set in securityContext, Set it
-    if "runAsGroup" not in obj["securityContext"]:
-        obj["securityContext"]["runAsGroup"] = gid
-    # If fsGroup is not set in securityContext, Set it
-    if "fsGroup" not in obj["securityContext"] or \
-        int(obj["securityContext"]["fsGroup"]) < 9999:
-        obj["securityContext"]["fsGroup"] = fsg
 
 
 def set_non_root(obj: dict, value=True, uid=25000):
@@ -713,8 +739,8 @@ def set_non_root(obj: dict, value=True, uid=25000):
     else:
         obj["securityContext"]["runAsNonRoot"] = value
 
-    # Set runAsUser to uid
-    if int(obj["securityContext"]["runAsUser"]) < 9999:
+    # If runAsUser is not set in securityContext, Set it
+    if "runAsUser" not in obj["securityContext"]:
         obj["securityContext"]["runAsUser"] = uid
 
 
@@ -1159,12 +1185,12 @@ def set_img_digest(obj: dict):
     else:
         image_name = obj["image"]
 
-    image_name = image_name.split("/")[-1]
-    image_tag = get_latest_image_tag(image_name)
+    cont_name = image_name.split("/")[-1]
+    image_tag = get_latest_image_tag(cont_name)
 
     if image_tag:
         # Get the image digest
-        image_digest = get_image_digest(image_name, image_tag)
+        image_digest = get_image_digest(cont_name, image_tag)
         obj["image"] = image_name + ":" + image_tag + "@" + image_digest
 
 
@@ -1177,7 +1203,22 @@ def set_net_policy(app="my-app", name="test-network-policy") -> dict:
         value (str): The name to set the networkPolicy to.
     """
 
-    net_policy = {
+    # Checkov Network Policy
+    net_policy1 = {
+        'apiVersion': 'networking.k8s.io/v1',
+        'kind': 'NetworkPolicy',
+        'metadata': {
+            'name': name
+        },
+        'spec': {
+            'podSelector': {},
+            'ingress': [{}],
+            'policyTypes': ['Ingress']
+        }
+    }
+
+    # Kubescape Network Policy
+    net_policy2 = {
         'apiVersion': 'networking.k8s.io/v1',
         'kind': 'NetworkPolicy',
         'metadata': {
@@ -1229,7 +1270,7 @@ def set_net_policy(app="my-app", name="test-network-policy") -> dict:
         }
     }
 
-    return net_policy
+    return net_policy1, net_policy2
 
 
 def todo():
@@ -1254,7 +1295,7 @@ class FuncLookupClass:
     "check_10": set_pid_ns,
     "check_11": set_ipc_ns,
     "check_12": set_net_ns,
-    "check_13": set_non_root,
+    "check_13": set_uid,
     "check_14": set_root,
     "check_15": todo, # mounting Docker socket
     "check_16": todo,
