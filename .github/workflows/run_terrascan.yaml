@@ -37,12 +37,18 @@ jobs:
         if: ${{ inputs.iteration == '3'}}
         run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
 
+      - name: Create a testing directory
+        shell: bash
+        run: |
+          mkdir -p test
+          cp "${{ env.TEMPLATE }}" test/
+
       - name: Test with Terrascan
         id: terrascan
         uses: tenable/terrascan-action@main
         with:
           iac_type: 'k8s'
-          iac_dir: '${{ env.TEMPLATE }}'
+          iac_dir: 'test/'
           iac_version: 'v1'
           policy_type: 'k8s'
           sarif_upload: true

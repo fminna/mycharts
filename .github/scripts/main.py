@@ -100,7 +100,6 @@ def main():
         # Get ENV variables
         iteration = os.environ.get("iteration")
         result_path = "results_" + iteration + ".json"
-        tool = os.environ.get("first_tool")
 
         # result_path = "test_files/terrascan_results.json"
         # tool = "terrascan"
