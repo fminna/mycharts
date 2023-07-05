@@ -168,7 +168,9 @@ def fix_issue(check: str, template: dict) -> str:
                 paths["value"] = get_headless_service_name(template)
 
             fix_template.set_template(template, check_id, paths)
-            return check_id
+        
+        # After iterating all files, return check_id
+        return check_id
 
     else:
         print("No fix found for check ID: " + check["query_id"])

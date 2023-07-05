@@ -229,8 +229,6 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
 
     # If Network Policy missing issue, create and append one
     if check_id == "check_40":
-        app = "my-app"
-
         if check:
         # Find resource name
             for document in template:
@@ -241,7 +239,7 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                         break
 
         # Append Network Policy to the template
-        net_policy1, net_policy2 = set_net_policy(app)
+        net_policy1, net_policy2 = set_net_policy()
         template.append(net_policy1)
         template.append(net_policy2)
 
@@ -1197,13 +1195,13 @@ def set_img_digest(obj: dict):
         obj["image"] = image_name + ":" + image_tag + "@" + image_digest
 
 
-def set_net_policy(app="my-app", name="test-network-policy") -> dict:
+def set_net_policy(name="test-network-policy") -> dict:
     """Returns a network policy for each K8s object.
 
     Policy: Minimize the admission of pods which lack an associated NetworkPolicy
 
     Args:
-        value (str): The name to set the networkPolicy to.
+        name (str): The name to set the networkPolicy to.
     """
 
     # Checkov Network Policy
@@ -1229,11 +1227,7 @@ def set_net_policy(app="my-app", name="test-network-policy") -> dict:
             'namespace': 'test-ns'
         },
         'spec': {
-            'podSelector': {
-                'matchLabels': {
-                    'app': app
-                }
-            },
+            'podSelector': {},
             'policyTypes': ['Ingress', 'Egress'],
             'ingress': [{
                 'from': [{

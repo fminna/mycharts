@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -17,7 +17,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -32,7 +32,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -102,7 +102,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql-headless
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -126,7 +126,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
