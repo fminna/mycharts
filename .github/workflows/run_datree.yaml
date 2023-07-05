@@ -47,9 +47,12 @@ jobs:
 
       - name: Run Datree Policy Check
         uses: datreeio/action-datree@main
+
+      - name: Datree CLI
+        uses: datreeio/action-datree@v1.1.0
         with:
           path: '${{ env.TEMPLATE }}'
-          cliArguments: '--only-k8s-files --quiet --output json'
+          cliArguments: '--only-k8s-files --quiet --output json sarif'
         continue-on-error: true
 
       - name: Print Datree result
