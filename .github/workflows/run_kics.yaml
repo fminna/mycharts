@@ -24,10 +24,22 @@ jobs:
         with:
           ref: 'main'
 
+      - name: Define template chart folder - original
+        if: ${{ inputs.iteration == '1'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_template.yaml" >> $GITHUB_ENV
+
+      - name: Define template chart folder - fixed
+        if: ${{ inputs.iteration == '2'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_fixed_template.yaml" >> $GITHUB_ENV
+
+      - name: Define template chart folder - functionalities
+        if: ${{ inputs.iteration == '3'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
+
       - name: Run kics Scan
         uses: checkmarx/kics-github-action@v1.6.3
         with:
-          path: ${{ inputs.chart_folder }}
+          path: ${{ env.TEMPLATE }}
           exclude_queries: 487f4be7-3fd9-4506-a07a-eae252180c08
           ignore_on_exit: results
           exclude_severities: 'info'
