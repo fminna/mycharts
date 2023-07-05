@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           wget https://github.com/Shopify/kubeaudit/releases/download/v0.22.0/kubeaudit_0.22.0_linux_386.tar.gz
-          tar -xvf kubeaudit_0.22.0_linux_arm64.tar.gz
+          tar -xvf kubeaudit_0.22.0_linux_386.tar.gz
           sudo mv kubeaudit /usr/local/bin
           kubeaudit version
 
