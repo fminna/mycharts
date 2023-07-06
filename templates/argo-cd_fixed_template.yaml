@@ -17194,7 +17194,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: release-name-argocd-applicationset-controller
-  namespace: default
+  namespace: test-ns
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-applicationset-controller
@@ -17306,10 +17306,8 @@ spec:
           protocol: TCP
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
         securityContext:
           allowPrivilegeEscalation: false
@@ -17331,6 +17329,20 @@ spec:
           name: gpg-keyring
         - mountPath: /tmp
           name: tmp
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -17403,13 +17415,7 @@ spec:
         - name: metrics
           containerPort: 9001
           protocol: TCP
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
+        resources: {}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -17672,13 +17678,7 @@ spec:
           timeoutSeconds: 1
           successThreshold: 1
           failureThreshold: 3
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
+        resources: {}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -17750,13 +17750,6 @@ spec:
           - key: ca.crt
             path: ca.crt
       dnsPolicy: ClusterFirst
-      resources:
-        requests:
-          cpu: 250m
-          memory: 128Mi
-        limits:
-          cpu: 250m
-          memory: 128Mi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -18043,13 +18036,7 @@ spec:
           timeoutSeconds: 1
           successThreshold: 1
           failureThreshold: 3
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
+        resources: {}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -18164,13 +18151,7 @@ spec:
         - name: metrics
           containerPort: 5558
           protocol: TCP
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
+        resources: {}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -18237,13 +18218,6 @@ spec:
           - key: ca.crt
             path: ca.crt
       dnsPolicy: ClusterFirst
-      resources:
-        requests:
-          cpu: 250m
-          memory: 128Mi
-        limits:
-          cpu: 250m
-          memory: 128Mi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -18292,13 +18266,7 @@ spec:
         - name: redis
           containerPort: 6379
           protocol: TCP
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
+        resources: {}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -18504,13 +18472,7 @@ spec:
           timeoutSeconds: 1
           successThreshold: 1
           failureThreshold: 3
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
+        resources: {}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
