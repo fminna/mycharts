@@ -241,7 +241,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-redis-master
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: redis
     helm.sh/chart: redis-17.11.3
@@ -294,8 +294,7 @@ spec:
         image: docker.io/bitnami/redis:7.0.11-debian-11-r12
         imagePullPolicy: IfNotPresent
         securityContext:
-          runAsUser: 25000
-          allowPrivilegeEscalation: false
+          runAsUser: 1001
           readOnlyRootFilesystem: true
         command:
         - /bin/bash
@@ -345,8 +344,10 @@ spec:
             - /health/ping_readiness_local.sh 1
         resources:
           limits:
+            cpu: 250m
             memory: 128Mi
           requests:
+            cpu: 250m
             memory: 128Mi
         volumeMounts:
         - name: start-scripts
@@ -449,6 +450,7 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
+          readOnlyRootFilesystem: true
         command:
         - /bin/bash
         args:
@@ -513,8 +515,12 @@ spec:
             - -c
             - /health/ping_readiness_local_and_master.sh 1
         resources:
-          limits: {}
-          requests: {}
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: start-scripts
           mountPath: /opt/bitnami/scripts/start-scripts
