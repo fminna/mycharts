@@ -1,0 +1,302 @@
+---
+# Source: thanos/templates/query-frontend/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-thanos-query-frontend
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: thanos
+    helm.sh/chart: thanos-12.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: query-frontend
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: thanos/templates/query/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-thanos-query
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: thanos
+    helm.sh/chart: thanos-12.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: query
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: thanos/templates/query-frontend/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-thanos-query-frontend
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: thanos
+    helm.sh/chart: thanos-12.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: query-frontend
+  annotations:
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9090
+      targetPort: http
+      protocol: TCP
+      name: http
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: thanos
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: query-frontend
+---
+# Source: thanos/templates/query/service-grpc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-thanos-query-grpc
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: thanos
+    helm.sh/chart: thanos-12.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: query
+  annotations:
+spec:
+  type: ClusterIP
+  ports:
+    - port: 10901
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: thanos
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: query
+---
+# Source: thanos/templates/query/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-thanos-query
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: thanos
+    helm.sh/chart: thanos-12.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: query
+  annotations:
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9090
+      targetPort: http
+      protocol: TCP
+      name: http
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: thanos
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: query
+---
+# Source: thanos/templates/query-frontend/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-thanos-query-frontend
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: thanos
+    helm.sh/chart: thanos-12.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: query-frontend
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: thanos
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: query-frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: thanos
+        helm.sh/chart: thanos-12.6.2
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: query-frontend
+    spec:
+      
+      serviceAccountName: release-name-thanos-query-frontend
+      automountServiceAccountToken: true
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: thanos
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: query-frontend
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: query-frontend
+          image: docker.io/bitnami/thanos:0.31.0-scratch-r5
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - query-frontend
+            - --log.level=info
+            - --log.format=logfmt
+            - --http-address=0.0.0.0:10902
+            - --query-frontend.downstream-url=http://release-name-thanos-query:9090
+          ports:
+            - name: http
+              containerPort: 10902
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 30
+            httpGet:
+              path: /-/healthy
+              port: http
+              scheme: HTTP
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 30
+            httpGet:
+              path: /-/ready
+              port: http
+              scheme: HTTP
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+      volumes:
+---
+# Source: thanos/templates/query/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-thanos-query
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: thanos
+    helm.sh/chart: thanos-12.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: query
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: thanos
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: query
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: thanos
+        helm.sh/chart: thanos-12.6.2
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: query
+    spec:
+      
+      serviceAccountName: release-name-thanos-query
+      automountServiceAccountToken: true
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: thanos
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: query
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: query
+          image: docker.io/bitnami/thanos:0.31.0-scratch-r5
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - query
+            - --log.level=info
+            - --log.format=logfmt
+            - --grpc-address=0.0.0.0:10901
+            - --http-address=0.0.0.0:10902
+            - --query.replica-label=replica
+          ports:
+            - name: http
+              containerPort: 10902
+              protocol: TCP
+            - name: grpc
+              containerPort: 10901
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 30
+            httpGet:
+              path: /-/healthy
+              port: http
+              scheme: HTTP
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 30
+            httpGet:
+              path: /-/ready
+              port: http
+              scheme: HTTP
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+      volumes:

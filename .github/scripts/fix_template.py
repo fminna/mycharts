@@ -53,7 +53,7 @@ def parse_yaml_template(chart_folder: str) -> list:
 
     # Parse and return the multi-document YAML file while preserving comments
     file_path = "templates/" + chart_folder + "_template.yaml"
-    # file_path = "test_files/mysql_template.yaml"
+    # file_path = "test_files/redis_template.yaml"
     with open(file_path, "r", encoding="utf-8") as file:
         return list(yaml.load_all(file, Loader=yaml.FullLoader))
 
@@ -72,7 +72,7 @@ def save_yaml_template(template: str, chart_folder: str):
     # comments = parse_yaml_comments(chart_folder)
 
     file_path = "templates/" + chart_folder + "_template.yaml"
-    # file_path = "test_files/mysql_fixed_template.yaml"
+    # file_path = "test_files/redis_fixed_template.yaml"
     with open(file_path, 'w', encoding="utf-8") as file:
         yaml.safe_dump_all(template, file, sort_keys=False)
         # yaml.safe_dump_all(json.dumps(template).strip())
@@ -812,7 +812,8 @@ def set_seccomp(obj: dict, profile="runtime/default"):
             obj["spec"]["template"]["metadata"]["annotations"] = {
                 "seccomp.security.alpha.kubernetes.io/defaultProfileName": profile
             }
-        # If annotations is set, but seccomp.security.alpha.kubernetes.io/defaultProfileName is not, Set it
+        # If annotations is set, but seccomp.security.alpha.kubernetes.io/
+        #  defaultProfileName is not, Set it
         else:
             obj["spec"]["template"]["metadata"]["annotations"]["seccomp.security.alpha.kubernetes.io/defaultProfileName"] = profile
 
@@ -820,7 +821,8 @@ def set_seccomp(obj: dict, profile="runtime/default"):
         obj["metadata"]["annotations"] = {
             "seccomp.security.alpha.kubernetes.io/defaultProfileName": profile
         }
-    # If annotations is set, but seccomp.security.alpha.kubernetes.io/defaultProfileName is not, Set it
+    # If annotations is set, but seccomp.security.alpha.kubernetes.io/ 
+    # defaultProfileName is not, Set it
     else:
         obj["metadata"]["annotations"]["seccomp.security.alpha.kubernetes.io/defaultProfileName"] = profile
 
@@ -1051,9 +1053,8 @@ def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret
             del container["envFrom"]
 
         if "env" in container:
-            for idx, env_var in enumerate(container["env"]):
-                if 'valueFrom' in env_var:
-                    del container["env"][idx]
+            # Delete all container["env"] with valueFrom and secretKeyRef
+            container["env"] = [env_var for env_var in container["env"] if 'valueFrom' not in env_var]
 
         # Bind secret volume to container
         # If volumeMounts not in container, add secret volume

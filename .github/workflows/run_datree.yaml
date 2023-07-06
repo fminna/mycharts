@@ -72,7 +72,7 @@ jobs:
 
       - name: Print Datree result
         shell: bash
-        run: cat results_${{ inputs.iteration }}.json
+        run: jq . results_${{ inputs.iteration }}.json
 
       - name: Upload the JSON results artifact
         uses: actions/upload-artifact@v3

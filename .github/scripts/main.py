@@ -74,25 +74,13 @@ def check_for_failures(json_path: str, json_field: str) -> bool :
     return failed_count > 0
 
 
-def generate_helm_template(chart_folder: str) -> None:
-    """Generates a Helm template for the given chart.
-    
-    Args:
-        chart_folder (str): The name of the chart to generate the template for.
-    """
-
-    # Generate the Helm template
-    os.system("helm template " + chart_folder + " > " + \
-            "templates/" + chart_folder + "_template.yaml")
-
-
 def main():
     """ The main function.
     """
 
     # Get chart_folder from ENV
     chart_folder = os.environ.get("chart_folder")
-    # chart_folder = "mysql"
+    # chart_folder = "redis"
 
     # Fix the chart based on the results of a tool
     if args.check:
@@ -102,11 +90,8 @@ def main():
         result_path = "results_" + iteration + ".json"
         tool = os.environ.get("first_tool")
 
-        # result_path = "test_files/kics_results.json"
-        # tool = "kics"
-
-        # Generate chart template on the fly
-        # generate_helm_template(chart_folder)
+        # result_path = "test_files/checkov_results.json"
+        # tool = "checkov"
 
         # Check if there are any failed tests
         if tool == "checkov":
