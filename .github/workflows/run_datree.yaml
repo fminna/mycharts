@@ -51,12 +51,14 @@ jobs:
         with:
           path: '${{ env.TEMPLATE }}'
           cliArguments: '--only-k8s-files --quiet --output json'
+          isHelmChart: true
         continue-on-error: true
 
       - name: Print Datree result
         shell: bash
         run: |
-          echo ${{ steps.datree.outputs.* }} > results_${{ inputs.iteration }}.json
+          ls -la
+          jq '.[]' datree.sarif > results_${{ inputs.iteration }}.json
           cat results_${{ inputs.iteration }}.json
 
       - name: Upload the JSON results artifact
