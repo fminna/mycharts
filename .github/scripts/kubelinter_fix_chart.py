@@ -49,6 +49,7 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     # Print all found checks
     all_checks = [x for x in all_checks if x is not None]
     all_checks.sort()
+    print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))
 
     name = chart_folder + "_fixed"
@@ -122,8 +123,6 @@ def fix_issue(check: str, template: dict) -> str:
             "resource_path": resource_path,
             "obj_path": obj_path
         }
-
-        print(obj_path)
 
         # Memory limits & requests
         if check["Check"] == "unset-memory-requirements":

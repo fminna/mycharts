@@ -13,3 +13,5 @@
 .github/scripts/__pycache__
 
 test_files/
+
+generate_results.sh

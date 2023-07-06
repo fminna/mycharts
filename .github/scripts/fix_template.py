@@ -53,7 +53,6 @@ def parse_yaml_template(chart_folder: str) -> list:
 
     # Parse and return the multi-document YAML file while preserving comments
     file_path = "templates/" + chart_folder + "_template.yaml"
-    # file_path = "test_files/redis_template.yaml"
     with open(file_path, "r", encoding="utf-8") as file:
         return list(yaml.load_all(file, Loader=yaml.FullLoader))
 
@@ -71,8 +70,8 @@ def save_yaml_template(template: str, chart_folder: str):
 
     # comments = parse_yaml_comments(chart_folder)
 
-    file_path = "templates/" + chart_folder + "_template.yaml"
-    # file_path = "test_files/redis_fixed_template.yaml"
+    file_path = f"templates/{chart_folder}_template.yaml"
+    file_path = f"test_files/{chart_folder}_fixed_template.yaml"
     with open(file_path, 'w', encoding="utf-8") as file:
         yaml.safe_dump_all(template, file, sort_keys=False)
         # yaml.safe_dump_all(json.dumps(template).strip())
@@ -226,6 +225,9 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
     
     Returns: None
     """
+
+    if check_id == "check_9" or check_id == "check_0":
+        return
 
     # If Network Policy missing issue, create and append one
     if check_id == "check_40":
