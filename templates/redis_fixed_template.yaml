@@ -248,7 +248,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: master
-    app: my-app
 spec:
   replicas: 1
   selector:
@@ -267,20 +266,18 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: master
-        app: my-app
       annotations:
         checksum/configmap: 30a23a450c6acb6ba02c3277ba90af0c771b3a22c9ae9d8502326da1e4ffe206
         checksum/health: 95a49434bdd1144e7de35e352bc8ae0052beeef68c90647bece9831ee472dc29
         checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
         checksum/secret: 4d843dbc55b577c8529cb4a32b3ce894c77415c44a22bd10766078e4dd11b043
+        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
         seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
-        container.apparmor.security.beta.kubernetes.io/spec/template/spec/containers/0: runtime/default
     spec:
       securityContext:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        allowPrivilegeEscalation: false
       serviceAccountName: release-name-redis
       affinity:
         podAffinity: null
@@ -298,16 +295,12 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: redis
-        image: docker.io/bitnami/redis:7.0.11-debian-11-r12
+        image: docker.io/bitnami/redis:7.0@sha256:4e7bd0aec37b626ecd11c37892dc86e142b3e1bbe2694ee524dcb518ece6b7ff
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
+          allowPrivilegeEscalation: false
         command:
         - /bin/bash
         args:
@@ -320,11 +313,6 @@ spec:
           value: master
         - name: ALLOW_EMPTY_PASSWORD
           value: 'no'
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: release-name-redis
-              key: redis-password
         - name: REDIS_TLS_ENABLED
           value: 'no'
         - name: REDIS_PORT
@@ -358,7 +346,9 @@ spec:
           limits:
             memory: 128Mi
             cpu: 250m
-          requests: {}
+          requests:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: start-scripts
           mountPath: /opt/bitnami/scripts/start-scripts
@@ -372,6 +362,9 @@ spec:
           mountPath: /opt/bitnami/redis/etc/
         - name: tmp
           mountPath: /tmp
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: start-scripts
         configMap:
@@ -388,7 +381,9 @@ spec:
         emptyDir: {}
       - name: tmp
         emptyDir: {}
-      automountServiceAccountToken: false
+      - name: secret-volume
+        secret:
+          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: redis-data
@@ -414,7 +409,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: replica
-    app: my-app
 spec:
   replicas: 3
   selector:
@@ -433,20 +427,18 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: replica
-        app: my-app
       annotations:
         checksum/configmap: 30a23a450c6acb6ba02c3277ba90af0c771b3a22c9ae9d8502326da1e4ffe206
         checksum/health: 95a49434bdd1144e7de35e352bc8ae0052beeef68c90647bece9831ee472dc29
         checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
         checksum/secret: 8d4067e74965347a3a26439056e4a77d4c1000c4bb14e9380730e294eb8d2e54
+        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
         seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
-        container.apparmor.security.beta.kubernetes.io/spec/template/spec/containers/0: runtime/default
     spec:
       securityContext:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        allowPrivilegeEscalation: false
       serviceAccountName: release-name-redis
       affinity:
         podAffinity: null
@@ -464,16 +456,12 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: redis
-        image: docker.io/bitnami/redis:7.0.11-debian-11-r12
+        image: docker.io/bitnami/redis:7.0@sha256:4e7bd0aec37b626ecd11c37892dc86e142b3e1bbe2694ee524dcb518ece6b7ff
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
+          allowPrivilegeEscalation: false
         command:
         - /bin/bash
         args:
@@ -490,16 +478,6 @@ spec:
           value: '6379'
         - name: ALLOW_EMPTY_PASSWORD
           value: 'no'
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: release-name-redis
-              key: redis-password
-        - name: REDIS_MASTER_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: release-name-redis
-              key: redis-password
         - name: REDIS_TLS_ENABLED
           value: 'no'
         - name: REDIS_PORT
@@ -541,7 +519,9 @@ spec:
           limits:
             memory: 128Mi
             cpu: 250m
-          requests: {}
+          requests:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: start-scripts
           mountPath: /opt/bitnami/scripts/start-scripts
@@ -553,6 +533,9 @@ spec:
           mountPath: /opt/bitnami/redis/mounted-etc
         - name: redis-tmp-conf
           mountPath: /opt/bitnami/redis/etc
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: start-scripts
         configMap:
@@ -567,7 +550,9 @@ spec:
           name: release-name-redis-configuration
       - name: redis-tmp-conf
         emptyDir: {}
-      automountServiceAccountToken: false
+      - name: secret-volume
+        secret:
+          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: redis-data
@@ -581,91 +566,3 @@ spec:
       resources:
         requests:
           storage: 8Gi
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
