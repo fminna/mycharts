@@ -57,6 +57,7 @@ jobs:
 
       # Install Datree
       - name: Install Datree
+        id: datree
         shell: bash
         run: |
           curl https://get.datree.io | /bin/bash
@@ -67,7 +68,7 @@ jobs:
         shell: bash
         run: |
           datree test ${{ env.TEMPLATE }} --only-k8s-files --quiet --output json > results_${{ inputs.iteration }}.json
-          cat results_${{ inputs.iteration }}.json
+        continue-on-error: true
 
       - name: Print Datree result
         shell: bash
