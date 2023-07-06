@@ -45,21 +45,33 @@ jobs:
         if: ${{ inputs.iteration == '3'}}
         run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
 
-      - name: Datree CLI
-        id: datree
-        uses: datreeio/action-datree@v1.1.0
-        with:
-          path: '${{ env.TEMPLATE }}'
-          cliArguments: '--only-k8s-files --quiet --output json'
-          isHelmChart: true
-        continue-on-error: true
+      # - name: Datree CLI
+      #   id: datree
+      #   uses: datreeio/action-datree@v1.1.0
+      #   with:
+      #     path: '${{ env.TEMPLATE }}'
+      #     cliArguments: '--only-k8s-files --quiet --output json'
+      #     isHelmChart: true
+      #   continue-on-error: true
+      # This Action does not generate any output file!!!
+
+      # Install Datree
+      - name: Install Datree
+        shell: bash
+        run: |
+          curl https://get.datree.io | /bin/bash
+          datree version
+
+      # Run Datree CLI
+      - name: Run Datree CLI
+        shell: bash
+        run: |
+          datree test ${{ env.TEMPLATE }} --only-k8s-files --quiet --output json > results_${{ inputs.iteration }}.json
+          cat results_${{ inputs.iteration }}.json
 
       - name: Print Datree result
         shell: bash
-        run: |
-          ls -la
-          jq '.[]' datree.sarif > results_${{ inputs.iteration }}.json
-          cat results_${{ inputs.iteration }}.json
+        run: cat results_${{ inputs.iteration }}.json
 
       - name: Upload the JSON results artifact
         uses: actions/upload-artifact@v3
