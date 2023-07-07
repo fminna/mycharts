@@ -79,19 +79,20 @@ def main():
     """
 
     # Get chart_folder from ENV
-    # chart_folder = os.environ.get("chart_folder")
-    chart_folder = "redis"
+    # For local testing on macOS, add env variables to ~/.zshrc
+    chart_folder = os.environ.get("chart_folder")
+    # chart_folder = "oauth2-proxy"
 
     # Fix the chart based on the results of a tool
     if args.check:
 
         # Get ENV variables
-        # iteration = os.environ.get("iteration")
-        # result_path = "results_" + iteration + ".json"
-        # tool = os.environ.get("first_tool")
+        iteration = os.environ.get("iteration")
+        result_path = f"results_{iteration}.json"
+        tool = os.environ.get("first_tool")
 
-        result_path = "test_files/checkov_results.json"
-        tool = "checkov"
+        # tool = "checkov"
+        # result_path = f"test_files/{tool}_results.json"
 
         # Check if there are any failed tests
         if tool == "checkov":
