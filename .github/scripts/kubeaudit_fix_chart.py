@@ -110,8 +110,14 @@ def fix_issue(check: str, template: dict) -> str:
             "obj_path": obj_path
         }
 
-        fix_template.set_template(template, check_id, paths)
-        return check_id
+        if check["AuditResultName"] == "":
+            fix_template.set_template(template, "check_2", paths)
+            fix_template.set_template(template, "check_5", paths)
+            return "check_2", "check_5"
+
+        else:
+            fix_template.set_template(template, check_id, paths)
+            return check_id
 
     else:
         print("No fix found for check ID: " + check["AuditResultName"])
@@ -127,6 +133,7 @@ class LookupClass:
         "CapabilityOrSecurityContextMissing": "check_34", 
         "LimitsCPUNotSet": "check_5", 
         "LimitsMemoryNotSet": "check_2", 
+        "LimitsNotSet": "check_1",
         "AllowPrivilegeEscalationNil": "check_22", 
         "PrivilegedNil": "check_21", 
         "ReadOnlyRootFilesystemNil": "check_27", 
