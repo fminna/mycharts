@@ -79,8 +79,6 @@ def get_latest_image_tag(image_name: str, registry: "docker.io") -> Optional[str
     elif registry == "quay.io":
         url = f'https://quay.io/api/v1/repository/library/{image_name}/tag/'
 
-    print(url)
-
     try:
         # Send the API request
         response = requests.get(url, timeout=10)
