@@ -97,7 +97,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 7.4.0
   name: release-name-oauth2-proxy
-  namespace: test-ns
+  namespace: default
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -174,17 +174,20 @@ spec:
           successThreshold: 1
           periodSeconds: 10
         resources:
-          limits:
-            memory: 128Mi
           requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
             memory: 128Mi
         volumeMounts:
         - mountPath: /etc/oauth2_proxy/oauth2_proxy.cfg
           name: configmain
           subPath: oauth2_proxy.cfg
         securityContext:
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
       volumes:
       - configMap:
           defaultMode: 420
