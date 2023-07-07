@@ -20,27 +20,6 @@ import yaml
 import requests
 
 
-def parse_yaml_comments(chart_folder: str) -> list:
-    """Parses a yaml file and returns lines starting with #.
-
-    Args:
-        chart_folder: The name of the Helm Chart to parse.
-
-    Returns:
-        A list containing the parsed lines.
-    """
-
-    file_path = chart_folder + "/" + chart_folder + "_template.yaml"
-    with open(file_path, "r", encoding="utf-8") as file:
-        comments = [line for line in file if line.startswith("#")]
-
-        # Remove "# Source: " from each comments's element
-        comments = [comment.replace("# Source: ", "") for comment in comments]
-        comments = [comment.replace("\n", "") for comment in comments]
-
-    return comments
-
-
 def parse_yaml_template(chart_folder: str) -> list:
     """Parses a Helm chart template yaml file and returns it as a dictionary.
 
@@ -52,7 +31,7 @@ def parse_yaml_template(chart_folder: str) -> list:
     """
 
     # Parse and return the multi-document YAML file while preserving comments
-    file_path = "templates/" + chart_folder + "_template.yaml"
+    file_path = f"templates/{chart_folder}_template.yaml"
     with open(file_path, "r", encoding="utf-8") as file:
         return list(yaml.load_all(file, Loader=yaml.FullLoader))
 
@@ -71,34 +50,13 @@ def save_yaml_template(template: str, chart_folder: str):
     # comments = parse_yaml_comments(chart_folder)
 
     file_path = f"templates/{chart_folder}_template.yaml"
-    file_path = f"test_files/{chart_folder}_fixed_template.yaml"
+    # file_path = f"test_files/{chart_folder}_template.yaml"
     with open(file_path, 'w', encoding="utf-8") as file:
         yaml.safe_dump_all(template, file, sort_keys=False)
         # yaml.safe_dump_all(json.dumps(template).strip())
 
-    # Write each comment after the string --- in the file
-    # with open(file_path, 'r', encoding="utf-8") as file:
-    #     lines = file.readlines()
 
-    #     if comments:
-    #         aux = "# Source: " + comments.pop(0) + "\n"
-    #         lines = ["---\n", aux] + lines
-
-    #     for index, line in enumerate(lines[2:]):
-    #         if line.endswith("\n"):
-    #             line = line.rstrip("\n")
-
-    #         # If line is ---, add the first comment in comments
-    #         if comments and "---" in line:
-    #             aux = "# Source: " + comments.pop(0) + "\n"
-    #             lines.insert(index+3, aux)
-
-    # # Write contents to file
-    # with open(file_path, 'w', encoding="utf-8") as file:
-    #     file.writelines(lines)
-
-
-def get_latest_image_tag(image_name: str) -> Optional[str]:
+def get_latest_image_tag(image_name: str, registry: "docker.io") -> Optional[str]:
     """
     Retrieves the latest container image tag that is not "latest" for a given image name
     using the Docker Registry HTTP API.
@@ -106,14 +64,22 @@ def get_latest_image_tag(image_name: str) -> Optional[str]:
     Args:
         image_name (str): A string representing the name of the container image to 
         retrieve the tag for.
+        registry (str): A string representing the name of the container registry
 
     Returns:
         A string representing the latest image tag that is not "latest", or None 
         if no such tag exists.
     """
 
-    # Build the API endpoint URL
-    url = f'https://hub.docker.com/v2/repositories/library/{image_name}/tags'
+    url = ""
+
+    if registry == "docker.io":
+        url = f'https://hub.docker.com/v2/repositories/library/{image_name}/tags'
+
+    elif registry == "quay.io":
+        url = f'https://quay.io/api/v1/repository/library/{image_name}/tag/'
+
+    print(url)
 
     try:
         # Send the API request
@@ -122,6 +88,9 @@ def get_latest_image_tag(image_name: str) -> Optional[str]:
 
         # Parse the response JSON
         response_json = response.json()
+
+        print(url)
+        print(response_json)
 
         # Extract the tag names from the response JSON
         tags = [tag['name'] for tag in response_json['results']]
@@ -140,20 +109,26 @@ def get_latest_image_tag(image_name: str) -> Optional[str]:
         return ""
 
 
-def get_image_digest(image_name: str, image_tag: str) -> str:
+def get_image_digest(image_name: str, image_tag: str, registry: "docker.io") -> str:
     """Retrieves the digest of a Docker image with the given name and tag, using
     the specified Docker Hub access token for authentication.
 
     Args:
         image_name: A string representing the name of the Docker image.
         image_tag: A string representing the tag of the Docker image.
+        registry: The name of the container registry.
 
     Returns:
         A string representing the digest of the Docker image.
     """
 
-    # Build the API endpoint URL
-    url = f'https://hub.docker.com/v2/repositories/library/{image_name}/tags'
+    url = ""
+
+    if registry == "docker.io":
+        url = f'https://hub.docker.com/v2/repositories/library/{image_name}/tags'
+
+    elif registry == "quay.io":
+        url = f'https://quay.io/api/v1/repository/library/{image_name}/tag/{image_tag}/images'
 
     try:
         # Send the API request
@@ -162,6 +137,8 @@ def get_image_digest(image_name: str, image_tag: str) -> str:
 
         # Parse the response JSON
         response_json = response.json()
+
+        print(response_json)
 
         # Return the digest of the image
         for img in response_json["results"]:
@@ -226,9 +203,6 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
     Returns: None
     """
 
-    if check_id == "check_9" or check_id == "check_0":
-        return
-
     # If Network Policy missing issue, create and append one
     if check_id == "check_40":
         if check:
@@ -263,7 +237,7 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                     keys = check["obj_path"].split("/")
                     obj = document
 
-                    no_path_checks = ["check_31", "check_29", "check_26"]
+                    no_path_checks = ["check_31", "check_29", "check_26", "check_45"]
                     if check_id in no_path_checks:
                         process_func(obj)
                         break
@@ -1151,6 +1125,19 @@ def set_label_values(obj: dict):
         obj["spec"]["template"]["metadata"]["labels"]["app"] = "my-app"
 
 
+def set_replicas(obj: dict, value=2):
+    """Set the replicas key for a K8s Deployment
+    
+    Policy: Ensure Deployment has more than one replica configured.
+
+    Args:
+        obj (dict): K8s object to modify.
+        value (int): The value to set the replicas to.    
+    """
+
+    obj["spec"]["replicas"] = value
+
+
 def set_img_tag(obj: dict):
     """Set Image Tag for each K8s object.
 
@@ -1189,12 +1176,12 @@ def set_img_digest(obj: dict):
     else:
         image_name = obj["image"]
 
-    cont_name = image_name.split("/")[-1]
-    image_tag = get_latest_image_tag(cont_name)
+    container = image_name.split("/")
+    image_tag = get_latest_image_tag(container[-1], container[0])
 
     if image_tag:
         # Get the image digest
-        image_digest = get_image_digest(cont_name, image_tag)
+        image_digest = get_image_digest(container[-1], image_tag, container[0])
         obj["image"] = image_name + ":" + image_tag + "@" + image_digest
 
 
@@ -1327,7 +1314,7 @@ class FuncLookupClass:
     "check_42": todo, # container pre-stop hook
     "check_43": set_label_values, # valid label values
     "check_44": todo, # valid restart policy
-    "check_45": todo, # deployment >1 replicas
+    "check_45": set_replicas, # deployment >1 replicas
     "check_46": todo, # owner label
     "check_47": todo, # access underlying host
     "check_48": set_limit_range, # limit range
