@@ -94,6 +94,11 @@ def main():
         # tool = "checkov"
         # result_path = f"test_files/{tool}_results.json"
 
+        if iteration == "1":
+            chart_folder = f"templates/{chart_folder}"
+        elif iteration == "2" or iteration == "3":
+            chart_folder = f"fixed_templates/{chart_folder}"
+
         # Check if there are any failed tests
         if tool == "checkov":
             if check_for_failures(result_path, "summary/failed"):

@@ -24,6 +24,7 @@ def parse_yaml_template(chart_folder: str) -> list:
     """Parses a Helm chart template yaml file and returns it as a dictionary.
 
     Args:
+        folder: The folder containing the Helm Chart template.
         chart_folder: The name of the Helm Chart to parse.
 
     Returns:
@@ -31,7 +32,7 @@ def parse_yaml_template(chart_folder: str) -> list:
     """
 
     # Parse and return the multi-document YAML file while preserving comments
-    file_path = f"templates/{chart_folder}_template.yaml"
+    file_path = f"{chart_folder}_template.yaml"
     with open(file_path, "r", encoding="utf-8") as file:
         return list(yaml.load_all(file, Loader=yaml.FullLoader))
 
@@ -47,9 +48,7 @@ def save_yaml_template(template: str, chart_folder: str):
         IOError: If there is an error writing to the file.
     """
 
-    # comments = parse_yaml_comments(chart_folder)
-
-    file_path = f"templates/{chart_folder}_template.yaml"
+    file_path = f"fixed_templates/{chart_folder}_template.yaml"
     # file_path = f"test_files/{chart_folder}_template.yaml"
     with open(file_path, 'w', encoding="utf-8") as file:
         yaml.safe_dump_all(template, file, sort_keys=False)
