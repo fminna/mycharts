@@ -113,8 +113,8 @@ spec:
         checksum/secret: 99361aeb07258f9bf9b1c0196e1f291ce132f7267022e825adf852079645d5ba
         checksum/google-secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         checksum/redis-secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        container.apparmor.security.beta.kubernetes.io/oauth2-proxy: runtime/default
         seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
-        container.apparmor.security.beta.kubernetes.io/spec/template/spec/containers/0: runtime/default
       labels:
         app: oauth2-proxy
         helm.sh/chart: oauth2-proxy-6.13.1
@@ -136,22 +136,7 @@ spec:
         - --https-address=0.0.0.0:4443
         - --metrics-address=0.0.0.0:44180
         - --config=/etc/oauth2_proxy/oauth2_proxy.cfg
-        env:
-        - name: OAUTH2_PROXY_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: release-name-oauth2-proxy
-              key: client-id
-        - name: OAUTH2_PROXY_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: release-name-oauth2-proxy
-              key: client-secret
-        - name: OAUTH2_PROXY_COOKIE_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: release-name-oauth2-proxy
-              key: cookie-secret
+        env: []
         ports:
         - containerPort: 4180
           name: http
@@ -179,68 +164,28 @@ spec:
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - mountPath: /etc/oauth2_proxy/oauth2_proxy.cfg
           name: configmain
           subPath: oauth2_proxy.cfg
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         securityContext:
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          capabilities:
-            drop:
-            - ALL
+          allowPrivilegeEscalation: false
       volumes:
       - configMap:
           defaultMode: 420
           name: release-name-oauth2-proxy
         name: configmain
+      - name: secret-volume
+        secret:
+          secretName: my-secret
       tolerations: []
       securityContext:
         seccompProfile:
           type: RuntimeDefault
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
