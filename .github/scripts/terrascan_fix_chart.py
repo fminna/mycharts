@@ -49,6 +49,7 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
 
     # Print all found checks
     all_checks = [x for x in all_checks if x is not None]
+    all_checks = list(dict.fromkeys(all_checks))
     all_checks.sort()
     print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))
