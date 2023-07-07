@@ -68,7 +68,7 @@ def add_functionality(container: str, template: dict) -> None:
 
                 fix_template.set_template(template, check_id, container["functionalities"][check_id])
 
-        print(container['functionalities'][check_id]['value'])
+        print(container['functionalities'][check_id])
         
         if container['functionalities'][check_id]['value'] == "true":
             continue
