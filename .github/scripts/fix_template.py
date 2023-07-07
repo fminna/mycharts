@@ -86,8 +86,8 @@ def get_latest_image_tag(image_name: str, registry: "docker.io") -> Optional[str
         # Parse the response JSON
         response_json = response.json()
 
-        print(url)
-        print(response_json)
+        # print(url)
+        # print(response_json)
 
         # Extract the tag names from the response JSON
         tags = [tag['name'] for tag in response_json['results']]
@@ -135,7 +135,7 @@ def get_image_digest(image_name: str, image_tag: str, registry: "docker.io") -> 
         # Parse the response JSON
         response_json = response.json()
 
-        print(response_json)
+        # print(response_json)
 
         # Return the digest of the image
         for img in response_json["results"]:
