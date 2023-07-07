@@ -19,19 +19,20 @@ import json
 import fix_template
 
 
-def iterate_functionalities(chart_folder: str, json_path: str) -> None:
+def iterate_functionalities(chart_folder: str, json_path: str, tool: str) -> None:
     """Parses JSON data and iterates "functionality_id" keys.
 
     Args:
         chart_folder (str): The name of the Helm Chart to fix. 
         json_path (str): The path to the JSON file to parse.
+        tool (str): The name of the tool used to scan the Helm Chart.
     """
 
     # Load the JSON file
     with open(json_path, 'r', encoding="utf-8") as file:
         results = json.load(file)
 
-    name = chart_folder + "_fixed"
+    name = f"fixed_templates/{chart_folder}_{tool}_fixed"
     template = fix_template.parse_yaml_template(name)
     print("Starting to add chart's functionalities ...\n")
 
@@ -58,11 +59,24 @@ def add_functionality(container: str, template: dict) -> None:
     # Iterate functionalities
     for check_id in container["functionalities"]:
 
-        issue = f"{check_id}: {container['functionalities'][check_id]['description']}"
-        print(issue)
-        all_checks.append(check_id)
+        if check_id == "check_34":
+            # Check if any capability needs to be added --- "add" list not empty
+            if container['functionalities'][check_id]['add'] is not None:
+                issue = f"{check_id}: {container['functionalities'][check_id]['description']}"
+                print(issue)
+                all_checks.append(check_id)
 
-        fix_template.set_template(template, check_id, container["functionalities"][check_id])
+                fix_template.set_template(template, check_id, container["functionalities"][check_id])
+
+        elif container['functionalities'][check_id]['value'] is True:
+            continue
+
+        else:
+            issue = f"{check_id}: {container['functionalities'][check_id]['description']}"
+            print(issue)
+            all_checks.append(check_id)
+
+            fix_template.set_template(template, check_id, container["functionalities"][check_id])
 
     print("\nAll functionalities added!\n")
 

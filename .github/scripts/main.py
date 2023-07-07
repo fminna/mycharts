@@ -139,7 +139,7 @@ def main():
     elif args.add_func:
 
         json_path = f"functionality_profiles/{chart_folder}/{chart_folder}_functionality.json"
-        add_functionalities.iterate_functionalities(chart_folder, json_path)
+        add_functionalities.iterate_functionalities(chart_folder, json_path, tool)
 
     # Generate Docker run command from YAML template
     elif args.docker_run:
