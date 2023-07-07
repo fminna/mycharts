@@ -68,17 +68,19 @@ def add_functionality(container: str, template: dict) -> None:
 
                 fix_template.set_template(template, check_id, container["functionalities"][check_id])
 
-        print(container['functionalities'][check_id])
         
-        if container['functionalities'][check_id]['value'] == "true":
-            continue
-
         else:
-            issue = f"{check_id}: {container['functionalities'][check_id]['description']}"
-            print(issue)
-            all_checks.append(check_id)
+            print(container['functionalities'][check_id])
+        
+            if container['functionalities'][check_id]['value'] == "true":
+                continue
 
-            fix_template.set_template(template, check_id, container["functionalities"][check_id])
+            else:
+                issue = f"{check_id}: {container['functionalities'][check_id]['description']}"
+                print(issue)
+                all_checks.append(check_id)
+
+                fix_template.set_template(template, check_id, container["functionalities"][check_id])
 
     print("\nAll functionalities added!\n")
 
