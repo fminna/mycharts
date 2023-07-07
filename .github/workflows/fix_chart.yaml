@@ -58,7 +58,7 @@ jobs:
 
       - name: Print fixed template
         shell: bash
-        run: cat templates/${{ inputs.chart_folder }}_fixed_template.yaml
+        run: cat templates/${{ inputs.chart_folder }}_${{ inputs.first_tool }}_fixed_template.yaml
 
       - name: Delete results file
         shell: bash
@@ -69,7 +69,7 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add templates/${{ inputs.chart_folder }}_fixed_template.yaml
+          git add templates/${{ inputs.chart_folder }}_${{ inputs.first_tool }}_fixed_template.yaml
           git commit -m "Fixed ${{ inputs.chart_folder }} template chart"
           git push
         continue-on-error: true
