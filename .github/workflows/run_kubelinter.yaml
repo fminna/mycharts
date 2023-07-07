@@ -31,11 +31,11 @@ jobs:
 
       - name: Define template chart folder - fixed
         if: ${{ inputs.iteration == '2'}}
-        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_${{ inputs.first_tool }}_fixed_template.yaml" >> $GITHUB_ENV
+        run: echo "TEMPLATE=fixed_templates/${{ inputs.chart_folder }}_${{ inputs.first_tool }}_fixed_template.yaml" >> $GITHUB_ENV
 
       - name: Define template chart folder - functionalities
         if: ${{ inputs.iteration == '3'}}
-        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
+        run: echo "TEMPLATE=functionality_templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
 
       - name: Test with Kube-linter
         id: kube-lint-scan

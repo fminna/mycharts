@@ -61,7 +61,7 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))
 
-    name = f"fixed_template/{chart_folder}_kubescape_fixed"
+    name = f"fixed_{chart_folder}_kubescape_fixed"
     fix_template.save_yaml_template(template, name)
 
 

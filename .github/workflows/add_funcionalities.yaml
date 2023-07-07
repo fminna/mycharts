@@ -54,7 +54,7 @@ jobs:
 
       - name: Print diff issues vs functionality templates
         shell: bash
-        run: diff templates/${{ inputs.chart_folder }}_${{ inputs.first_tool }}_fixed_template.yaml functionality_templates/${{ inputs.chart_folder }}_func_template.yaml
+        run: diff fixed_templates/${{ inputs.chart_folder }}_${{ inputs.first_tool }}_fixed_template.yaml functionality_templates/${{ inputs.chart_folder }}_func_template.yaml
         continue-on-error: true
 
       - name: Commit and push changes
