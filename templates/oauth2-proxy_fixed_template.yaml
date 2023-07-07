@@ -12,7 +12,7 @@ metadata:
     app.kubernetes.io/version: 7.4.0
   name: release-name-oauth2-proxy
   namespace: default
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Secret
@@ -97,7 +97,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 7.4.0
   name: release-name-oauth2-proxy
-  namespace: default
+  namespace: test-ns
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -113,6 +113,8 @@ spec:
         checksum/secret: 99361aeb07258f9bf9b1c0196e1f291ce132f7267022e825adf852079645d5ba
         checksum/google-secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         checksum/redis-secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/spec/template/spec/containers/0: runtime/default
       labels:
         app: oauth2-proxy
         helm.sh/chart: oauth2-proxy-6.13.1
@@ -124,7 +126,7 @@ spec:
         app.kubernetes.io/version: 7.4.0
     spec:
       serviceAccountName: release-name-oauth2-proxy
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
       containers:
       - name: oauth2-proxy
         image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
@@ -174,23 +176,71 @@ spec:
           successThreshold: 1
           periodSeconds: 10
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - mountPath: /etc/oauth2_proxy/oauth2_proxy.cfg
           name: configmain
           subPath: oauth2_proxy.cfg
         securityContext:
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          capabilities:
+            drop:
+            - ALL
       volumes:
       - configMap:
           defaultMode: 420
           name: release-name-oauth2-proxy
         name: configmain
       tolerations: []
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
