@@ -91,7 +91,7 @@ def main():
         # Get ENV variables
         iteration = os.environ.get("iteration")
         result_path = f"results_{iteration}.json"
-        
+
         # result_path = f"test_files/{tool}_results.json"
 
         if iteration == "1":

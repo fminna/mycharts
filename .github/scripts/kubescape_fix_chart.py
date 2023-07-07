@@ -50,7 +50,10 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
 
                 print(f"{control['controlID']}: {control['name']}")
                 check_id = fix_issue(control, resource_path, template)
-                all_checks.append(check_id)
+
+                for rule in control["rules"]:
+                    for _ in rule["paths"]:
+                        all_checks.append(check_id)
 
     print("\nAll issues fixed!\n")
 

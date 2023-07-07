@@ -42,7 +42,9 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     for check in results["policyValidationResults"][0]["ruleResults"]:
         print(f"{check['identifier']}: {check['name']}")
         check_id = fix_issue(check, template)
-        all_checks.append(check_id)
+
+        for _ in check["occurrencesDetails"]:
+            all_checks.append(check_id)
 
     print("\nAll issues fixed!\n")
 

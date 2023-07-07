@@ -41,7 +41,7 @@ def iterate_functionalities(chart_folder: str, json_path: str, tool: str) -> Non
             add_functionality(container, template)
 
     print("\nAll functionalities added!")
-    name = f"functionality_profiles/{chart_folder}_func"
+    name = f"functionality_templates/{chart_folder}_func"
     fix_template.save_yaml_template(template, name)
 
 
@@ -68,7 +68,9 @@ def add_functionality(container: str, template: dict) -> None:
 
                 fix_template.set_template(template, check_id, container["functionalities"][check_id])
 
-        elif container['functionalities'][check_id]['value'] is True:
+        print(container['functionalities'][check_id]['value'])
+        
+        if container['functionalities'][check_id]['value'] == "true":
             continue
 
         else:

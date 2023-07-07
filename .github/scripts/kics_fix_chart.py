@@ -48,7 +48,9 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         #     remove_password(chart_folder, check["files"])
 
         check_id = fix_issue(check, template)
-        all_checks.append(check_id)
+
+        for _ in check["files"]:
+            all_checks.append(check_id)
 
     print("\nAll issues fixed!\n")
 
