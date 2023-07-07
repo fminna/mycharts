@@ -1,0 +1,71 @@
+{
+  "helmchart_name": "mycharts/mysql",
+  "release_name": "mysql",
+  "temp_name": "mysql",
+  "loc_helm_chart": "/home/clinton/functionality_oracle/helm_charts/mycharts_mysql.yml",
+  "tool": "self",
+  "pods": [
+    {
+      "pod_name": "mysql",
+      "type_pod": "StatefulSet",
+      "containers": [
+        {
+          "cont_name": "mysql",
+          "functionalities": {
+            "check_1": {
+              "description": "Ensure each container has a configured memory request",
+              "resource_path": "StatefulSet/default/mysql",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": "1024Mi"
+            },
+            "check_2": {
+              "description": "Ensure each container has a configured memory limit",
+              "resource_path": "StatefulSet/default/mysql",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": "1024Mi"
+            },
+            "check_4": {
+              "description": "Ensure each container has a configured CPU request",
+              "resource_path": "StatefulSet/default/mysql",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": "1000m"
+            },
+            "check_5": {
+              "description": "Ensure each container has a configured CPU limit",
+              "resource_path": "StatefulSet/default/mysql",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": "1000m"
+            },
+            "check_27": {
+              "description": "Use read-only filesystem for containers where possible",
+              "resource_path": "StatefulSet/default/mysql",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": false,
+              "failed_check": "test_case_1"
+            },
+            "check_28": {
+              "description": "Containers should not run as root",
+              "resource_path": "StatefulSet/default/mysql",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": false,
+              "failed_check": "test_case_1"
+            },
+            "check_35": {
+              "description": "Ensure that Service Account Tokens are only mounted where necessary",
+              "resource_path": "StatefulSet/default/mysql",
+              "obj_path": "",
+              "value": true
+            },
+            "check_36": {
+              "description": "Ensure that default service accounts are not actively used",
+              "resource_path": "StatefulSet/default/mysql",
+              "obj_path": "",
+              "value": true
+            }
+          },
+          "appArmorProfile": "profile-mysql_mysql"
+        }
+      ]
+    }
+  ]
+}

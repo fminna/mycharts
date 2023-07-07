@@ -8,6 +8,10 @@ on:
         required: true
         type: string
 
+      first_tool:
+        required: true
+        type: string
+
 jobs:
 
   add_functionalities:
@@ -37,14 +41,20 @@ jobs:
         run: python .github/scripts/main.py --add-func
         env:
           chart_folder: ${{ inputs.chart_folder }}
+          first_tool: ${{ inputs.first_tool }}
 
       - name: Print updated template
         shell: bash
-        run: cat templates/${{ inputs.chart_folder }}_func_template.yaml
+        run: cat functionality_templates/${{ inputs.chart_folder }}_func_template.yaml
 
-      - name: Print diff issues vs functionalities
+      - name: Print diff original vs functionality templates
         shell: bash
-        run: diff templates/${{ inputs.chart_folder }}_fixed_template.yaml templates/${{ inputs.chart_folder }}_func_template.yaml
+        run: diff templates/${{ inputs.chart_folder }}_template.yaml functionality_templates/${{ inputs.chart_folder }}_func_template.yaml
+        continue-on-error: true
+
+      - name: Print diff issues vs functionality templates
+        shell: bash
+        run: diff templates/${{ inputs.chart_folder }}_${{ inputs.first_tool }}_fixed_template.yaml functionality_templates/${{ inputs.chart_folder }}_func_template.yaml
         continue-on-error: true
 
       - name: Commit and push changes
@@ -52,7 +62,7 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add templates/${{ inputs.chart_folder }}_func_template.yaml
+          git add functionality_templates/${{ inputs.chart_folder }}_func_template.yaml
           git commit -m "Updated ${{ inputs.chart_folder }} template chart"
           git push
         continue-on-error: true

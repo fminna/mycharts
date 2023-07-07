@@ -40,7 +40,7 @@ def iterate_functionalities(chart_folder: str, json_path: str) -> None:
             add_functionality(container, template)
 
     print("\nAll functionalities added!")
-    name = chart_folder + "_func"
+    name = f"functionality_profiles/{chart_folder}_func"
     fix_template.save_yaml_template(template, name)
 
 
@@ -52,9 +52,23 @@ def add_functionality(container: str, template: dict) -> None:
         template (dict): The parsed YAML template.
     """
 
+    # List of all checks
+    all_checks = []
+
     # Iterate functionalities
     for check_id in container["functionalities"]:
 
-        issue = check_id + ": " + container["functionalities"][check_id]['description']
+        issue = f"{check_id}: {container['functionalities'][check_id]['description']}"
         print(issue)
+        all_checks.append(check_id)
+
         fix_template.set_template(template, check_id, container["functionalities"][check_id])
+
+    print("\nAll functionalities added!\n")
+
+    # Print all found checks
+    all_checks = [x for x in all_checks if x is not None]
+    all_checks = list(dict.fromkeys(all_checks))
+    all_checks.sort()
+    print(f"Total number of functionalities: {len(all_checks)}")
+    print(", ".join(all_checks))

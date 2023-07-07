@@ -48,7 +48,7 @@ def save_yaml_template(template: str, chart_folder: str):
         IOError: If there is an error writing to the file.
     """
 
-    file_path = f"fixed_templates/{chart_folder}_template.yaml"
+    file_path = f"{chart_folder}_template.yaml"
     # file_path = f"test_files/{chart_folder}_template.yaml"
     with open(file_path, 'w', encoding="utf-8") as file:
         yaml.safe_dump_all(template, file, sort_keys=False)

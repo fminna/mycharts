@@ -82,6 +82,8 @@ def main():
     # For local testing on macOS, add env variables to ~/.zshrc
     chart_folder = os.environ.get("chart_folder")
     # chart_folder = "oauth2-proxy"
+    tool = os.environ.get("first_tool")
+    # tool = "checkov"
 
     # Fix the chart based on the results of a tool
     if args.check:
@@ -89,9 +91,7 @@ def main():
         # Get ENV variables
         iteration = os.environ.get("iteration")
         result_path = f"results_{iteration}.json"
-        tool = os.environ.get("first_tool")
-
-        # tool = "checkov"
+        
         # result_path = f"test_files/{tool}_results.json"
 
         if iteration == "1":
@@ -138,7 +138,7 @@ def main():
     # Add required functionality to the chart
     elif args.add_func:
 
-        json_path = "chart_profiles/" + chart_folder + "/" + chart_folder + "_functionality.json"
+        json_path = f"functionality_profiles/{chart_folder}/{chart_folder}_functionality.json"
         add_functionalities.iterate_functionalities(chart_folder, json_path)
 
     # Generate Docker run command from YAML template

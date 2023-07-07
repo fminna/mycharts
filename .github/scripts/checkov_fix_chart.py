@@ -53,7 +53,7 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))
 
-    name = f"{chart_folder}_checkov_fixed"
+    name = f"fixed_template/{chart_folder}_checkov_fixed"
     fix_template.save_yaml_template(template, name)
 
 
@@ -125,13 +125,9 @@ class LookupClass:
         "CKV_K8S_22": "check_27", 
         "CKV_K8S_23": "check_28", 
         "CKV_K8S_25": "check_34", 
-        "CKV_K8S_26": "", 
-        "CKV_K8S_27": "", 
         "CKV_K8S_28": "check_34", 
         "CKV_K8S_29": "check_30", 
-        "CKV_K8S_30": "", 
         "CKV_K8S_31": "check_31", 
-        "CKV_K8S_33": "", 
         "CKV_K8S_35": "check_33", 
         "CKV_K8S_37": "check_34", 
         "CKV_K8S_38": "check_35", 
@@ -140,11 +136,6 @@ class LookupClass:
         "CKV_K8S_41": "check_35", 
         "CKV_K8S_42": "check_35", 
         "CKV_K8S_43": "check_9", 
-        "CKV_K8S_44": "", 
-        "CKV_K8S_49": "", 
-        "CKV_K8S_156": "", 
-        "CKV_K8S_157": "", 
-        "CKV_K8S_158": "",
         "CKV2_K8S_6": "check_40"
     }
 
