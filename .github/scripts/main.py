@@ -148,8 +148,16 @@ def main():
     # Count final checks
     elif args.count_checks:
         # Get ENV variables
+        tool = os.environ.get("second_tool")
         iteration = os.environ.get("iteration")
         result_path = f"results_{iteration}.json"
+
+
+        print("DIOCAN")
+        print(tool)
+        print(result_path)
+
+
         count_checks.count_checks(result_path, tool)
 
     else:

@@ -633,7 +633,6 @@ def set_uid(obj: dict, uid=25000):
             elif "runAsUser" not in container["securityContext"]:
                 container["securityContext"]["runAsUser"] = uid
             else:
-                print("SECONDO DIOCAN")
                 container["securityContext"]["runAsUser"] = uid
     else:
         obj["securityContext"]["runAsUser"] = uid
