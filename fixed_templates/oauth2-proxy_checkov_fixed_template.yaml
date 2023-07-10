@@ -171,11 +171,12 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsUser: 25000
           allowPrivilegeEscalation: false
       volumes:
       - configMap:
