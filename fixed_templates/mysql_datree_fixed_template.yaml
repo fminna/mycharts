@@ -201,10 +201,10 @@ spec:
         image: docker.io/bitnami/mysql:8.0.32-debian-11-r21
         imagePullPolicy: IfNotPresent
         securityContext:
-          runAsNonRoot: false
-          runAsUser: 1001
+          runAsNonRoot: true
+          runAsUser: 25000
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -260,11 +260,9 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            memory: 1024Mi
-            cpu: 1000m
+            memory: 128Mi
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            memory: 128Mi
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
