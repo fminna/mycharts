@@ -223,7 +223,7 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> None
     print("\nAll functionalities added!\n")
 
     # Print all found checks
-    all_checks = [x for x in all_checks if x is not None]
+    all_checks = [str(x) for x in all_checks if x is not None]
     all_checks.sort()
     print(f"Total number of functionalities: {len(all_checks)}")
     print(", ".join(all_checks))

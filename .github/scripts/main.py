@@ -28,6 +28,7 @@ import kubescape_fix_chart
 import terrascan_fix_chart
 import add_functionalities
 import generate_docker_run
+import count_checks
 
 
 # Define the argument parser
@@ -43,6 +44,9 @@ parser.add_argument('--add-func', action='store_true', help='Add required functi
 
 # Add the --add-func argument
 parser.add_argument('--docker-run', action='store_true', help='Generate Docker run command')
+
+# Add the --add-func argument
+parser.add_argument('--count-checks', action='store_true', help='Count final checks')
 
 # Parse the arguments
 args = parser.parse_args()
@@ -88,7 +92,6 @@ def main():
 
     # Fix the chart based on the results of a tool
     if args.check:
-
         # Get ENV variables
         iteration = os.environ.get("iteration")
         result_path = f"results_{iteration}.json"
@@ -138,16 +141,21 @@ def main():
 
     # Add required functionality to the chart
     elif args.add_func:
-
         json_path = f"functionality_profiles/{chart_folder}/{chart_folder}_functionality.json"
         add_functionalities.iterate_functionalities(chart_folder, json_path, tool)
 
     # Generate Docker run command from YAML template
     elif args.docker_run:
-
         resource_path = os.environ.get("resource_path")
         obj_path = os.environ.get("obj_path")
         generate_docker_run.get_docker_run_cmd(chart_folder, resource_path, obj_path)
+
+    # Count final checks
+    elif args.count_checks:
+        # Get ENV variables
+        iteration = os.environ.get("iteration")
+        result_path = f"results_{iteration}.json"
+        count_checks.count_checks(result_path, tool)
 
     else:
         print("No arguments passed. Exiting...")
