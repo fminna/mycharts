@@ -87,16 +87,11 @@ def main():
     chart_folder = os.environ.get("chart_folder")
     tool = os.environ.get("first_tool")
 
-    # chart_folder = "mysql"
-    # tool = "checkov"
-
     # Fix the chart based on the results of a tool
     if args.check:
         # Get ENV variables
         iteration = os.environ.get("iteration")
         result_path = f"results_{iteration}.json"
-
-        # result_path = f"test_files/{tool}_results.json"
 
         if iteration == "1":
             chart_folder = f"templates/{chart_folder}"
@@ -154,7 +149,7 @@ def main():
     elif args.count_checks:
         # Get ENV variables
         iteration = os.environ.get("iteration")
-        result_path = f"results_{iteration}.json"
+        result_path = f"./results_{iteration}.json"
         count_checks.count_checks(result_path, tool)
 
     else:
