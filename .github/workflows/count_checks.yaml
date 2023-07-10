@@ -34,9 +34,6 @@ jobs:
         with:
           name: results_${{ inputs.iteration }}
 
-      - name: List files in current directory
-        run: ls -a
-
       - name: Install python packages
         shell: bash
         run: |

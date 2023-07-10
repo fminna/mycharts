@@ -16,6 +16,13 @@
 """
 
 import json
+import checkov_fix_chart
+import datree_fix_chart
+import kics_fix_chart
+import kubelinter_fix_chart
+import kubeaudit_fix_chart
+import kubescape_fix_chart
+import terrascan_fix_chart
 
 
 def count_checks(result_path: str, tool: str) -> list:
@@ -34,55 +41,65 @@ def count_checks(result_path: str, tool: str) -> list:
     with open(result_path, 'r', encoding="utf-8") as file:
         results = json.load(file)
 
-
-
-
-    print(result_path)
-    print(results)
-
-
-
-
     # List of all checks
     all_checks = []
 
     if tool == "checkov":
         for check in results["results"]["failed_checks"]:
-            all_checks.append(check['check_id'])
+            my_lookup = checkov_fix_chart.LookupClass()
+            check_id = my_lookup.get_value(check["check_id"])
+            all_checks.append(check_id)
 
     elif tool == "datree":
         for check in results["policyValidationResults"][0]["ruleResults"]:
             for _ in check["occurrencesDetails"]:
-                all_checks.append(check['identifier'])
+                my_lookup = datree_fix_chart.LookupClass()
+                check_id = my_lookup.get_value(check["identifier"])
+                all_checks.append(check_id)
 
     elif tool == "kics":
         for check in results["queries"]:
             for _ in check["files"]:
-                all_checks.append(check['query_id'])
+                my_lookup = kics_fix_chart.LookupClass()
+                check_id = my_lookup.get_value(check["query_id"])
+                all_checks.append(check_id)
 
     elif tool == "kubelinter":
         for check in results["Reports"]:
-            all_checks.append(check['Check'])
+            my_lookup = kubelinter_fix_chart.LookupClass()
+            check_id = my_lookup.get_value(check["Check"])
+            all_checks.append()
 
     elif tool == "kubeaudit":
         for check in results["checks"]:
-            all_checks.append(check['AuditResultName'])
+            my_lookup = kubeaudit_fix_chart.LookupClass()
+            check_id = my_lookup.get_value(check["AuditResultName"])
+            all_checks.append()
 
     elif tool == "kubescape":
         for resource in results["results"]:
             for control in resource["controls"]:
                 if control["status"]["status"] == "failed":
                     for rule in control["rules"]:
-                        for _ in rule["paths"]:
-                            all_checks.append(control['controlID'])
+                        if "paths" in rule:
+                            for _ in rule["paths"]:
+                                my_lookup = kubescape_fix_chart.LookupClass()
+                                check_id = my_lookup.get_value(control["controlID"])
+                                all_checks.append(check_id)
+                        else:
+                            my_lookup = kubescape_fix_chart.LookupClass()
+                            check_id = my_lookup.get_value(control["controlID"])
+                            all_checks.append(check_id)
 
     elif tool == "terrascan":
         for run in results["runs"]:
             for check in run["results"]:
+                my_lookup = terrascan_fix_chart.LookupClass()
+                check_id = my_lookup.get_value(check['ruleId'])
                 all_checks.append(check['ruleId'])
 
     # Print all found checks
-    all_checks = [x for x in all_checks if x is not None]
+    all_checks = [str(x) for x in all_checks if x is not None]
     all_checks.sort()
     print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))
