@@ -7,7 +7,7 @@ on:
       chart_folder:
         description: 'The path to the Helm Chart folder'
         required: true
-        default: 'kubeview'
+        default: 'metallb'
         type: string
 
       first_tool:
