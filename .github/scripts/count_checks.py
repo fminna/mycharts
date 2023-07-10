@@ -18,7 +18,7 @@
 import json
 
 
-def count_checks(result_path: str, tool: str) -> int:
+def count_checks(result_path: str, tool: str) -> list:
     """
     Count the checks from a tool JSON result file.
 
@@ -33,6 +33,15 @@ def count_checks(result_path: str, tool: str) -> int:
     # Parse JSON result file
     with open(result_path, 'r', encoding="utf-8") as file:
         results = json.load(file)
+
+
+
+
+    print(result_path)
+    print(results)
+
+
+
 
     # List of all checks
     all_checks = []
@@ -77,3 +86,5 @@ def count_checks(result_path: str, tool: str) -> int:
     all_checks.sort()
     print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))
+
+    return all_checks

@@ -34,6 +34,9 @@ jobs:
         with:
           name: results_${{ inputs.iteration }}
 
+      - name: List files in current directory
+        run: ls -a
+
       - name: Install python packages
         shell: bash
         run: |
@@ -41,7 +44,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run the functionalities script
+      - name: Count checks
         shell: bash
         run: python .github/scripts/main.py --count-checks
         env:
