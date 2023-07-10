@@ -10,7 +10,7 @@ on:
 
       second_tool:
         required: true
-        type: string
+        type: string  
 
 jobs:
 
@@ -40,6 +40,9 @@ jobs:
           cd .github/scripts
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Print second_tool variable
+        run: echo ${{ inputs.second_tool }}
 
       - name: Count checks
         shell: bash

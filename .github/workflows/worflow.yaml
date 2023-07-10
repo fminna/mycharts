@@ -7,7 +7,7 @@ on:
       chart_folder:
         description: 'The path to the Helm Chart folder'
         required: true
-        default: 'mysql'
+        default: 'pihole'
         type: string
 
       first_tool:

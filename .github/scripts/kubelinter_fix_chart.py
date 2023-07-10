@@ -174,7 +174,9 @@ class LookupClass:
         "deprecated-service-account-field": "check_37",
         "wildcard-in-rules": "check_39",
         "unsafe-sysctls": "check_41",
-        "sensitive-host-mounts": "check_47"
+        "sensitive-host-mounts": "check_47",
+        "non-existent-service-account": "",
+        "dangling-service": "",
     }
 
     @classmethod

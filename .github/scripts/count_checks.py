@@ -37,18 +37,27 @@ def count_checks(result_path: str, tool: str) -> list:
         int: The number of checks.
     """
 
-    print("Counting checks...")
-    print(result_path)
-    print(tool)
+    if tool == "kubeaudit":
+        # Convert result to a valid JSON
+        with open(result_path, 'r', encoding="utf-8") as file:
+            data = file.read()
 
+        # If data does not begin with '{"checks": [', then it is not a valid JSON
+        if not data.startswith('{"checks": ['):
+            # Add '{"checks": [' at the beginning of data
+            data = '{"checks": [' + data
+            # Substitue all '}' with '},' except the last one
+            data = data.replace('}', '},', data.count('}') - 1)
+            # Add ']}' at the end of data
+            data = data + ']}'
 
-
+            # Save data to a new JSON file
+            with open(result_path, 'w', encoding="utf-8") as file:
+                file.write(data)
 
     # Parse JSON result file
     with open(result_path, 'r', encoding="utf-8") as file:
         results = json.load(file)
-
-    print(results)
 
     # List of all checks
     all_checks = []
