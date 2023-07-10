@@ -55,7 +55,7 @@ def save_yaml_template(template: str, chart_folder: str):
         # yaml.safe_dump_all(json.dumps(template).strip())
 
 
-def get_latest_image_tag(image_name: str, registry: "docker.io") -> Optional[str]:
+def get_docker_img_tag(image_name: str) -> str:
     """
     Retrieves the latest container image tag that is not "latest" for a given image name
     using the Docker Registry HTTP API.
@@ -70,13 +70,7 @@ def get_latest_image_tag(image_name: str, registry: "docker.io") -> Optional[str
         if no such tag exists.
     """
 
-    url = ""
-
-    if registry == "docker.io":
-        url = f'https://hub.docker.com/v2/repositories/library/{image_name}/tags'
-
-    elif registry == "quay.io":
-        url = f'https://quay.io/api/v1/repository/library/{image_name}/tag/'
+    url = f'https://hub.docker.com/v2/repositories/library/{image_name}/tags'
 
     try:
         # Send the API request
@@ -85,9 +79,6 @@ def get_latest_image_tag(image_name: str, registry: "docker.io") -> Optional[str
 
         # Parse the response JSON
         response_json = response.json()
-
-        # print(url)
-        # print(response_json)
 
         # Extract the tag names from the response JSON
         tags = [tag['name'] for tag in response_json['results']]
@@ -106,7 +97,7 @@ def get_latest_image_tag(image_name: str, registry: "docker.io") -> Optional[str
         return ""
 
 
-def get_image_digest(image_name: str, image_tag: str, registry: "docker.io") -> str:
+def get_docker_img_digest(image_name: str, image_tag: str) -> str:
     """Retrieves the digest of a Docker image with the given name and tag, using
     the specified Docker Hub access token for authentication.
 
@@ -119,13 +110,7 @@ def get_image_digest(image_name: str, image_tag: str, registry: "docker.io") -> 
         A string representing the digest of the Docker image.
     """
 
-    url = ""
-
-    if registry == "docker.io":
-        url = f'https://hub.docker.com/v2/repositories/library/{image_name}/tags'
-
-    elif registry == "quay.io":
-        url = f'https://quay.io/api/v1/repository/library/{image_name}/tag/{image_tag}/images'
+    url = f'https://hub.docker.com/v2/repositories/library/{image_name}/tags'
 
     try:
         # Send the API request
@@ -134,8 +119,6 @@ def get_image_digest(image_name: str, image_tag: str, registry: "docker.io") -> 
 
         # Parse the response JSON
         response_json = response.json()
-
-        # print(response_json)
 
         # Return the digest of the image
         for img in response_json["results"]:
@@ -649,6 +632,7 @@ def set_uid(obj: dict, uid=25000):
             elif "runAsUser" not in container["securityContext"]:
                 container["securityContext"]["runAsUser"] = uid
             else:
+                print("SECONDO DIOCAN")
                 container["securityContext"]["runAsUser"] = uid
     else:
         obj["securityContext"]["runAsUser"] = uid
@@ -677,37 +661,6 @@ def set_root(obj: dict, value=True, uid=25000):
         obj["securityContext"] = {
             "runAsNonRoot": value,
             "runAsUser": uid
-        }
-    # If runAsNonRoot is not set in securityContext, Set it
-    else:
-        obj["securityContext"]["runAsNonRoot"] = value
-
-    # If runAsUser is not set in securityContext, Set it
-    if "runAsUser" not in obj["securityContext"]:
-        obj["securityContext"]["runAsUser"] = uid
-
-
-def set_non_root(obj: dict, value=True, uid=25000):
-    """Set the root user to each K8s object.
-
-    Policy: Minimize the admission of root containers
-    
-    Args:
-        obj (dict): K8s object to modify.
-        value (bool): The value to set the root user to.
-        uid (int): The value to set the runAsUser to.
-    """
-
-    if "spec" in obj:
-        obj = obj["spec"]
-        if "template" in obj:
-            obj = obj["template"]["spec"]
-
-    # If securityContext is not set in containers, Set it
-    if "securityContext" not in obj:
-        obj["securityContext"] = {
-            "runAsNonRoot": value,
-            "runAsUser": uid,
         }
     # If runAsNonRoot is not set in securityContext, Set it
     else:
@@ -1148,7 +1101,7 @@ def set_img_tag(obj: dict):
         return obj
 
     # Get the latest image tag which is not "latest"
-    image_tag = get_latest_image_tag(obj["image"])
+    image_tag = get_docker_img_tag(obj["image"])
     # Set Image Tag
     if image_tag:
         obj["image"] = obj["image"] + ":" + image_tag
@@ -1174,11 +1127,11 @@ def set_img_digest(obj: dict):
         image_name = obj["image"]
 
     container = image_name.split("/")
-    image_tag = get_latest_image_tag(container[-1], container[0])
+    image_tag = get_docker_img_tag(container[-1])
 
     if image_tag:
         # Get the image digest
-        image_digest = get_image_digest(container[-1], image_tag, container[0])
+        image_digest = get_docker_img_digest(container[-1], image_tag)
         obj["image"] = image_name + ":" + image_tag + "@" + image_digest
 
 

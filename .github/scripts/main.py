@@ -80,10 +80,11 @@ def main():
 
     # Get chart_folder from ENV
     # For local testing on macOS, add env variables to ~/.zshrc
-    chart_folder = os.environ.get("chart_folder")
-    # chart_folder = "oauth2-proxy"
-    tool = os.environ.get("first_tool")
-    # tool = "checkov"
+    # chart_folder = os.environ.get("chart_folder")
+    # tool = os.environ.get("first_tool")
+
+    chart_folder = "mysql"
+    tool = "checkov"
 
     # Fix the chart based on the results of a tool
     if args.check:
