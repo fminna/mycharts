@@ -149,7 +149,7 @@ def main():
     elif args.count_checks:
         # Get ENV variables
         iteration = os.environ.get("iteration")
-        result_path = f"./results_{iteration}.json"
+        tool = os.environ.get("second_tool")
         count_checks.count_checks(result_path, tool)
 
     else:

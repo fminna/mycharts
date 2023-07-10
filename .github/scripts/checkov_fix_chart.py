@@ -135,7 +135,8 @@ class LookupClass:
         "CKV_K8S_41": "check_35", 
         "CKV_K8S_42": "check_35", 
         "CKV_K8S_43": "check_9", 
-        "CKV2_K8S_6": "check_40"
+        "CKV2_K8S_6": "check_40",
+        "CKV_K8S_30": "check_30"
     }
 
     @classmethod
