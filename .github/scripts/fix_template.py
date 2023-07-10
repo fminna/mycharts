@@ -604,8 +604,6 @@ def set_uid(obj: dict, uid=25000):
         obj (dict): K8s object to modify.
     """
 
-    uid = int(uid)
-
     if "spec" in obj:
         obj = obj["spec"]
         if "template" in obj:
@@ -650,8 +648,6 @@ def set_root(obj: dict, value=True, uid=25000):
         gid (int): The value to set the runAsGroup to.
         fsg (int): The value to set the fsGroup to.
     """
-
-    uid = int(uid)
 
     if "spec" in obj:
         obj = obj["spec"]

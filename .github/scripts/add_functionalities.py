@@ -159,6 +159,8 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> None
             # Retrieve UID from original template
             original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
             uid = get_original_uid(original_template, check["resource_path"], check["obj_path"])
+            if not uid:
+                uid = 1001
 
             issue = f"{check_id}: {check['description']}"
             print(issue)
