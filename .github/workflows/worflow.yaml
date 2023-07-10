@@ -13,7 +13,7 @@ on:
       first_tool:
         description: 'The first tool to analyze the chart'
         required: true
-        default: 'datree'
+        default: 'checkov'
         type: string
       
       second_tool:
