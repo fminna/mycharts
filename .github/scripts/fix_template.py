@@ -142,31 +142,32 @@ def check_resource_path(path_list: str, document: dict) -> bool:
         True if the resource path exists, False otherwise.
     """
 
-    if document["kind"] == path_list[0]:
+    if path_list and document:
+        if document["kind"] == path_list[0]:
 
-        if "namespace" in document["metadata"]:
+            if "namespace" in document["metadata"]:
 
-            # Ignore default ns
-            if document["metadata"]["namespace"] == "default":
+                # Ignore default ns
+                if document["metadata"]["namespace"] == "default":
+                    return document["metadata"]["name"] == path_list[-1]
+
+                # If the namespace was added during fixing, ignore it
+                elif document["metadata"]["namespace"] == "test-ns":
+                    return document["metadata"]["name"] == path_list[-1]
+
+                elif document["metadata"]["namespace"] == path_list[1]:
+                    return document["metadata"]["name"] == path_list[-1]
+
+                elif document["metadata"]["namespace"] == path_list[1] and \
+                    document["metadata"]["name"] == path_list[-1]:
+                    return True
+
+            # "namespace" not in document["metadata"]
+            elif path_list[1] == "default":
                 return document["metadata"]["name"] == path_list[-1]
 
-            # If the namespace was added during fixing, ignore it
-            elif document["metadata"]["namespace"] == "test-ns":
-                return document["metadata"]["name"] == path_list[-1]
-
-            elif document["metadata"]["namespace"] == path_list[1]:
-                return document["metadata"]["name"] == path_list[-1]
-
-            elif document["metadata"]["namespace"] == path_list[1] and \
-                document["metadata"]["name"] == path_list[-1]:
+            elif document["metadata"]["name"] == path_list[1]:
                 return True
-
-        # "namespace" not in document["metadata"]
-        elif path_list[1] == "default":
-            return document["metadata"]["name"] == path_list[-1]
-
-        elif document["metadata"]["name"] == path_list[1]:
-            return True
 
     return False
 
