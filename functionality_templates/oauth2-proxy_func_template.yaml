@@ -161,8 +161,11 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            cpu: 250m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1024Mi
+          requests:
+            memory: 1024Mi
+            cpu: 1000m
         volumeMounts:
         - mountPath: /etc/oauth2_proxy/oauth2_proxy.cfg
           name: configmain
@@ -172,7 +175,7 @@ spec:
           mountPath: /etc/secret-volume
         securityContext:
           runAsNonRoot: true
-          runAsUser: 25000
+          runAsUser: ''
           readOnlyRootFilesystem: true
           capabilities:
             drop:
