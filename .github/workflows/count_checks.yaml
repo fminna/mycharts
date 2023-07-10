@@ -14,7 +14,7 @@ on:
 
 jobs:
 
-  add_functionalities:
+  count_checks:
 
     runs-on: ubuntu-latest
 
@@ -45,4 +45,5 @@ jobs:
         shell: bash
         run: python .github/scripts/main.py --count-checks
         env:
+          iteration: ${{ inputs.iteration }}
           second_tool: ${{ inputs.second_tool }}
