@@ -150,7 +150,6 @@ def main():
         # Get ENV variables
         iteration = os.environ.get("iteration")
         result_path = f"results_{iteration}.json"
-
         count_checks.count_checks(result_path, tool)
 
     else:
