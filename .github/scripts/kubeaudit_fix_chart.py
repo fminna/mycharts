@@ -137,6 +137,7 @@ class LookupClass:
         "AllowPrivilegeEscalationNil": "check_22", 
         "PrivilegedNil": "check_21", 
         "ReadOnlyRootFilesystemNil": "check_27", 
+        "ReadOnlyRootFilesystemFalse": "check_27",
         "SeccompProfileMissing": "check_31",
         "AutomountServiceAccountTokenTrueAndDefaultSA": "check_35",
         "ImageTagMissing": "check_0",
