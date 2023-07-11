@@ -271,7 +271,8 @@ class LookupClass:
         "caa3479d-885d-4882-9aac-95e5e78ef5c2": "check_25",
         "3d658f8b-d988-41a0-a841-40043121de1e": "check_33",
         "8cf4671a-cf3d-46fc-8389-21e7405063a2": "check_52",
-        "bb241e61-77c3-4b97-9575-c0f8a1e008d0": "check_53"
+        "bb241e61-77c3-4b97-9575-c0f8a1e008d0": "check_53",
+        "b7652612-de4e-4466-a0bf-1cd81f0c6063": "check_55"
     }
 
     @classmethod

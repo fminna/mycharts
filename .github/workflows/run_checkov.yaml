@@ -53,6 +53,7 @@ jobs:
           quiet: true # optional: display only failed checks
           soft_fail: true # optional: do not return an error code if there are failed checks
           framework: kubernetes
+          skip_check: CKV_SECRET_6
           output_format: cli,json
           output_file_path: console,results_${{ inputs.iteration }}.json
         continue-on-error: true

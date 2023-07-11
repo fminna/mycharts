@@ -217,7 +217,7 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                     keys = check["obj_path"].split("/")
                     obj = document
 
-                    no_path_checks = ["check_31", "check_29", "check_26", "check_45"]
+                    no_path_checks = ["check_31", "check_29", "check_26", "check_45", "check_54"]
                     if check_id in no_path_checks:
                         process_func(obj)
                         break
@@ -997,6 +997,44 @@ def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret
             })
 
 
+def set_volume_mounts(obj: dict, value=True):
+    """Set a container volumeMounts readOnly to value for each K8s object.
+    
+    Policy: Volume Mount With OS Directory Write Permissions
+
+    Args:
+        obj (dict): K8s object to modify.
+        value (bool): The value to set the readOnly to.
+    """
+
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+
+    if "volumeMounts" in obj:
+        for volume in obj["volumeMounts"]:
+            if "readOnly" in volume:
+                volume["readOnly"] = value
+
+
+def set_cluster_roles(obj: dict):
+    """
+
+    Policy: Kubernetes ClusterRoles that grant control over validating or 
+    mutating admission webhook configurations are not minimized.
+
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    # Remove "create", "update", or "patch" permissions
+    for rule in obj["rules"]:
+        if "verbs" in rule:
+            rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
+                    "create", "update", "patch"]]
+
+
 def set_service_account(obj: dict, value=False):
     """Set ServiceAccount from each K8s object.
 
@@ -1270,7 +1308,9 @@ class FuncLookupClass:
     "check_49": set_resource_quota, # resource quota
     "check_50": set_subpath,
     "check_52": remove_storage,
-    "check_53": set_statefulset_service_name
+    "check_53": set_statefulset_service_name,
+    "check_54": set_cluster_roles,
+    "check_55": set_volume_mounts,
     }
 
     @classmethod

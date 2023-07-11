@@ -175,8 +175,8 @@ class LookupClass:
         "wildcard-in-rules": "check_39",
         "unsafe-sysctls": "check_41",
         "sensitive-host-mounts": "check_47",
-        "non-existent-service-account": "",
-        "dangling-service": "",
+        "non-existent-service-account": "TODO",
+        "dangling-service": "TODO",
     }
 
     @classmethod

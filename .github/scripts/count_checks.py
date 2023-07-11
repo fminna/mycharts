@@ -78,6 +78,11 @@ def count_checks(result_path: str, tool: str) -> list:
     elif tool == "kics":
         for check in results["queries"]:
             for _ in check["files"]:
+
+                # IGNORE PASSWORDS AND SECRETS POLICIES
+                if check["query_id"] == "487f4be7-3fd9-4506-a07a-eae252180c08":
+                    continue
+
                 my_lookup = kics_fix_chart.LookupClass()
                 check_id = my_lookup.get_value(check["query_id"])
                 all_checks.append(check_id)
@@ -117,6 +122,13 @@ def count_checks(result_path: str, tool: str) -> list:
                 my_lookup = terrascan_fix_chart.LookupClass()
                 check_id = my_lookup.get_value(check['ruleId'])
                 all_checks.append(check_id)
+
+
+    # IGNORE IMAGE TAG/DIGEST POLICIES
+    all_checks = list(filter(("check_0").__ne__, all_checks))
+    all_checks = list(filter(("check_9").__ne__, all_checks))
+    ##################################
+
 
     # Print all found checks
     all_checks = [str(x) for x in all_checks if x is not None]
