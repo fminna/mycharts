@@ -52,7 +52,10 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
                 check_id = fix_issue(control, resource_path, template)
 
                 for rule in control["rules"]:
-                    for _ in rule["paths"]:
+                    if "paths" in rule:
+                        for _ in rule["paths"]:
+                            all_checks.append(check_id)
+                    else:
                         all_checks.append(check_id)
 
     print("\nAll issues fixed!\n")

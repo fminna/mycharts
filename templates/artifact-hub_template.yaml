@@ -1,0 +1,669 @@
+---
+# Source: artifact-hub/templates/hub_serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hub
+automountServiceAccountToken: true
+---
+# Source: artifact-hub/charts/postgresql/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-postgresql
+  labels:
+    app: postgresql
+    chart: postgresql-8.2.1
+    release: "release-name"
+    heritage: "Helm"
+type: Opaque
+data:
+  postgresql-password: "cG9zdGdyZXM="
+---
+# Source: artifact-hub/templates/db_migrator_secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-migrator-config
+type: Opaque
+stringData:
+  tern.conf: |-
+    [database]
+    host = release-name-postgresql.default
+    port = 5432
+    database = hub
+    user = postgres
+    password = postgres
+    sslmode = prefer
+
+    [data]
+    loadSampleData = true
+---
+# Source: artifact-hub/templates/hub_secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hub-config
+type: Opaque
+stringData:
+  hub.yaml: |-
+    restrictedHTTPClient: false
+    log:
+      level: info
+      pretty: false
+    db:
+      host: release-name-postgresql.default
+      port: 5432
+      database: hub
+      user: postgres
+      password: postgres
+    email:
+      fromName: 
+      from: 
+      replyTo: 
+      smtp:
+        auth: plain
+        host: 
+        port: 587
+        username: 
+        password: 
+    images:
+      store: pg
+    server:
+      allowPrivateRepositories: false
+      allowUserSignUp: true
+      bannersURL: 
+      baseURL: 
+      shutdownTimeout: 10s
+      addr: 0.0.0.0:8000
+      metricsAddr: 0.0.0.0:8001
+      webBuildPath: ./web
+      widgetBuildPath: ./widget
+      motd: 
+      motdSeverity: info
+      basicAuth:
+        enabled: false
+        username: hub
+        password: changeme
+      cookie:
+        hashKey: default-unsafe-key
+        secure: false
+      csrf:
+        authKey: default-unsafe-key
+        secure: false
+      oauth:
+      xffIndex: 0
+    analytics:
+      gaTrackingID: 
+    theme:
+      colors:
+        primary: "#417598"
+        secondary: "#2D4857"
+      images:
+        appleTouchIcon192: "/static/media/logo192_v2.png"
+        appleTouchIcon512: "/static/media/logo512_v2.png"
+        openGraphImage: "/static/media/artifactHub_v2.png"
+        shortcutIcon: "/static/media/logo_v2.png"
+        websiteLogo: "/static/media/logo/artifacthub-brand-white.svg"
+      reportURL: 
+      sampleQueries:
+      siteName: "Artifact hub"
+---
+# Source: artifact-hub/templates/scanner_secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: scanner-config
+type: Opaque
+stringData:
+  scanner.yaml: |-
+    restrictedHTTPClient: false
+    log:
+      level: info
+      pretty: false
+    db:
+      host: release-name-postgresql.default
+      port: 5432
+      database: hub
+      user: postgres
+      password: postgres
+    creds:
+      dockerUsername: 
+      dockerPassword: 
+    events:
+      scanningErrors: false
+    scanner:
+      concurrency: 3
+      trivyURL: http://trivy:8081
+---
+# Source: artifact-hub/templates/tracker_secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tracker-config
+type: Opaque
+stringData:
+  tracker.yaml: |-
+    restrictedHTTPClient: false
+    log:
+      level: info
+      pretty: false
+    db:
+      host: release-name-postgresql.default
+      port: 5432
+      database: hub
+      user: postgres
+      password: postgres
+    creds:
+      dockerUsername: 
+      dockerPassword: 
+    images:
+      store: pg
+    events:
+      trackingErrors: false
+    tracker:
+      concurrency: 10
+      repositoryTimeout: 15m
+      repositoriesNames: []
+      repositoriesKinds: []
+      bypassDigestCheck: false
+      categoryModelPath: ./ml/category/model
+---
+# Source: artifact-hub/templates/hub_rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: job-reader
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch"]
+---
+# Source: artifact-hub/templates/hub_rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hub-job-reader
+subjects:
+  - kind: ServiceAccount
+    name: hub
+roleRef:
+  kind: Role
+  name: job-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: artifact-hub/charts/postgresql/templates/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-postgresql-headless
+  labels:
+    app: postgresql
+    chart: postgresql-8.2.1
+    release: "release-name"
+    heritage: "Helm"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+  selector:
+    app: postgresql
+    release: "release-name"
+---
+# Source: artifact-hub/charts/postgresql/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-postgresql
+  labels:
+    app: postgresql
+    chart: postgresql-8.2.1
+    release: "release-name"
+    heritage: "Helm"
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+  selector:
+    app: postgresql
+    release: "release-name"
+    role: master
+---
+# Source: artifact-hub/templates/hub_service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hub
+  labels:
+    app.kubernetes.io/component: hub
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.14.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/component: hub
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+---
+# Source: artifact-hub/templates/trivy_service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: trivy
+  labels:
+    app.kubernetes.io/component: trivy
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.14.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8081
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/component: trivy
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+---
+# Source: artifact-hub/templates/hub_deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hub
+  labels:
+    app.kubernetes.io/component: hub
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.14.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: hub
+      app.kubernetes.io/name: artifact-hub
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8001"
+      labels:
+        app.kubernetes.io/component: hub
+        app.kubernetes.io/name: artifact-hub
+        app.kubernetes.io/instance: release-name
+    spec:
+      serviceAccountName: hub
+      initContainers:
+        -
+          name: check-db-ready
+          image: docker.io/artifacthub/postgres:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PGHOST
+              value: release-name-postgresql.default
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: "postgres"
+          command: ['sh', '-c', 'until pg_isready; do echo waiting for database; sleep 2; done;']
+        - name: check-db-migrator-run
+          image: "bitnami/kubectl:1.27"
+          imagePullPolicy: IfNotPresent
+          command: ['kubectl', 'wait', '--namespace=default', '--for=condition=complete', 'job/db-migrator-install', '--timeout=60s']
+      containers:
+        - name: hub
+          image: artifacthub/hub:v1.14.0
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: hub-config
+              mountPath: "/home/hub/.cfg"
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+      volumes:
+        - name: hub-config
+          secret:
+            secretName: hub-config
+---
+# Source: artifact-hub/templates/trivy_deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trivy
+  labels:
+    app.kubernetes.io/component: trivy
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.14.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: trivy
+      app.kubernetes.io/name: artifact-hub
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: trivy
+        app.kubernetes.io/name: artifact-hub
+        app.kubernetes.io/instance: release-name
+    spec:
+      containers:
+        - name: trivy
+          image: aquasec/trivy:0.37.3
+          command: ['trivy', '--debug', '--cache-dir', '/trivy', 'server', '--listen', '0.0.0.0:8081']
+          volumeMounts:
+            - name: trivy
+              mountPath: "/trivy"
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+      volumes:
+        - name: trivy
+          emptyDir: {}
+---
+# Source: artifact-hub/charts/postgresql/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-postgresql
+  labels:
+    app: postgresql
+    chart: postgresql-8.2.1
+    release: "release-name"
+    heritage: "Helm"
+spec:
+  serviceName: release-name-postgresql-headless
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: postgresql
+      release: "release-name"
+      role: master
+  template:
+    metadata:
+      name: release-name-postgresql
+      labels:
+        app: postgresql
+        chart: postgresql-8.2.1
+        release: "release-name"
+        heritage: "Helm"
+        role: master
+    spec:      
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: init-chmod-data
+          image: docker.io/bitnami/minideb:stretch
+          imagePullPolicy: "Always"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir -p /data/data
+              chmod 700 /data/data
+              find /data -mindepth 0 -maxdepth 1 -not -name ".snapshot" -not -name "lost+found" | \
+                xargs chown -R 1001:1001
+              chmod -R 777 /dev/shm
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              subPath: 
+            - name: dshm
+              mountPath: /dev/shm
+      containers:
+        - name: release-name-postgresql
+          image: docker.io/artifacthub/postgres:latest
+          imagePullPolicy: "IfNotPresent"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: POSTGRESQL_PORT_NUMBER
+              value: "5432"
+            - name: POSTGRESQL_VOLUME_DIR
+              value: "/data"
+            - name: PGDATA
+              value: "/data/pgdata"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgresql-password
+            - name: POSTGRES_DB
+              value: "hub"
+            - name: POSTGRESQL_ENABLE_LDAP
+              value: "no"
+          ports:
+            - name: tcp-postgresql
+              containerPort: 5432
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "postgres" -d "hub" -h 127.0.0.1 -p 5432
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - -e
+                - |
+                  exec pg_isready -U "postgres" -d "hub" -h 127.0.0.1 -p 5432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+            - name: data
+              mountPath: /data
+              subPath: 
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: artifact-hub/templates/db_migrator_job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrator-install
+spec:
+  ttlSecondsAfterFinished: 
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+        -
+          name: check-db-ready
+          image: docker.io/artifacthub/postgres:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PGHOST
+              value: release-name-postgresql.default
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: "postgres"
+          command: ['sh', '-c', 'until pg_isready; do echo waiting for database; sleep 2; done;']
+      containers:
+        - name: db-migrator
+          image: artifacthub/db-migrator:v1.14.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TERN_CONF
+              value: /home/db-migrator/.cfg/tern.conf
+          volumeMounts:
+            - name: db-migrator-config
+              mountPath: /home/db-migrator/.cfg
+              readOnly: true
+          command: ["./migrate.sh"]
+      volumes:
+        - name: db-migrator-config
+          secret:
+            secretName: db-migrator-config
+---
+# Source: artifact-hub/templates/scanner_cronjob.yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: scanner
+spec:
+  schedule: "15,45 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          initContainers:
+            -
+              name: check-db-ready
+              image: docker.io/artifacthub/postgres:latest
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PGHOST
+                  value: release-name-postgresql.default
+                - name: PGPORT
+                  value: "5432"
+                - name: PGUSER
+                  value: "postgres"
+              command: ['sh', '-c', 'until pg_isready; do echo waiting for database; sleep 2; done;']
+          containers:
+            - name: scanner
+              image: artifacthub/scanner:v1.14.0
+              imagePullPolicy: IfNotPresent
+              volumeMounts:
+                - name: scanner-config
+                  mountPath: "/home/scanner/.cfg"
+                  readOnly: true
+          volumes:
+            - name: scanner-config
+              secret:
+                secretName: scanner-config
+---
+# Source: artifact-hub/templates/tracker_cronjob.yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: tracker
+spec:
+  schedule: "1,30 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          initContainers:
+            -
+              name: check-db-ready
+              image: docker.io/artifacthub/postgres:latest
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PGHOST
+                  value: release-name-postgresql.default
+                - name: PGPORT
+                  value: "5432"
+                - name: PGUSER
+                  value: "postgres"
+              command: ['sh', '-c', 'until pg_isready; do echo waiting for database; sleep 2; done;']
+          containers:
+            - name: tracker
+              image: artifacthub/tracker:v1.14.0
+              imagePullPolicy: IfNotPresent
+              volumeMounts:
+                - name: tracker-config
+                  mountPath: "/home/tracker/.cfg"
+                  readOnly: true
+          volumes:
+            - name: tracker-config
+              secret:
+                secretName: tracker-config
+---
+# Source: artifact-hub/templates/hub_ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hub
+  labels:
+    app.kubernetes.io/component: hub
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.14.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:  
+  defaultBackend:
+    service:
+      name: hub
+      port:
+        number: 80

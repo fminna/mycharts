@@ -161,8 +161,8 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            cpu: 1000m
             memory: 1024Mi
+            cpu: 1000m
           requests:
             memory: 1024Mi
             cpu: 1000m
@@ -174,13 +174,13 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         securityContext:
-          runAsNonRoot: true
-          runAsUser: ''
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
       volumes:
       - configMap:
           defaultMode: 420
@@ -191,10 +191,10 @@ spec:
           secretName: my-secret
       tolerations: []
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
+        runAsNonRoot: true
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

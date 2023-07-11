@@ -422,8 +422,8 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 800m
-            memory: 4Gi
+            cpu: 400m
+            memory: 2Gi
           requests:
             cpu: 400m
             memory: 2Gi
@@ -476,12 +476,12 @@ spec:
           failureThreshold: 24
           timeoutSeconds: 1
         securityContext:
-          runAsUser: 25000
+          runAsUser: 1000
           capabilities:
             drop:
             - ALL
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
         volumeMounts:
         - mountPath: /opt/sonarqube/data
           name: sonarqube

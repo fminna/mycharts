@@ -144,18 +144,18 @@ spec:
             cpu: 100m
             memory: 128Mi
         securityContext:
-          runAsNonRoot: true
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
+        runAsNonRoot: true
       automountServiceAccountToken: false
 ---
 apiVersion: v1
@@ -180,29 +180,29 @@ spec:
     - wget
     args:
     - release-name-kubeview:80
-    readinessProbe:
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
+      runAsUser: 25000
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+    livenessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 25000
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop:
-        - ALL
-      allowPrivilegeEscalation: false
     resources:
-      limits:
-        cpu: 250m
-        memory: 128Mi
       requests:
         memory: 128Mi
         cpu: 250m
-    livenessProbe:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+    readinessProbe:
       exec:
         command:
         - ls
@@ -211,10 +211,10 @@ spec:
       periodSeconds: 10
   restartPolicy: Never
   securityContext:
-    runAsNonRoot: true
-    runAsUser: 25000
     seccompProfile:
       type: RuntimeDefault
+    runAsUser: 25000
+    runAsNonRoot: true
   automountServiceAccountToken: false
 ---
 apiVersion: networking.k8s.io/v1

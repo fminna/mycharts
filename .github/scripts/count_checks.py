@@ -63,65 +63,71 @@ def count_checks(result_path: str, tool: str) -> list:
     all_checks = []
 
     if tool == "checkov":
-        for check in results["results"]["failed_checks"]:
-            my_lookup = checkov_fix_chart.LookupClass()
-            check_id = my_lookup.get_value(check["check_id"])
-            all_checks.append(check_id)
+        if results and "results" in results:
+            for check in results["results"]["failed_checks"]:
+                my_lookup = checkov_fix_chart.LookupClass()
+                check_id = my_lookup.get_value(check["check_id"])
+                all_checks.append(check_id)
 
     elif tool == "datree":
-        for check in results["policyValidationResults"][0]["ruleResults"]:
-            for _ in check["occurrencesDetails"]:
-                my_lookup = datree_fix_chart.LookupClass()
-                check_id = my_lookup.get_value(check["identifier"])
-                all_checks.append(check_id)
+        if results and "policyValidationResults" in results:
+            for check in results["policyValidationResults"][0]["ruleResults"]:
+                for _ in check["occurrencesDetails"]:
+                    my_lookup = datree_fix_chart.LookupClass()
+                    check_id = my_lookup.get_value(check["identifier"])
+                    all_checks.append(check_id)
 
     elif tool == "kics":
-        for check in results["queries"]:
-            for _ in check["files"]:
+        if results and "queries" in results:
+            for check in results["queries"]:
+                for _ in check["files"]:
 
-                # IGNORE PASSWORDS AND SECRETS POLICIES
-                if check["query_id"] == "487f4be7-3fd9-4506-a07a-eae252180c08":
-                    continue
+                    # IGNORE PASSWORDS AND SECRETS POLICIES
+                    if check["query_id"] == "487f4be7-3fd9-4506-a07a-eae252180c08":
+                        continue
 
-                my_lookup = kics_fix_chart.LookupClass()
-                check_id = my_lookup.get_value(check["query_id"])
-                all_checks.append(check_id)
+                    my_lookup = kics_fix_chart.LookupClass()
+                    check_id = my_lookup.get_value(check["query_id"])
+                    all_checks.append(check_id)
 
     elif tool == "kubelinter":
-        # if results["Reports"] is not NoneType
-        if results["Reports"]:
-            for check in results["Reports"]:
-                my_lookup = kubelinter_fix_chart.LookupClass()
-                check_id = my_lookup.get_value(check["Check"])
-                all_checks.append(check_id)
+        if results and "Reports" in results:
+            if results["Reports"]:
+                for check in results["Reports"]:
+                    my_lookup = kubelinter_fix_chart.LookupClass()
+                    check_id = my_lookup.get_value(check["Check"])
+                    all_checks.append(check_id)
 
     elif tool == "kubeaudit":
-        for check in results["checks"]:
-            my_lookup = kubeaudit_fix_chart.LookupClass()
-            check_id = my_lookup.get_value(check["AuditResultName"])
-            all_checks.append(check_id)
+        if results and "checks" in results:
+            for check in results["checks"]:
+                my_lookup = kubeaudit_fix_chart.LookupClass()
+                check_id = my_lookup.get_value(check["AuditResultName"])
+                all_checks.append(check_id)
 
     elif tool == "kubescape":
-        for resource in results["results"]:
-            for control in resource["controls"]:
-                if control["status"]["status"] == "failed":
-                    for rule in control["rules"]:
-                        if "paths" in rule:
-                            for _ in rule["paths"]:
+        if results and "results" in results:
+            for resource in results["results"]:
+                for control in resource["controls"]:
+                    if control["status"]["status"] == "failed":
+                        for rule in control["rules"]:
+                            if "paths" in rule:
+                                for _ in rule["paths"]:
+                                    my_lookup = kubescape_fix_chart.LookupClass()
+                                    check_id = my_lookup.get_value(control["controlID"])
+                                    all_checks.append(check_id)
+                            else:
                                 my_lookup = kubescape_fix_chart.LookupClass()
                                 check_id = my_lookup.get_value(control["controlID"])
                                 all_checks.append(check_id)
-                        else:
-                            my_lookup = kubescape_fix_chart.LookupClass()
-                            check_id = my_lookup.get_value(control["controlID"])
-                            all_checks.append(check_id)
 
     elif tool == "terrascan":
-        for run in results["runs"]:
-            for check in run["results"]:
-                my_lookup = terrascan_fix_chart.LookupClass()
-                check_id = my_lookup.get_value(check['ruleId'])
-                all_checks.append(check_id)
+        if results and "runs" in results:
+            for run in results["runs"]:
+                for check in run["results"]:
+                    my_lookup = terrascan_fix_chart.LookupClass()
+                    check_id = my_lookup.get_value(check['ruleId'])
+                    all_checks.append(check_id)
 
 
     # IGNORE IMAGE TAG/DIGEST POLICIES

@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
   annotations: null
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 secrets:
 - name: release-name-mysql
 ---
@@ -174,6 +174,7 @@ spec:
     metadata:
       annotations:
         checksum/configuration: 74f6d694934e49250ce5cfc5e93637df13431c704ef8367a3f69b565dd4aee71
+        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
       labels:
         app.kubernetes.io/name: mysql
         helm.sh/chart: mysql-9.7.1
@@ -196,6 +197,8 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: mysql
         image: docker.io/bitnami/mysql:8.0.32-debian-11-r21
@@ -205,17 +208,14 @@ spec:
           runAsUser: 25000
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: release-name-mysql
-              key: mysql-root-password
         - name: MYSQL_DATABASE
           value: my_database
-        envFrom: null
         ports:
         - name: mysql
           containerPort: 3306
@@ -268,11 +268,16 @@ spec:
           mountPath: /bitnami/mysql
         - name: config
           mountPath: /opt/bitnami/mysql/conf/my.cnf
-          subPath: my.cnf
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: config
         configMap:
           name: release-name-mysql
+      - name: secret-volume
+        secret:
+          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: data

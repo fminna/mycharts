@@ -175,12 +175,12 @@ spec:
         imagePullPolicy: Always
         securityContext:
           privileged: false
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsUser: 25000
           allowPrivilegeEscalation: false
+          runAsUser: 25000
+          readOnlyRootFilesystem: true
         ports:
         - containerPort: 80
           name: http
@@ -230,8 +230,8 @@ spec:
           mountPath: /etc/secret-volume
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
       volumes:
       - name: config
         emptyDir: {}
@@ -243,10 +243,10 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
+        runAsNonRoot: true
       automountServiceAccountToken: false
 ---
 apiVersion: v1
@@ -266,7 +266,15 @@ spec:
     - sh
     - -c
     - curl http://release-name-pihole-web:80/
-    readinessProbe:
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
+      runAsUser: 25000
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+    livenessProbe:
       exec:
         command:
         - ls
@@ -274,20 +282,13 @@ spec:
       initialDelaySeconds: 30
       periodSeconds: 10
     resources:
-      limits:
-        cpu: 250m
-        memory: 128Mi
       requests:
         memory: 128Mi
         cpu: 250m
-    securityContext:
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop:
-        - ALL
-      runAsUser: 25000
-      allowPrivilegeEscalation: false
-    livenessProbe:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+    readinessProbe:
       exec:
         command:
         - ls
@@ -297,10 +298,10 @@ spec:
   restartPolicy: Never
   terminationGracePeriodSeconds: 0
   securityContext:
-    runAsNonRoot: true
-    runAsUser: 25000
     seccompProfile:
       type: RuntimeDefault
+    runAsUser: 25000
+    runAsNonRoot: true
   automountServiceAccountToken: false
 ---
 apiVersion: networking.k8s.io/v1

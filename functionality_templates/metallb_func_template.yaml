@@ -1523,15 +1523,12 @@ rules:
   - ''
   resources:
   - services/status
-  verbs:
-  - update
+  verbs: []
 - apiGroups:
   - ''
   resources:
   - events
-  verbs:
-  - create
-  - patch
+  verbs: []
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
@@ -1540,12 +1537,9 @@ rules:
   resourceNames:
   - metallb-webhook-configuration
   verbs:
-  - create
   - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - admissionregistration.k8s.io
@@ -1568,12 +1562,9 @@ rules:
   - l2advertisements.metallb.io
   - communities.metallb.io
   verbs:
-  - create
   - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - apiextensions.k8s.io
@@ -2069,14 +2060,14 @@ spec:
           mountPath: /etc/frr_reloader
         - name: metallb-excludel2
           mountPath: /etc/metallb
-        imagePullPolicy: Always
         resources:
-          limits:
-            cpu: 250m
-            memory: 128Mi
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
+        imagePullPolicy: Always
       - name: frr
         securityContext:
           capabilities:
@@ -2084,9 +2075,9 @@ spec:
             - NET_BIND_SERVICE
             drop:
             - ALL
-          readOnlyRootFilesystem: true
-          runAsUser: 25000
           allowPrivilegeEscalation: false
+          runAsUser: 25000
+          readOnlyRootFilesystem: true
         image: quay.io/frrouting/frr:8.4.2
         env:
         - name: TINI_SUBREAPER
@@ -2132,9 +2123,6 @@ spec:
           mountPath: /etc/frr
         - name: reloader
           mountPath: /etc/frr_reloader
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 25000
         livenessProbe:
           exec:
             command:
@@ -2142,6 +2130,9 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          runAsUser: 25000
+          runAsNonRoot: true
       - name: frr-metrics
         image: quay.io/frrouting/frr:8.4.2
         command:
@@ -2170,10 +2161,10 @@ spec:
         effect: NoSchedule
         operator: Exists
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
+        runAsNonRoot: true
       automountServiceAccountToken: false
   hostNetwork: false
 ---
@@ -2262,14 +2253,14 @@ spec:
           capabilities:
             drop:
             - ALL
-        imagePullPolicy: Always
         resources:
-          limits:
-            cpu: 250m
-            memory: 128Mi
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
+        imagePullPolicy: Always
       nodeSelector:
         kubernetes.io/os: linux
       volumes:

@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 7.4.0
   name: release-name-oauth2-proxy
-  namespace: test-ns
+  namespace: default
 automountServiceAccountToken: true
 ---
 apiVersion: v1
@@ -27,7 +27,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 7.4.0
   name: release-name-oauth2-proxy
-  namespace: test-ns
+  namespace: default
 type: Opaque
 data:
   cookie-secret: WFhYWFhYWFhYWFhYWFhYWA==
@@ -47,7 +47,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 7.4.0
   name: release-name-oauth2-proxy
-  namespace: test-ns
+  namespace: default
 data:
   oauth2_proxy.cfg: 'email_domains = [ "*" ]
 
@@ -66,7 +66,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 7.4.0
   name: release-name-oauth2-proxy
-  namespace: test-ns
+  namespace: default
 spec:
   type: ClusterIP
   ports:
@@ -97,7 +97,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 7.4.0
   name: release-name-oauth2-proxy
-  namespace: test-ns
+  namespace: default
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -113,7 +113,6 @@ spec:
         checksum/secret: 99361aeb07258f9bf9b1c0196e1f291ce132f7267022e825adf852079645d5ba
         checksum/google-secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         checksum/redis-secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
       labels:
         app: oauth2-proxy
         helm.sh/chart: oauth2-proxy-6.13.1
@@ -125,17 +124,32 @@ spec:
         app.kubernetes.io/version: 7.4.0
     spec:
       serviceAccountName: release-name-oauth2-proxy
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
       containers:
       - name: oauth2-proxy
         image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - --http-address=0.0.0.0:4180
         - --https-address=0.0.0.0:4443
         - --metrics-address=0.0.0.0:44180
         - --config=/etc/oauth2_proxy/oauth2_proxy.cfg
-        env: []
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: release-name-oauth2-proxy
+              key: client-id
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: release-name-oauth2-proxy
+              key: client-secret
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: release-name-oauth2-proxy
+              key: cookie-secret
         ports:
         - containerPort: 4180
           name: http
@@ -159,80 +173,14 @@ spec:
           timeoutSeconds: 5
           successThreshold: 1
           periodSeconds: 10
-        resources:
-          limits:
-            cpu: 250m
-            memory: 128Mi
+        resources: {}
         volumeMounts:
         - mountPath: /etc/oauth2_proxy/oauth2_proxy.cfg
           name: configmain
           subPath: oauth2_proxy.cfg
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
       volumes:
       - configMap:
           defaultMode: 420
           name: release-name-oauth2-proxy
         name: configmain
-      - name: secret-volume
-        secret:
-          secretName: my-secret
       tolerations: []
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 25000
-        seccompProfile:
-          type: RuntimeDefault
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
