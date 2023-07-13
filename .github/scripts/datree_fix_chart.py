@@ -75,23 +75,38 @@ def fix_issue(check: str, template: dict) -> str:
     # Check if the function exists and call it
     if check_id is not None:
 
-        resource_path = check["occurrencesDetails"][0]["kind"] + "/" + \
-                        check["occurrencesDetails"][0]["metadataName"]
+        for occurrence in check["occurrencesDetails"]:
+            # Get the resource path
+            resource_path = f"{occurrence['kind']}/{occurrence['metadataName']}"
 
-        obj_path = check["occurrencesDetails"][0]["failureLocations"][0]["schemaPath"]
-        # Remove characters after the first digit
-        for idx, value in enumerate(obj_path):
-            if value.isdigit():
-                obj_path = obj_path[:idx+1]
-                break
+            for failure in occurrence["failureLocations"]:
+                # Get the object path
+                obj_path = failure["schemaPath"]
 
-        paths = {
-            "resource_path": resource_path,
-            "obj_path": obj_path
-        }
+                if obj_path:
 
-        fix_template.set_template(template, check_id, paths)
-        return check_id
+                    # If there is a number in the path, remove everything after it
+                    # Example:
+                    # /spec/template/spec/containers/0/securityContext/... -->
+                    # /spec/template/spec/containers/0
+                    if any(char.isdigit() for char in obj_path):
+                        for idx, value in enumerate(obj_path):
+                            if value.isdigit():
+                                obj_path = obj_path[:idx+1]
+                                break
+
+                    else:
+                        # Remove the last part of the path
+                        # Example: /spec/template/spec/hostNetwork --> /spec/template/spec
+                        obj_path = obj_path.rsplit('/', 1)[0]
+
+                paths = {
+                    "resource_path": resource_path,
+                    "obj_path": obj_path
+                }
+
+                fix_template.set_template(template, check_id, paths)
+                return check_id
 
     else:
         print("No fix found for check ID: " + check["identifier"])
@@ -146,6 +161,9 @@ class LookupClass:
         "CONTAINERS_INCORRECT_RUNASUSER_VALUE_LOWUID": "check_13",
         "CONTAINERS_INCORRECT_KEY_HOSTPORT": "check_29",
         "CONTAINER_CVE2021_25741_INCORRECT_SUBPATH_KEY": "check_50",
+        "CIS_INVALID_VERB_SECRETS": "check_54",
+        "CONTAINERS_INCORRECT_RESOURCES_VERBS_VALUE": "check_54",
+        "EKS_INVALID_CAPABILITIES_EKS": "check_34",
     }
 
     @classmethod

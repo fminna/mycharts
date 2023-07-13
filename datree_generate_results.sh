@@ -40,8 +40,6 @@ echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
 helm datree test fixed_templates/${chart_name}_${tool}_fixed_template.yaml --only-k8s-files --quiet
-# helm datree test fixed_templates/${chart_name}_${tool}_fixed_template.yaml --only-k8s-files --quiet --output json > test_files/datree_results.json
-# python .github/scripts/main.py --count-checks
 
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"
@@ -78,7 +76,7 @@ python .github/scripts/main.py --count-checks
 
 # Kubeaudit
 echo -e "\n Step 5 - Kubeaudit"
-kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --format json > test_files/kubeaudit_results.json
+kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --minseverity "error" --format json > test_files/kubeaudit_results.json
 export tool="kubeaudit"
 python .github/scripts/main.py --count-checks
 

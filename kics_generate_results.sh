@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script takes as input a chart name and runs all security tools on it, starting always with datree.
+# This script takes as input a chart name and runs all security tools on it, starting always with Kics.
 
 # Take a chart_name variable as argument
 chart_name=$1
@@ -14,7 +14,7 @@ fi
 
 # Set up environment variables
 export chart_folder="${chart_name}"
-export tool="datree"
+export tool="kics"
 
 # Remove previous results by deleting all files in test_files
 rm -rf test_files/*
@@ -22,33 +22,31 @@ rm -rf test_files/*
 # Run Analyzers
 echo "Running analyzers on $chart_name ..."
 
-# Step 1 - Datree
+# Step 1 - KICS
 echo -e "\n -------------------------- \n"
-echo "Step 1 - Run Datree"
-
-templates/${chart_folder}_template.yaml
+echo "Step 1 - Run KICS"
+kics scan -p templates/${chart_folder}_template.yaml --exclude-severities info --disable-secrets -o test_files/ > /dev/null 2>&1
+mv test_files/results.json test_files/kics_results.json
 python .github/scripts/main.py --count-checks
 
-# Step 2 - Fix Datree output
+# Step 2 - Fix KICS output
 echo -e "\n -------------------------- \n"
 echo "Step 2 - Fix issues"
 export chart_folder="templates/${chart_folder}"
-export tool="datree"
+export tool="kics"
 python .github/scripts/main.py --check
 
 # Step 3 - Debug
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
-
-fixed_templates/${chart_name}_${tool}_fixed_template.yaml
-python .github/scripts/main.py --count-checks
+kics scan -p fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exclude-severities info --disable-secrets
 
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"
 echo "Step 4 - Add functionalities"
 export chart_folder="${chart_name}"
-export tool="datree"
+export tool="kics"
 python .github/scripts/main.py --add-func
 
 # Step 5 - Run all tools on functional template
@@ -79,7 +77,7 @@ python .github/scripts/main.py --count-checks
 
 # Kubeaudit
 echo -e "\n Step 5 - Kubeaudit"
-kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --format json > test_files/kubeaudit_results.json
+kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --minseverity "error" --format json > test_files/kubeaudit_results.json
 export tool="kubeaudit"
 python .github/scripts/main.py --count-checks
 

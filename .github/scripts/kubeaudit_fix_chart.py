@@ -58,20 +58,63 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     print("Starting to fix chart's issues ...\n")
 
     for check in results["checks"]:
-        print(f"{check['AuditResultName']}: {check['msg']}")
+        # print(f"{check['AuditResultName']}: {check['msg']}")
+        print(f"{check['AuditResultName']}")
         check_id = fix_issue(check, template)
         all_checks.append(check_id)
 
     print("\nAll issues fixed!\n")
 
     # Print all found checks
-    all_checks = [x for x in all_checks if x is not None]
+    all_checks = [str(x) for x in all_checks if x is not None]
+
+    # Convert all_checks to string
+    # Needed to convert multi-check elements (e.g., "check_1, check_2")
+    all_checks = ", ".join(all_checks)
+
+    # Convert all checks back to list
+    all_checks = all_checks.split(", ")
     all_checks.sort()
+
+    # Print info
     print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))
 
     name = f"fixed_{chart_folder}_kubeaudit_fixed"
     fix_template.save_yaml_template(template, name)
+
+
+def get_cont_name(template: dict, resource_path: str, obj_path: str) -> str:
+    """Returns the container name.
+    
+    Args:
+        template (dict): The parsed YAML template.
+        resource_path (str): The resource path (e.g., Pod/default/name).
+        obj_path (str): The object path (e.g., spec/template/spec/containers/0/).
+
+    Returns:
+        str: The container name.
+    """
+    cont_name = ""
+
+    for document in template:
+        if fix_template.check_resource_path(resource_path.split("/"), document):
+
+            keys = obj_path.split("/")
+            obj = document
+
+            for key in keys:
+                if key:
+                    if key.isdigit():
+                        key = int(key)
+                    elif key not in obj:
+                        continue
+                    obj = obj[key]
+
+            if "name" in obj:
+                cont_name = obj["name"]
+
+    return cont_name
 
 
 def fix_issue(check: str, template: dict) -> str:
@@ -92,8 +135,10 @@ def fix_issue(check: str, template: dict) -> str:
     if check_id is not None:
 
         # Resource path (e.g., Pod/default/name)
-        resource_path = check["ResourceKind"] + "/" + check["ResourceNamespace"] + \
-                        "/" + check["ResourceName"]
+        if "ResourceNamespace" in check:
+            resource_path = f"{check['ResourceKind']}/{check['ResourceNamespace']}/{check['ResourceName']}"
+        else:
+            resource_path = f"{check['ResourceKind']}/default/{check['ResourceName']}"
 
         # spec/template/spec/containers/0/
         obj_path = ""
@@ -105,12 +150,15 @@ def fix_issue(check: str, template: dict) -> str:
         if check["AuditResultName"] == "AppArmorAnnotationMissing":
             obj_path = check["Container"]
 
+        elif check["AuditResultName"] == "AppArmorInvalidAnnotation":
+            obj_path = ""
+
         paths = {
             "resource_path": resource_path,
             "obj_path": obj_path
         }
 
-        if check["AuditResultName"] == "":
+        if check["AuditResultName"] == "LimitsNotSet":
             fix_template.set_template(template, "check_2", paths)
             fix_template.set_template(template, "check_5", paths)
             return "check_2", "check_5"
@@ -130,6 +178,7 @@ class LookupClass:
 
     _LOOKUP = {
         "AppArmorAnnotationMissing": "check_32", 
+        "AppArmorInvalidAnnotation": "check_32",
         "CapabilityOrSecurityContextMissing": "check_34", 
         "LimitsCPUNotSet": "check_5", 
         "LimitsMemoryNotSet": "check_2", 
@@ -142,6 +191,11 @@ class LookupClass:
         "AutomountServiceAccountTokenTrueAndDefaultSA": "check_35",
         "ImageTagMissing": "check_0",
         "RunAsNonRootPSCNilCSCNil": "check_28",
+        "CapabilityAdded": "check_34",
+        "CapabilityShouldDropAll": "check_34",
+        "NamespacehostPIDTrue": "check_10",
+        "NamespaceHosthostIPCTrue": "check_11",
+        "NamespaceHostNetworkTrue": "check_12"
     }
 
     @classmethod

@@ -7,6 +7,7 @@ metadata:
     chart: pihole-2.14.0
     heritage: Helm
     release: release-name
+  namespace: test-ns
 type: Opaque
 data:
   password: YWRtaW4=
@@ -20,6 +21,7 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
+  namespace: test-ns
 data:
   02-custom.conf: 'addn-hosts=/etc/addn-hosts
 
@@ -36,8 +38,11 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
+  namespace: test-ns
+  annotations:
+    networking.gke.io/load-balancer-type: Internal
 spec:
-  type: NodePort
+  type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
   - port: 67
@@ -57,8 +62,11 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
+  namespace: test-ns
+  annotations:
+    networking.gke.io/load-balancer-type: Internal
 spec:
-  type: NodePort
+  type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
   - port: 53
@@ -78,8 +86,11 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
+  namespace: test-ns
+  annotations:
+    networking.gke.io/load-balancer-type: Internal
 spec:
-  type: NodePort
+  type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
   - port: 53
@@ -99,6 +110,7 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
+  namespace: test-ns
 spec:
   type: ClusterIP
   ports:
@@ -123,6 +135,7 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
+  namespace: test-ns
 spec:
   replicas: 1
   strategy:
@@ -143,8 +156,8 @@ spec:
         checksum.config.whitelist: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546
         checksum.config.dnsmasqConfig: d7c6cce648da84da2ddb40143f2ada49af634d5c7bafaebdfd12c6372924409
         checksum.config.staticDhcpConfig: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546
-        container.apparmor.security.beta.kubernetes.io/pihole: runtime/default
         seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/pihole: runtime/default
       labels:
         app: pihole
         release: release-name
@@ -163,38 +176,18 @@ spec:
           value: '80'
         - name: VIRTUAL_HOST
           value: pi.hole
-        - name: WEBPASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: release-name-pihole-password
         - name: PIHOLE_DNS_
           value: 8.8.8.8;8.8.4.4
         image: pihole/pihole:2023.01
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         securityContext:
           privileged: false
-          capabilities:
-            add:
-            - CHOWN
-            - DAC_OVERRIDE
-            - FOWNER
-            - KILL
-            - SETGID
-            - SETUID
-            - SETFCAP
-            - NET_BIND_SERVICE
-            drop:
-            - FSETID
-            - SETPCAP
-            - NET_RAW
-            - SYS_CHROOT
-            - MKNOD
-            - AUDIT_WRITE
-          runAsNonRoot: false
-          runAsUser: 1001
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
+          runAsUser: 25000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
         ports:
         - containerPort: 80
           name: http
@@ -230,22 +223,29 @@ spec:
         volumeMounts:
         - mountPath: /etc/pihole
           name: config
+          readOnly: true
         - mountPath: /etc/dnsmasq.d/02-custom.conf
           name: custom-dnsmasq
           subPath: 02-custom.conf
+          readOnly: true
         - mountPath: /etc/addn-hosts
           name: custom-dnsmasq
           subPath: addn-hosts
+          readOnly: true
         - mountPath: /etc/dnsmasq.d/05-pihole-custom-cname.conf
           name: custom-dnsmasq
           subPath: 05-pihole-custom-cname.conf
+          readOnly: true
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         resources:
           limits:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
       volumes:
       - name: config
         emptyDir: {}
@@ -253,10 +253,13 @@ spec:
           defaultMode: 420
           name: release-name-pihole-custom-dnsmasq
         name: custom-dnsmasq
-      automountServiceAccountToken: false
+      - name: secret-volume
+        secret:
+          secretName: my-secret
       securityContext:
         seccompProfile:
           type: RuntimeDefault
+      automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Pod
@@ -264,8 +267,9 @@ metadata:
   name: release-name-smoke-test
   annotations:
     helm.sh/hook: test
-    container.apparmor.security.beta.kubernetes.io/hook1-container: runtime/default
     seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+    container.apparmor.security.beta.kubernetes.io/hook1-container: runtime/default
+  namespace: test-ns
 spec:
   containers:
   - name: hook1-container
@@ -276,21 +280,100 @@ spec:
     - -c
     - curl http://release-name-pihole-web:80/
     securityContext:
+      allowPrivilegeEscalation: false
+      runAsUser: 25000
       capabilities:
         drop:
         - ALL
       runAsNonRoot: true
-      runAsUser: 25000
-      allowPrivilegeEscalation: false
-      privileged: false
       readOnlyRootFilesystem: true
     resources:
       limits:
-        memory: 128Mi
         cpu: 250m
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
   terminationGracePeriodSeconds: 0
-  automountServiceAccountToken: false
   securityContext:
     seccompProfile:
       type: RuntimeDefault
+    runAsNonRoot: true
+    runAsUser: 25000
+  serviceAccountName: SAtest
+  automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: test-ns
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: test-ns
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high

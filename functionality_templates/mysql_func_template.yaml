@@ -176,7 +176,7 @@ spec:
       annotations:
         checksum/configuration: 74f6d694934e49250ce5cfc5e93637df13431c704ef8367a3f69b565dd4aee71
         seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
-        container.apparmor.security.beta.kubernetes.io/spec/template/spec/containers/0: runtime/default
+        container.apparmor.security.beta.kubernetes.io/mysql: runtime/default
       labels:
         app.kubernetes.io/name: mysql
         helm.sh/chart: mysql-9.7.1
@@ -200,9 +200,10 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        allowPrivilegeEscalation: false
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 25000
       initContainers: null
       containers:
       - name: mysql
@@ -211,11 +212,11 @@ spec:
         securityContext:
           runAsNonRoot: false
           runAsUser: 1001
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

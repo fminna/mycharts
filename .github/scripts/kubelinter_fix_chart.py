@@ -47,8 +47,17 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     print("\nAll issues fixed!\n")
 
     # Print all found checks
-    all_checks = [x for x in all_checks if x is not None]
+    all_checks = [str(x) for x in all_checks if x is not None]
+
+    # Convert all_checks to string
+    # Needed to convert multi-check elements (e.g., "check_1, check_2")
+    all_checks = ", ".join(all_checks)
+
+    # Convert all checks back to list
+    all_checks = all_checks.split(", ")
     all_checks.sort()
+
+    # Print info
     print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))
 
@@ -175,8 +184,8 @@ class LookupClass:
         "wildcard-in-rules": "check_39",
         "unsafe-sysctls": "check_41",
         "sensitive-host-mounts": "check_47",
-        "non-existent-service-account": "TODO",
-        "dangling-service": "TODO",
+        "dangling-service": "check_57",
+        "non-existent-service-account": "check_58"
     }
 
     @classmethod

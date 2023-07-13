@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
-  namespace: test-ns
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -22,7 +21,6 @@ metadata:
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: speaker
-  namespace: test-ns
 ---
 apiVersion: v1
 kind: Secret
@@ -34,13 +32,11 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: metallb-excludel2
-  namespace: test-ns
 data:
   excludel2.yaml: 'announcedInterfacesToExclude:
 
@@ -83,7 +79,6 @@ metadata:
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: speaker
-  namespace: test-ns
 data:
   daemons: '# This file tells the frr package which daemons to start.
 
@@ -1501,22 +1496,29 @@ rules:
   resources:
   - services
   - namespaces
-  verbs: []
+  verbs:
+  - get
+  - list
+  - watch
 - apiGroups:
   - ''
   resources:
   - nodes
-  verbs: []
+  verbs:
+  - list
 - apiGroups:
   - ''
   resources:
   - services/status
-  verbs: []
+  verbs:
+  - update
 - apiGroups:
   - ''
   resources:
   - events
-  verbs: []
+  verbs:
+  - create
+  - patch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
@@ -1524,13 +1526,22 @@ rules:
   - mutatingwebhookconfigurations
   resourceNames:
   - metallb-webhook-configuration
-  verbs: []
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
   - validatingwebhookconfigurations
   - mutatingwebhookconfigurations
-  verbs: []
+  verbs:
+  - list
+  - watch
 - apiGroups:
   - apiextensions.k8s.io
   resources:
@@ -1543,12 +1554,21 @@ rules:
   - ipaddresspools.metallb.io
   - l2advertisements.metallb.io
   - communities.metallb.io
-  verbs: []
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
-  verbs: []
+  verbs:
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -1636,7 +1656,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
 rules:
 - apiGroups:
   - ''
@@ -1727,7 +1746,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
 rules:
 - apiGroups:
   - ''
@@ -1830,7 +1848,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -1849,7 +1866,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -1868,7 +1884,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
 spec:
   ports:
   - port: 443
@@ -1889,7 +1904,6 @@ metadata:
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: speaker
-  namespace: test-ns
 spec:
   updateStrategy:
     type: RollingUpdate
@@ -1904,12 +1918,10 @@ spec:
         app.kubernetes.io/name: metallb
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/component: speaker
-      annotations:
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
     spec:
       serviceAccountName: release-name-metallb-speaker
       terminationGracePeriodSeconds: 0
-      hostNetwork: false
+      hostNetwork: true
       volumes:
       - name: memberlist
         secret:
@@ -2028,7 +2040,8 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsUser: 25000
+            add:
+            - NET_RAW
         volumeMounts:
         - name: memberlist
           mountPath: /etc/ml_secret_key
@@ -2036,24 +2049,14 @@ spec:
           mountPath: /etc/frr_reloader
         - name: metallb-excludel2
           mountPath: /etc/metallb
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
-        imagePullPolicy: Always
       - name: frr
         securityContext:
           capabilities:
             add:
+            - NET_ADMIN
+            - NET_RAW
+            - SYS_ADMIN
             - NET_BIND_SERVICE
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
         image: quay.io/frrouting/frr:8.4.2
         env:
         - name: TINI_SUBREAPER
@@ -2081,13 +2084,6 @@ spec:
             port: 7473
           failureThreshold: 30
           periodSeconds: 5
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       - name: reloader
         image: quay.io/frrouting/frr:8.4.2
         command:
@@ -2099,16 +2095,6 @@ spec:
           mountPath: /etc/frr
         - name: reloader
           mountPath: /etc/frr_reloader
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        securityContext:
-          runAsUser: 25000
-          runAsNonRoot: true
       - name: frr-metrics
         image: quay.io/frrouting/frr:8.4.2
         command:
@@ -2125,8 +2111,6 @@ spec:
           mountPath: /etc/frr
         - name: metrics
           mountPath: /etc/frr_metrics
-        securityContext:
-          runAsUser: 25000
       nodeSelector:
         kubernetes.io/os: linux
       tolerations:
@@ -2136,12 +2120,6 @@ spec:
       - key: node-role.kubernetes.io/control-plane
         effect: NoSchedule
         operator: Exists
-      securityContext:
-        seccompProfile:
-          type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2154,7 +2132,6 @@ metadata:
     app.kubernetes.io/version: v0.13.10
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
-  namespace: test-ns
 spec:
   strategy:
     type: RollingUpdate
@@ -2169,8 +2146,6 @@ spec:
         app.kubernetes.io/name: metallb
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/component: controller
-      annotations:
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
     spec:
       serviceAccountName: release-name-metallb-controller
       terminationGracePeriodSeconds: 0
@@ -2178,8 +2153,6 @@ spec:
         fsGroup: 65534
         runAsNonRoot: true
         runAsUser: 65534
-        seccompProfile:
-          type: RuntimeDefault
       containers:
       - name: controller
         image: quay.io/metallb/controller:v0.13.10
@@ -2228,14 +2201,6 @@ spec:
           capabilities:
             drop:
             - ALL
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
-        imagePullPolicy: Always
       nodeSelector:
         kubernetes.io/os: linux
       volumes:
@@ -2243,7 +2208,6 @@ spec:
         secret:
           defaultMode: 420
           secretName: webhook-server-cert
-      automountServiceAccountToken: false
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -2396,91 +2360,3 @@ webhooks:
     resources:
     - l2advertisements
   sideEffects: None
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

@@ -26,7 +26,6 @@ echo "Running analyzers on $chart_name ..."
 echo -e "\n -------------------------- \n"
 echo "Step 1 - Run Checkov"
 checkov -f templates/${chart_folder}_template.yaml --quiet --compact --framework kubernetes -o json > test_files/checkov_results.json
-# python .github/scripts/main.py --count-checks
 
 # Step 2 - Fix Checkov output
 echo -e "\n -------------------------- \n"
@@ -40,7 +39,6 @@ echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
 checkov -f fixed_templates/${chart_name}_checkov_fixed_template.yaml --skip-check CKV_K8S_14 --skip-check CKV_K8S_43 --skip-framework secrets --quiet --compact --framework kubernetes
-# python .github/scripts/main.py --count-checks
 
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"
@@ -77,7 +75,7 @@ python .github/scripts/main.py --count-checks
 
 # Kubeaudit
 echo -e "\n Step 5 - Kubeaudit"
-kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --format json > test_files/kubeaudit_results.json
+kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --minseverity "error" --format json > test_files/kubeaudit_results.json
 export tool="kubeaudit"
 python .github/scripts/main.py --count-checks
 

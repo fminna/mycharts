@@ -226,6 +226,15 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> None
 
     # Print all found checks
     all_checks = [str(x) for x in all_checks if x is not None]
+
+    # Convert all_checks to string
+    # Needed to convert multi-check elements (e.g., "check_1, check_2")
+    all_checks = ", ".join(all_checks)
+
+    # Convert all checks back to list
+    all_checks = all_checks.split(", ")
     all_checks.sort()
-    print(f"Total number of functionalities: {len(all_checks)}")
+
+    # Print info
+    print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))

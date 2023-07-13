@@ -80,7 +80,16 @@ def find_resource_idx(template: dict, resource_path: str, obj_path: str, obj_nam
     resource_path = resource_path.split("/")
 
     for document in template:
-        if document["kind"] == resource_path[0] and \
+
+        # Check if the document is not empty
+        # Example: the document only contains a comment
+        # ---
+        # Source: metallb/charts/crds/templates/crds.yaml
+        # ---
+        if not document:
+            continue
+
+        elif document["kind"] == resource_path[0] and \
             document["metadata"]["name"] == resource_path[1]:
 
             # Find the object
@@ -92,7 +101,10 @@ def find_resource_idx(template: dict, resource_path: str, obj_path: str, obj_nam
                 if key == "containers" and "template" in objects:
                     objects = objects["template"]["spec"]
 
-                if key == "env":
+                elif key == "initContainers" and "template" in objects:
+                    objects = objects["template"]["spec"]
+
+                elif key == "env":
                     break
 
                 objects = objects[key]
@@ -272,7 +284,10 @@ class LookupClass:
         "3d658f8b-d988-41a0-a841-40043121de1e": "check_33",
         "8cf4671a-cf3d-46fc-8389-21e7405063a2": "check_52",
         "bb241e61-77c3-4b97-9575-c0f8a1e008d0": "check_53",
-        "b7652612-de4e-4466-a0bf-1cd81f0c6063": "check_55"
+        "b7652612-de4e-4466-a0bf-1cd81f0c6063": "check_55",
+        "845acfbe-3e10-4b8e-b656-3b404d36dfb2": "check_56",
+        "056ac60e-fe07-4acc-9b34-8e1d51716ab9": "check_54",
+        "b7bca5c4-1dab-4c2c-8cbe-3050b9d59b14": "check_54"
     }
 
     @classmethod

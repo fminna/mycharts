@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -17,7 +17,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -32,7 +32,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -102,7 +102,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql-headless
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -126,7 +126,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -159,7 +159,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
-    app: my-app
 spec:
   replicas: 1
   podManagementPolicy: ''
@@ -168,7 +167,7 @@ spec:
       app.kubernetes.io/name: mysql
       app.kubernetes.io/instance: release-name
       app.kubernetes.io/component: primary
-  serviceName: release-name-mysql
+  serviceName: release-name-mysql-headless
   updateStrategy:
     type: RollingUpdate
   template:
@@ -183,7 +182,6 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: primary
-        app: my-app
     spec:
       serviceAccountName: release-name-mysql
       affinity:
@@ -202,32 +200,24 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsNonRoot: true
-        runAsUser: 25000
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8.0.32-debian-11-r21
-        imagePullPolicy: IfNotPresent
+        image: docker.io/bitnami/mysql:8-oracle@sha256:47e045b6313ef483654ac47c31e6fdbfc6ecf6b399a65c03859bee2cfbb1621f
+        imagePullPolicy: Always
         securityContext:
           runAsNonRoot: true
-          runAsUser: 1001
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: release-name-mysql
-              key: mysql-root-password
         - name: MYSQL_DATABASE
           value: my_database
-        envFrom: null
         ports:
         - name: mysql
           containerPort: 3306
@@ -272,20 +262,27 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            memory: 128Mi
             cpu: 250m
-          requests: {}
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
         - name: config
           mountPath: /opt/bitnami/mysql/conf/my.cnf
           subPath: my.cnf
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: config
         configMap:
           name: release-name-mysql
-      automountServiceAccountToken: false
+      - name: secret-volume
+        secret:
+          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -297,50 +294,34 @@ spec:
     spec:
       accessModes:
       - ReadWriteOnce
-      resources:
-        requests:
-          storage: 8Gi
+      resources: {}
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: v1
+kind: LimitRange
 metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
+  name: cpu-min-max-demo-lr
   namespace: test-ns
 spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high

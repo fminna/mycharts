@@ -17,6 +17,7 @@
 
 from typing import Callable
 import json
+import kubeaudit_fix_chart
 import fix_template
 
 
@@ -42,7 +43,13 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     for resource in results["results"]:
         # Extract current resource path
         resource_path = resource["resourceID"].split("/")
-        resource_path = resource_path[-2] + "/" + resource_path[-3] + "/" + resource_path[-1]
+
+
+        print(resource_path)
+        print(resource_path[-3])
+
+
+        resource_path = f"{resource_path[-2]}/{resource_path[-3]}/{resource_path[-1]}"
 
         # Extract only failed checks "status": { "status": "failed" }
         for control in resource["controls"]:
@@ -61,8 +68,17 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     print("\nAll issues fixed!\n")
 
     # Print all found checks
-    all_checks = [x for x in all_checks if x is not None]
+    all_checks = [str(x) for x in all_checks if x is not None]
+
+    # Convert all_checks to string
+    # Needed to convert multi-check elements (e.g., "check_1, check_2")
+    all_checks = ", ".join(all_checks)
+
+    # Convert all checks back to list
+    all_checks = all_checks.split(", ")
     all_checks.sort()
+
+    # Print info
     print(f"Total number of checks: {len(all_checks)}")
     print(", ".join(all_checks))
 
@@ -89,14 +105,7 @@ def fix_issue(control: str, resource_path: str, template: dict) -> str:
     if check_id is not None:
         for rule in control["rules"]:
 
-            if control["controlID"] == "C-0030":
-                # then there is no "paths"
-                paths = {
-                        "resource_path": resource_path,
-                        "obj_path": ""
-                }
-
-            else:
+            if "paths" in rule:
                 for path in rule["paths"]:
                     obj_path = path["fixPath"]["path"]
 
@@ -125,6 +134,11 @@ def fix_issue(control: str, resource_path: str, template: dict) -> str:
                         "resource_path": resource_path,
                         "obj_path": obj_path
                     }
+            else: # then there is no "paths"
+                paths = {
+                        "resource_path": resource_path,
+                        "obj_path": ""
+                }
 
             # Memory requests & limits
             if control["controlID"] == "C-0004":
@@ -147,9 +161,11 @@ def fix_issue(control: str, resource_path: str, template: dict) -> str:
             # Linux hardening - AppArmor/Seccomp/SELinux/Capabilities
             elif control["controlID"] == "C-0055":
                 fix_template.set_template(template, "check_31", paths)
-                fix_template.set_template(template, "check_32", paths)
                 # SeLinux ?
                 fix_template.set_template(template, "check_34", paths)
+                cont_name = kubeaudit_fix_chart.get_cont_name(template, resource_path, obj_path)
+                paths["obj_path"] = cont_name
+                fix_template.set_template(template, "check_32", paths)
                 return "check_31, check_32, check_34"
 
             # Host PID/IPC privileges
@@ -157,6 +173,16 @@ def fix_issue(control: str, resource_path: str, template: dict) -> str:
                 fix_template.set_template(template, "check_10", paths)
                 fix_template.set_template(template, "check_11", paths)
                 return "check_10, check_11"
+
+            # CVE-2022-0492-cgroups-container-escape
+            elif control["controlID"] == "C-0086":
+                fix_template.set_template(template, "check_22", paths)
+                fix_template.set_template(template, "check_28", paths)
+                fix_template.set_template(template, "check_34", paths)
+                cont_name = kubeaudit_fix_chart.get_cont_name(template, resource_path, obj_path)
+                paths["obj_path"] = cont_name
+                # fix_template.set_template(template, "check_32", paths)
+                return "check_22, check_28, check_34"
 
             else:
                 fix_template.set_template(template, check_id, paths)
@@ -197,6 +223,7 @@ class LookupClass:
         "C-0077": "check_43",
         "C-0048": "check_46",
         "C-0030": "check_40",
+        "C-0053": "check_35",
     }
 
     @classmethod

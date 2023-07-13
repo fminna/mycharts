@@ -73,7 +73,7 @@ def get_resource_namespace(template: dict, kind: str, name: str) -> str:
     """
 
     for document in template:
-        if document["kind"] == kind and document["metadata"]["name"] == name:
+        if document and document["kind"] == kind and document["metadata"]["name"] == name:
             if "namespace" in document["metadata"]:
                 return document["metadata"]["namespace"]
 
@@ -94,20 +94,33 @@ def get_container_path(template: dict, resource_path: str):
     resource_path = resource_path.split("/")
 
     for document in template:
-        if document["kind"] == resource_path[0] and \
-            document["metadata"]["namespace"] == resource_path[1] and \
-                document["metadata"]["name"] == resource_path[2]:
 
-            if "template" in document["spec"]:
-                cont_path = "spec/template/spec/containers/"
-                containers = document["spec"]["template"]["spec"]["containers"]
-            else:
-                cont_path = "spec/template/spec/containers/"
-                containers = document["spec"]["containers"]
+        if document["kind"] == resource_path[0]:
+
+            if "namespace" in document["metadata"] and \
+                document["metadata"]["namespace"] == resource_path[1]:
+
+                    if document["metadata"]["name"] == resource_path[2]:
+
+                        if "template" in document["spec"]:
+                            cont_path = "spec/template/spec/containers/"
+                            containers = document["spec"]["template"]["spec"]["containers"]
+                        else:
+                            cont_path = "spec/template/spec/containers/"
+                            containers = document["spec"]["containers"]
+
+            elif document["metadata"]["name"] == resource_path[2]:
+
+                if "template" in document["spec"]:
+                            cont_path = "spec/template/spec/containers/"
+                            containers = document["spec"]["template"]["spec"]["containers"]
+                else:
+                    cont_path = "spec/template/spec/containers/"
+                    containers = document["spec"]["containers"]
 
             return cont_path, containers
 
-    return None, None
+    return "", ""
 
 
 def fix_issue(check: str, template: dict) -> str:
@@ -188,7 +201,13 @@ class LookupClass:
         "AC_K8S_0080": "check_31", 
         "AC_K8S_0073": "check_32", 
         "AC_K8S_0051": "check_33", 
-        "AC_K8S_0045": "check_35"
+        "AC_K8S_0045": "check_35",
+        "AC_K8S_0087": "check_28",
+        "AC_K8S_0070": "check_7",
+        "AC_K8S_0064": "check_30",
+        "AC_K8S_0072": "check_8",
+        "AC_K8S_0079": "check_13",
+        "AC_K8S_0084": "check_12"
     }
 
     @classmethod

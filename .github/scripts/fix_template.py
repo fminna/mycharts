@@ -34,7 +34,11 @@ def parse_yaml_template(chart_folder: str) -> list:
     # Parse and return the multi-document YAML file while preserving comments
     file_path = f"{chart_folder}_template.yaml"
     with open(file_path, "r", encoding="utf-8") as file:
-        return list(yaml.load_all(file, Loader=yaml.FullLoader))
+        template = list(yaml.load_all(file, Loader=yaml.FullLoader))
+
+    # Remove null document (--- null) from template
+    template = [document for document in template if document is not None]
+    return template
 
 
 def save_yaml_template(template: str, chart_folder: str):
@@ -50,6 +54,12 @@ def save_yaml_template(template: str, chart_folder: str):
 
     file_path = f"{chart_folder}_template.yaml"
     # file_path = f"test_files/{chart_folder}_template.yaml"
+
+    # Remove null document (--- null) from template
+    for document in template:
+        if document is None:
+            template.remove(document)
+
     with open(file_path, 'w', encoding="utf-8") as file:
         yaml.safe_dump_all(template, file, sort_keys=False)
 
@@ -217,7 +227,8 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                     keys = check["obj_path"].split("/")
                     obj = document
 
-                    no_path_checks = ["check_31", "check_29", "check_26", "check_45", "check_54"]
+                    no_path_checks = ["check_31", "check_29", "check_26", \
+                                      "check_45", "check_54", "check_56"]
                     if check_id in no_path_checks:
                         process_func(obj)
                         break
@@ -246,6 +257,8 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                         if key:
                             if key.isdigit():
                                 key = int(key)
+                            elif key not in obj:
+                                continue
                             obj = obj[key]
 
                     if check_id in ("check_23", "check_24", "check_34"):
@@ -345,6 +358,10 @@ def set_capabilities(obj: dict, add="", drop=""):
         add (str): capabilities to add.
         drop (str): capabilities to drop.
     """
+
+    # Only set this property at the container level
+    if "image" not in obj:
+        return
 
     insecure_caps = ["ALL", "All", "all", "BPF", "MAC_ADMIN", "MAC_OVERRIDE", "NET_ADMIN",
                      "NET_RAW", "SETPCAP", "PERFMON", "SYS_ADMIN", "SYS_BOOT", "SYS_MODULE", 
@@ -528,9 +545,11 @@ def set_limit_range(obj: dict) -> dict:
         dict: LimitRange object
     """
 
-    namespace = obj["metadata"]["namespace"]
-    if namespace == "default":
-        namespace = "test-ns"
+    namespace = "test-ns"
+    if "namespace" in obj["metadata"]:
+        if obj["metadata"]["namespace"] != "default":
+            namespace = obj["metadata"]["namespace"]
+
     limit_range = {
         "apiVersion": "v1",
         "kind": "LimitRange",
@@ -568,9 +587,11 @@ def set_resource_quota(obj: dict) -> dict:
         dict: ResourceQuota object
     """
 
-    namespace = obj["metadata"]["namespace"]
-    if namespace == "default":
-        namespace = "test-ns"
+    namespace = "test-ns"
+    if "namespace" in obj["metadata"]:
+        if obj["metadata"]["namespace"] != "default":
+            namespace = obj["metadata"]["namespace"]
+
     resource_quota = {
         "apiVersion": "v1",
         "kind": "ResourceQuota",
@@ -679,6 +700,10 @@ def set_priv_esc(obj: dict, value=False):
         obj (dict): K8s object to modify.
         value (bool): The value to set the allowPrivilegeEscalation to.
     """
+
+    # Only set this property at the container level
+    if "image" not in obj:
+        return
 
     # If securityContext is not set, Set it
     if "securityContext" not in obj:
@@ -869,8 +894,13 @@ def set_pid_ns(obj: dict, value=False):
         value (bool): The value to set the hostPID to.
     """
 
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+
     # Set "hostPID" to False
-    obj["spec"]["hostPID"] = value
+    obj["hostPID"] = value
 
 
 def set_ipc_ns(obj: dict, value=False):
@@ -883,8 +913,13 @@ def set_ipc_ns(obj: dict, value=False):
         value (bool): The value to set the hostIPC to.
     """
 
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+
     # Set "hostIPC" to False
-    obj["spec"]["hostIPC"] = value
+    obj["hostIPC"] = value
 
 
 def set_net_ns(obj: dict, value=False):
@@ -897,8 +932,13 @@ def set_net_ns(obj: dict, value=False):
         value (bool): The value to set the hostNetwork to.
     """
 
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+
     # Set "hostNetwork" to False
-    obj["spec"]["hostNetwork"] = value
+    obj["hostNetwork"] = value
 
 
 def set_read_only(obj: dict, value=True):
@@ -910,6 +950,10 @@ def set_read_only(obj: dict, value=True):
         obj (dict): K8s object to modify.
         value (bool): The value to set the readOnlyRootFilesystem to.
     """
+
+    # Only set this property at the container level
+    if "image" not in obj:
+        return
 
     # If securityContext is not set, Set it
     if "securityContext" not in obj:
@@ -997,6 +1041,41 @@ def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret
             })
 
 
+def remove_nodeport(obj: dict):
+    """Remove the nodePort from each K8s Service object.
+    
+    Policy: Do not expose Kubernetes services on NodePort
+
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    # Append to metadata annotations: networking.gke.io/load-balancer-type: 'Internal'
+    if "annotations" in obj["metadata"]:
+        obj["metadata"]["annotations"]["networking.gke.io/load-balancer-type"] = "Internal"
+    else:
+        obj["metadata"]["annotations"] = {
+            "networking.gke.io/load-balancer-type": "Internal"
+        }
+
+    # obj["spec"]["ports"] = [{
+    #     "protocol": "TCP",
+    #     "port": 80,
+    #     "targetPort": 9376
+    # }]
+
+    # obj["spec"]["clusterIP"] = "10.0.171.239"
+    obj["spec"]["type"] = "LoadBalancer"
+
+    # obj["status"] = {
+    #     "loadBalancer": {
+    #         "ingress": [{
+    #                 "ip": "192.0.2.127"
+    #         }]
+    #     }
+    # }
+
+
 def set_volume_mounts(obj: dict, value=True):
     """Set a container volumeMounts readOnly to value for each K8s object.
     
@@ -1016,10 +1095,12 @@ def set_volume_mounts(obj: dict, value=True):
         for volume in obj["volumeMounts"]:
             if "readOnly" in volume:
                 volume["readOnly"] = value
+            else:
+                volume["readOnly"] = value
 
 
 def set_cluster_roles(obj: dict):
-    """
+    """Remove dangerous verbs from ClusterRoles for each K8s object.
 
     Policy: Kubernetes ClusterRoles that grant control over validating or 
     mutating admission webhook configurations are not minimized.
@@ -1028,11 +1109,21 @@ def set_cluster_roles(obj: dict):
         obj (dict): K8s object to modify.
     """
 
-    # Remove "create", "update", or "patch" permissions
     for rule in obj["rules"]:
         if "verbs" in rule:
+
+            # Checkov - CKV_K8S_155
             rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
                     "create", "update", "patch"]]
+
+            # Datree - CIS_INVALID_VERB_SECRETS
+            rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
+                    "get", "list", "watch"]]
+
+            # KICS - b7bca5c4-1dab-4c2c-8cbe-3050b9d59b14
+            # create, delete, get, list, patch, update, watch
+            rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
+                    "delete"]]
 
 
 def set_service_account(obj: dict, value=False):
@@ -1123,6 +1214,44 @@ def set_replicas(obj: dict, value=2):
     """
 
     obj["spec"]["replicas"] = value
+
+
+def assign_service(obj: dict):
+    """Assign a Service to a K8s DeploymentLike object.
+    
+    Policy: no pods found matching service labels.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    # Example: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
+    # Service: ["selector"]["app"] = "my-app"
+    # Deployment:
+    #  - .spec.template.metadata.labels = "my-app"
+    #  - .spec.selector.matchLabels = "my-app"
+    # Service["namespace"] == Deployment["namespace"]
+
+    # IMPORTANT. Usually, this check fails when a tool only fix the default
+    # namespace of the DeploymentLike, but not the Service namespace.
+
+    return
+
+
+def assign_service_account(obj: dict):
+    """Assign a ServiceAccount to a K8s DeploymentLike object.
+    
+    Policy: no pods found matching service account labels.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    # Similar as for assign_service, also this check usually fails when a tool
+    # only fix the default namespace of the DeploymentLike, but not the
+    # ServiceAccount namespace.
+
+    return
 
 
 def set_img_tag(obj: dict):
@@ -1311,6 +1440,9 @@ class FuncLookupClass:
     "check_53": set_statefulset_service_name,
     "check_54": set_cluster_roles,
     "check_55": set_volume_mounts,
+    "check_56": remove_nodeport,
+    "check_57": assign_service,
+    "check_58": assign_service_account,
     }
 
     @classmethod

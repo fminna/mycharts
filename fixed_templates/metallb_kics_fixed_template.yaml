@@ -1501,22 +1501,29 @@ rules:
   resources:
   - services
   - namespaces
-  verbs: []
+  verbs:
+  - get
+  - list
+  - watch
 - apiGroups:
   - ''
   resources:
   - nodes
-  verbs: []
+  verbs:
+  - list
 - apiGroups:
   - ''
   resources:
   - services/status
-  verbs: []
+  verbs:
+  - update
 - apiGroups:
   - ''
   resources:
   - events
-  verbs: []
+  verbs:
+  - create
+  - patch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
@@ -1524,13 +1531,22 @@ rules:
   - mutatingwebhookconfigurations
   resourceNames:
   - metallb-webhook-configuration
-  verbs: []
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
   - validatingwebhookconfigurations
   - mutatingwebhookconfigurations
-  verbs: []
+  verbs:
+  - list
+  - watch
 - apiGroups:
   - apiextensions.k8s.io
   resources:
@@ -1543,12 +1559,21 @@ rules:
   - ipaddresspools.metallb.io
   - l2advertisements.metallb.io
   - communities.metallb.io
-  verbs: []
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
-  verbs: []
+  verbs:
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -1642,80 +1667,52 @@ rules:
   - ''
   resources:
   - pods
-  verbs:
-  - list
+  verbs: []
 - apiGroups:
   - ''
   resources:
   - secrets
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - ''
   resources:
   - configmaps
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - addresspools
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - bfdprofiles
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - bgppeers
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - l2advertisements
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - bgpadvertisements
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - ipaddresspools
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - communities
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -1733,92 +1730,61 @@ rules:
   - ''
   resources:
   - secrets
-  verbs:
-  - create
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - ''
   resources:
   - secrets
   resourceNames:
   - release-name-metallb-memberlist
-  verbs:
-  - list
+  verbs: []
 - apiGroups:
   - apps
   resources:
   - deployments
   resourceNames:
   - release-name-metallb-controller
-  verbs:
-  - get
+  verbs: []
 - apiGroups:
   - ''
   resources:
   - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - addresspools
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - ipaddresspools
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - bgppeers
-  verbs:
-  - get
-  - list
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - bgpadvertisements
-  verbs:
-  - get
-  - list
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - l2advertisements
-  verbs:
-  - get
-  - list
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - communities
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - metallb.io
   resources:
   - bfdprofiles
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -1906,10 +1872,17 @@ spec:
         app.kubernetes.io/component: speaker
       annotations:
         seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/cp-frr-files: runtime/default
+        container.apparmor.security.beta.kubernetes.io/frr: runtime/default
+        container.apparmor.security.beta.kubernetes.io/speaker: runtime/default
+        container.apparmor.security.beta.kubernetes.io/frr-metrics: runtime/default
+        container.apparmor.security.beta.kubernetes.io/cp-metrics: runtime/default
+        container.apparmor.security.beta.kubernetes.io/reloader: runtime/default
+        container.apparmor.security.beta.kubernetes.io/cp-reloader: runtime/default
     spec:
       serviceAccountName: release-name-metallb-speaker
       terminationGracePeriodSeconds: 0
-      hostNetwork: false
+      hostNetwork: true
       volumes:
       - name: memberlist
         secret:
@@ -1934,8 +1907,10 @@ spec:
       - name: cp-frr-files
         image: quay.io/frrouting/frr:8.4.2
         securityContext:
-          runAsUser: 100
+          runAsUser: 25000
           runAsGroup: 101
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - /bin/sh
         - -c
@@ -1943,8 +1918,18 @@ spec:
         volumeMounts:
         - name: frr-startup
           mountPath: /tmp/frr
+          readOnly: true
         - name: frr-conf
           mountPath: /etc/frr
+          readOnly: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        imagePullPolicy: Always
       - name: cp-reloader
         image: quay.io/metallb/speaker:v0.13.10
         command:
@@ -1954,6 +1939,20 @@ spec:
         volumeMounts:
         - name: reloader
           mountPath: /etc/frr_reloader
+          readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          runAsNonRoot: true
+          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        imagePullPolicy: Always
       - name: cp-metrics
         image: quay.io/metallb/speaker:v0.13.10
         command:
@@ -1963,6 +1962,20 @@ spec:
         volumeMounts:
         - name: metrics
           mountPath: /etc/frr_metrics
+          readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          runAsNonRoot: true
+          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        imagePullPolicy: Always
       shareProcessNamespace: true
       containers:
       - name: speaker
@@ -2032,17 +2045,20 @@ spec:
         volumeMounts:
         - name: memberlist
           mountPath: /etc/ml_secret_key
+          readOnly: true
         - name: reloader
           mountPath: /etc/frr_reloader
+          readOnly: true
         - name: metallb-excludel2
           mountPath: /etc/metallb
+          readOnly: true
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         imagePullPolicy: Always
       - name: frr
         securityContext:
@@ -2061,8 +2077,10 @@ spec:
         volumeMounts:
         - name: frr-sockets
           mountPath: /var/run/frr
+          readOnly: true
         - name: frr-conf
           mountPath: /etc/frr
+          readOnly: true
         command:
         - /bin/sh
         - -c
@@ -2081,6 +2099,13 @@ spec:
             port: 7473
           failureThreshold: 30
           periodSeconds: 5
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         readinessProbe:
           exec:
             command:
@@ -2088,6 +2113,7 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        imagePullPolicy: Always
       - name: reloader
         image: quay.io/frrouting/frr:8.4.2
         command:
@@ -2095,10 +2121,36 @@ spec:
         volumeMounts:
         - name: frr-sockets
           mountPath: /var/run/frr
+          readOnly: true
         - name: frr-conf
           mountPath: /etc/frr
+          readOnly: true
         - name: reloader
           mountPath: /etc/frr_reloader
+          readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        imagePullPolicy: Always
         livenessProbe:
           exec:
             command:
@@ -2106,9 +2158,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          runAsUser: 25000
-          runAsNonRoot: true
       - name: frr-metrics
         image: quay.io/frrouting/frr:8.4.2
         command:
@@ -2121,12 +2170,43 @@ spec:
         volumeMounts:
         - name: frr-sockets
           mountPath: /var/run/frr
+          readOnly: true
         - name: frr-conf
           mountPath: /etc/frr
+          readOnly: true
         - name: metrics
           mountPath: /etc/frr_metrics
+          readOnly: true
         securityContext:
+          allowPrivilegeEscalation: false
           runAsUser: 25000
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       nodeSelector:
         kubernetes.io/os: linux
       tolerations:
@@ -2139,9 +2219,8 @@ spec:
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
       automountServiceAccountToken: false
+      hostIPC: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2171,6 +2250,7 @@ spec:
         app.kubernetes.io/component: controller
       annotations:
         seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/controller: runtime/default
     spec:
       serviceAccountName: release-name-metallb-controller
       terminationGracePeriodSeconds: 0
@@ -2229,12 +2309,12 @@ spec:
             drop:
             - ALL
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         imagePullPolicy: Always
       nodeSelector:
         kubernetes.io/os: linux
@@ -2397,90 +2477,62 @@ webhooks:
     - l2advertisements
   sideEffects: None
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: v1
+kind: LimitRange
 metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
+  name: cpu-min-max-demo-lr
   namespace: test-ns
 spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: v1
+kind: LimitRange
 metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
+  name: cpu-min-max-demo-lr
   namespace: test-ns
 spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high

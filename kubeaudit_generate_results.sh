@@ -25,7 +25,7 @@ echo "Running analyzers on $chart_name ..."
 # Step 1 - Kubeaudit
 echo -e "\n -------------------------- \n"
 echo "Step 1 - Run Kubeaudit"
-kubeaudit all -f templates/${chart_folder}_template.yaml --format json > test_files/kubeaudit_results.json
+kubeaudit all -f templates/${chart_folder}_template.yaml --minseverity "error" --format json > test_files/kubeaudit_results.json
 python .github/scripts/main.py --count-checks
 
 # Step 2 - Fix Kubeaudit output
@@ -39,8 +39,7 @@ python .github/scripts/main.py --check
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
-kubeaudit all -f fixed_templates/${chart_name}_${tool}_fixed_template.yaml
-python .github/scripts/main.py --count-checks
+kubeaudit all -f fixed_templates/${chart_name}_${tool}_fixed_template.yaml --minseverity "error"
 
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"
@@ -77,7 +76,7 @@ python .github/scripts/main.py --count-checks
 
 # Kubeaudit
 echo -e "\n Step 5 - Kubeaudit"
-kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --format json > test_files/kubeaudit_results.json
+kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --minseverity "error" --format json > test_files/kubeaudit_results.json
 export tool="kubeaudit"
 python .github/scripts/main.py --count-checks
 
