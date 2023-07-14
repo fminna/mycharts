@@ -118,32 +118,22 @@ rules:
   - nodes
   - namespaces
   - componentstatuses
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - ''
   resources:
   - events
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - quota.openshift.io
   resources:
   - clusterresourcequotas
-  verbs:
-  - get
-  - list
+  verbs: []
 - apiGroups:
   - autoscaling
   resources:
   - horizontalpodautoscalers
-  verbs:
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - ''
   resources:
@@ -151,8 +141,7 @@ rules:
   resourceNames:
   - release-name-datadogtoken
   - datadogtoken
-  verbs:
-  - get
+  verbs: []
 - apiGroups:
   - ''
   resources:
@@ -160,16 +149,14 @@ rules:
   resourceNames:
   - release-name-datadog-leader-election
   - datadog-leader-election
-  verbs:
-  - get
+  verbs: []
 - apiGroups:
   - coordination.k8s.io
   resources:
   - leases
   resourceNames:
   - release-name-datadog-leader-election
-  verbs:
-  - get
+  verbs: []
 - apiGroups:
   - coordination.k8s.io
   resources:
@@ -184,34 +171,28 @@ rules:
 - nonResourceURLs:
   - /version
   - /healthz
-  verbs:
-  - get
+  verbs: []
 - apiGroups:
   - ''
   resources:
   - namespaces
   resourceNames:
   - kube-system
-  verbs:
-  - get
+  verbs: []
 - apiGroups:
   - ''
   resources:
   - configmaps
   resourceNames:
   - datadog-cluster-id
-  verbs:
-  - get
+  verbs: []
 - apiGroups:
   - ''
   resources:
   - persistentvolumes
   - persistentvolumeclaims
   - serviceaccounts
-  verbs:
-  - list
-  - get
-  - watch
+  verbs: []
 - apiGroups:
   - apps
   resources:
@@ -219,27 +200,18 @@ rules:
   - replicasets
   - daemonsets
   - statefulsets
-  verbs:
-  - list
-  - get
-  - watch
+  verbs: []
 - apiGroups:
   - batch
   resources:
   - cronjobs
   - jobs
-  verbs:
-  - list
-  - get
-  - watch
+  verbs: []
 - apiGroups:
   - networking.k8s.io
   resources:
   - ingresses
-  verbs:
-  - list
-  - get
-  - watch
+  verbs: []
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
@@ -247,41 +219,28 @@ rules:
   - rolebindings
   - clusterroles
   - clusterrolebindings
-  verbs:
-  - list
-  - get
-  - watch
+  verbs: []
 - apiGroups:
   - autoscaling.k8s.io
   resources:
   - verticalpodautoscalers
-  verbs:
-  - list
-  - get
-  - watch
+  verbs: []
 - apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
-  verbs:
-  - list
-  - get
-  - watch
+  verbs: []
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
   - mutatingwebhookconfigurations
-  verbs:
-  - get
-  - list
-  - watch
+  verbs: []
 - apiGroups:
   - batch
   resources:
   - jobs
   - cronjobs
-  verbs:
-  - get
+  verbs: []
 - apiGroups:
   - apps
   resources:
@@ -289,8 +248,7 @@ rules:
   - replicasets
   - deployments
   - daemonsets
-  verbs:
-  - get
+  verbs: []
 - apiGroups:
   - policy
   resources:
@@ -823,19 +781,6 @@ spec:
             add:
             - CHOWN
             - DAC_OVERRIDE
-            drop:
-            - FOWNER
-            - FSETID
-            - KILL
-            - SETGID
-            - SETUID
-            - SETPCAP
-            - SETFCAP
-            - NET_BIND_SERVICE
-            - NET_RAW
-            - SYS_CHROOT
-            - MKNOD
-            - AUDIT_WRITE
           runAsUser: 1001
           runAsNonRoot: false
         volumeMounts:

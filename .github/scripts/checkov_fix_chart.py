@@ -56,6 +56,36 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     fix_template.save_yaml_template(template, name)
 
 
+def get_container_objects(template: dict, resource_path: str, containers="containers") -> list:
+    """Returns the container object based on the resource path.
+    
+    Args:
+        template (dict): The parsed YAML template.
+        resource_path (str): The resource path (e.g., Pod/default/name).
+    
+    Returns:
+        dict: The container object.
+    """
+
+    obj = []
+
+    for document in template:
+        if fix_template.check_resource_path(resource_path.split("/"), document):
+            obj = document
+            if "template" in obj["spec"] and containers in obj["spec"]["template"]["spec"]:
+                obj = obj["spec"]["template"]["spec"][containers]
+                # When initContainers is empty, return an empty list
+                if obj is None:
+                    return []
+                else:
+                    return obj
+            elif containers in obj["spec"]:
+                return obj["spec"][containers]
+            else:
+                return []
+    return []
+
+
 def fix_issue(check: str, template: dict) -> str:
     """Fixes an issue based on the checkov check ID.
 
@@ -74,24 +104,65 @@ def fix_issue(check: str, template: dict) -> str:
     if check_id is not None:
 
         # Resource path (e.g., Pod/default/name)
-        resource_path = check["resource"].replace(".", "/")
+        resource_path = check["resource"].split(".")[:3]
+        resource_path = "/".join(resource_path)
 
         # Object path
         obj_path = ""
+        if check["check_id"] == "CKV2_K8S_5":
+            pass
         # If specified, get the object path (e.g., spec/containers/0)
-        if check["check_result"]["evaluated_keys"]:
+        elif check["check_result"]["evaluated_keys"]:
             obj_path = check["check_result"]["evaluated_keys"][0]
             index = obj_path.rfind("]/")
             if index != -1:
                 obj_path = obj_path[:index+2]
             obj_path = obj_path.replace("[", "").replace("]", "")
+            if obj_path[-1] == "/":
+                obj_path = obj_path[:-1]
 
         paths = {
             "resource_path": resource_path,
             "obj_path": obj_path
         }
 
-        fix_template.set_template(template, check_id, paths)
+        # fix_template.set_template(template, check_id, paths)
+        # return check_id
+
+        if "initContainers" in obj_path:
+            init_containers = get_container_objects(template, resource_path, "initContainers")
+            obj_path = obj_path.replace("containers", "initContainers")
+            for idx in range(len(init_containers)):
+                obj_path = obj_path[:-1]
+                obj_path += f"{str(idx)}"
+
+                paths["obj_path"] = obj_path
+                fix_template.set_template(template, check_id, paths)
+
+        elif "containers" in obj_path:
+
+            containers = get_container_objects(template, resource_path)
+            for idx in range(len(containers)):
+                # Given the object path, remove the last character after the last slash
+                # Example: spec/containers/0 -> spec/containers/
+                obj_path = obj_path[:-1]
+                obj_path += f"{str(idx)}"
+
+                paths["obj_path"] = obj_path
+                fix_template.set_template(template, check_id, paths)
+
+            init_containers = get_container_objects(template, resource_path, "initContainers")
+            obj_path = obj_path.replace("containers", "initContainers")
+            for idx in range(len(init_containers)):
+                obj_path = obj_path[:-1]
+                obj_path += f"{str(idx)}"
+
+                paths["obj_path"] = obj_path
+                fix_template.set_template(template, check_id, paths)
+
+        else:
+            fix_template.set_template(template, check_id, paths)
+
         return check_id
 
     else:
@@ -107,6 +178,13 @@ class LookupClass:
     """
 
     _LOOKUP = {
+        "CKV_K8S_1": "",
+        "CKV_K8S_2": "",
+        "CKV_K8S_3": "",
+        "CKV_K8S_4": "",
+        "CKV_K8S_5": "",
+        "CKV_K8S_6": "",
+        "CKV_K8S_7": "",
         "CKV_K8S_8": "check_7", 
         "CKV_K8S_9": "check_8", 
         "CKV_K8S_10": "check_4", 
@@ -137,7 +215,12 @@ class LookupClass:
         "CKV_K8S_43": "check_9", 
         "CKV2_K8S_6": "check_40",
         "CKV_K8S_30": "check_30",
-        "CKV_K8S_155": "check_54"
+        "CKV_K8S_155": "check_54",
+        "CKV2_K8S_5": "check_59",
+        "CKV_K8S_49": "check_54",
+        "CKV_K8S_156": "check_54",
+        "CKV_K8S_157": "check_54",
+        "CKV_K8S_158": "check_54"
     }
 
     @classmethod

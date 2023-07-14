@@ -12,7 +12,6 @@ type: Opaque
 data:
   postgresql-postgres-password: akJzNTVDaVJJSw==
   postgresql-password: c29uYXJQYXNz
---- null
 ---
 apiVersion: v1
 kind: Secret
@@ -525,8 +524,6 @@ spec:
         secret:
           secretName: my-secret
       automountServiceAccountToken: false
---- null
---- null
 ---
 apiVersion: v1
 kind: Pod

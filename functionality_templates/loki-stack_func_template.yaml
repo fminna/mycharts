@@ -1,0 +1,690 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: loki
+    chart: loki-2.16.0
+    release: release-name
+    heritage: Helm
+  annotations: {}
+  name: release-name-loki
+  namespace: test-ns
+automountServiceAccountToken: true
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-promtail
+  namespace: test-ns
+  labels:
+    helm.sh/chart: promtail-6.10.0
+    app.kubernetes.io/name: promtail
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.7.4
+    app.kubernetes.io/managed-by: Helm
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-loki
+  namespace: test-ns
+  labels:
+    app: loki
+    chart: loki-2.16.0
+    release: release-name
+    heritage: Helm
+data:
+  loki.yaml: YXV0aF9lbmFibGVkOiBmYWxzZQpjaHVua19zdG9yZV9jb25maWc6CiAgbWF4X2xvb2tfYmFja19wZXJpb2Q6IDBzCmNvbXBhY3RvcjoKICBzaGFyZWRfc3RvcmU6IGZpbGVzeXN0ZW0KICB3b3JraW5nX2RpcmVjdG9yeTogL2RhdGEvbG9raS9ib2x0ZGItc2hpcHBlci1jb21wYWN0b3IKaW5nZXN0ZXI6CiAgY2h1bmtfYmxvY2tfc2l6ZTogMjYyMTQ0CiAgY2h1bmtfaWRsZV9wZXJpb2Q6IDNtCiAgY2h1bmtfcmV0YWluX3BlcmlvZDogMW0KICBsaWZlY3ljbGVyOgogICAgcmluZzoKICAgICAgcmVwbGljYXRpb25fZmFjdG9yOiAxCiAgbWF4X3RyYW5zZmVyX3JldHJpZXM6IDAKICB3YWw6CiAgICBkaXI6IC9kYXRhL2xva2kvd2FsCmxpbWl0c19jb25maWc6CiAgZW5mb3JjZV9tZXRyaWNfbmFtZTogZmFsc2UKICBtYXhfZW50cmllc19saW1pdF9wZXJfcXVlcnk6IDUwMDAKICByZWplY3Rfb2xkX3NhbXBsZXM6IHRydWUKICByZWplY3Rfb2xkX3NhbXBsZXNfbWF4X2FnZTogMTY4aAptZW1iZXJsaXN0OgogIGpvaW5fbWVtYmVyczoKICAtICdyZWxlYXNlLW5hbWUtbG9raS1tZW1iZXJsaXN0JwpzY2hlbWFfY29uZmlnOgogIGNvbmZpZ3M6CiAgLSBmcm9tOiAiMjAyMC0xMC0yNCIKICAgIGluZGV4OgogICAgICBwZXJpb2Q6IDI0aAogICAgICBwcmVmaXg6IGluZGV4XwogICAgb2JqZWN0X3N0b3JlOiBmaWxlc3lzdGVtCiAgICBzY2hlbWE6IHYxMQogICAgc3RvcmU6IGJvbHRkYi1zaGlwcGVyCnNlcnZlcjoKICBncnBjX2xpc3Rlbl9wb3J0OiA5MDk1CiAgaHR0cF9saXN0ZW5fcG9ydDogMzEwMApzdG9yYWdlX2NvbmZpZzoKICBib2x0ZGJfc2hpcHBlcjoKICAgIGFjdGl2ZV9pbmRleF9kaXJlY3Rvcnk6IC9kYXRhL2xva2kvYm9sdGRiLXNoaXBwZXItYWN0aXZlCiAgICBjYWNoZV9sb2NhdGlvbjogL2RhdGEvbG9raS9ib2x0ZGItc2hpcHBlci1jYWNoZQogICAgY2FjaGVfdHRsOiAyNGgKICAgIHNoYXJlZF9zdG9yZTogZmlsZXN5c3RlbQogIGZpbGVzeXN0ZW06CiAgICBkaXJlY3Rvcnk6IC9kYXRhL2xva2kvY2h1bmtzCnRhYmxlX21hbmFnZXI6CiAgcmV0ZW50aW9uX2RlbGV0ZXNfZW5hYmxlZDogZmFsc2UKICByZXRlbnRpb25fcGVyaW9kOiAwcw==
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-promtail
+  namespace: test-ns
+  labels:
+    helm.sh/chart: promtail-6.10.0
+    app.kubernetes.io/name: promtail
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.7.4
+    app.kubernetes.io/managed-by: Helm
+stringData:
+  promtail.yaml: "server:\n  log_level: info\n  http_listen_port: 3101\n  \n\nclients:\n\
+    \  - url: http://release-name:3100/loki/api/v1/push\n\npositions:\n  filename:\
+    \ /run/promtail/positions.yaml\n\nscrape_configs:\n  # See also https://github.com/grafana/loki/blob/master/production/ksonnet/promtail/scrape_config.libsonnet\
+    \ for reference\n  - job_name: kubernetes-pods\n    pipeline_stages:\n      -\
+    \ cri: {}\n    kubernetes_sd_configs:\n      - role: pod\n    relabel_configs:\n\
+    \      - source_labels:\n          - __meta_kubernetes_pod_controller_name\n \
+    \       regex: ([0-9a-z-.]+?)(-[0-9a-f]{8,10})?\n        action: replace\n   \
+    \     target_label: __tmp_controller_name\n      - source_labels:\n          -\
+    \ __meta_kubernetes_pod_label_app_kubernetes_io_name\n          - __meta_kubernetes_pod_label_app\n\
+    \          - __tmp_controller_name\n          - __meta_kubernetes_pod_name\n \
+    \       regex: ^;*([^;]+)(;.*)?$\n        action: replace\n        target_label:\
+    \ app\n      - source_labels:\n          - __meta_kubernetes_pod_label_app_kubernetes_io_instance\n\
+    \          - __meta_kubernetes_pod_label_release\n        regex: ^;*([^;]+)(;.*)?$\n\
+    \        action: replace\n        target_label: instance\n      - source_labels:\n\
+    \          - __meta_kubernetes_pod_label_app_kubernetes_io_component\n       \
+    \   - __meta_kubernetes_pod_label_component\n        regex: ^;*([^;]+)(;.*)?$\n\
+    \        action: replace\n        target_label: component\n      - action: replace\n\
+    \        source_labels:\n        - __meta_kubernetes_pod_node_name\n        target_label:\
+    \ node_name\n      - action: replace\n        source_labels:\n        - __meta_kubernetes_namespace\n\
+    \        target_label: namespace\n      - action: replace\n        replacement:\
+    \ $1\n        separator: /\n        source_labels:\n        - namespace\n    \
+    \    - app\n        target_label: job\n      - action: replace\n        source_labels:\n\
+    \        - __meta_kubernetes_pod_name\n        target_label: pod\n      - action:\
+    \ replace\n        source_labels:\n        - __meta_kubernetes_pod_container_name\n\
+    \        target_label: container\n      - action: replace\n        replacement:\
+    \ /var/log/pods/*$1/*.log\n        separator: /\n        source_labels:\n    \
+    \    - __meta_kubernetes_pod_uid\n        - __meta_kubernetes_pod_container_name\n\
+    \        target_label: __path__\n      - action: replace\n        regex: true/(.*)\n\
+    \        replacement: /var/log/pods/*$1/*.log\n        separator: /\n        source_labels:\n\
+    \        - __meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash\n\
+    \        - __meta_kubernetes_pod_annotation_kubernetes_io_config_hash\n      \
+    \  - __meta_kubernetes_pod_container_name\n        target_label: __path__\n  \n\
+    \  \n\nlimits_config:\n"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-loki-stack
+  namespace: test-ns
+  labels:
+    app: loki-stack
+    chart: loki-stack-2.9.10
+    release: release-name
+    heritage: Helm
+    grafana_datasource: '1'
+data:
+  loki-stack-datasource.yaml: "apiVersion: 1\ndatasources:\n- name: Loki\n  type:\
+    \ loki\n  access: proxy\n  url: \"http://release-name-loki:3100\"\n  version:\
+    \ 1\n  isDefault: true\n  jsonData:\n    {}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-loki-stack-test
+  labels:
+    app: loki-stack
+    chart: loki-stack-2.9.10
+    release: release-name
+    heritage: Helm
+  namespace: test-ns
+data:
+  test.sh: "#!/usr/bin/env bash\n\nLOKI_URI=\"http://${LOKI_SERVICE}:${LOKI_PORT}\"\
+    \n\nfunction setup() {\n  apk add -u curl jq\n  until (curl -s ${LOKI_URI}/loki/api/v1/label/app/values\
+    \ | jq -e '.data[] | select(. == \"loki\")'); do\n    sleep 1\n  done\n}\n\n@test\
+    \ \"Has labels\" {\n  curl -s ${LOKI_URI}/loki/api/v1/labels | \\\n  jq -e '.data[]\
+    \ | select(. == \"app\")'\n}\n\n@test \"Query log entry\" {\n  curl -sG ${LOKI_URI}/api/prom/query?limit=10\
+    \ --data-urlencode 'query={app=\"loki\"}' | \\\n  jq -e '.streams[].entries |\
+    \ length >=1'\n}\n\n@test \"Push log entry\" {\n  local timestamp=$(date +%s000000000)\n\
+    \  local data=$(jq -n --arg timestamp \"${timestamp}\" '{\"streams\": [{\"stream\"\
+    : {\"app\": \"loki-test\"}, \"values\": [[$timestamp, \"foobar\"]]}]}')\n\n  curl\
+    \ -s -X POST -H \"Content-Type: application/json\" ${LOKI_URI}/loki/api/v1/push\
+    \ --data-raw \"${data}\"\n\n  curl -sG ${LOKI_URI}/loki/api/v1/query_range?limit=1\
+    \ --data-urlencode 'query={app=\"loki-test\"}' | \\\n  jq -e '.data.result[].values[][1]\
+    \ == \"foobar\"'\n}\n"
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-promtail
+  labels:
+    helm.sh/chart: promtail-6.10.0
+    app.kubernetes.io/name: promtail
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.7.4
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - watch
+  - list
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-promtail
+  labels:
+    helm.sh/chart: promtail-6.10.0
+    app.kubernetes.io/name: promtail
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.7.4
+    app.kubernetes.io/managed-by: Helm
+subjects:
+- kind: ServiceAccount
+  name: release-name-promtail
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: release-name-promtail
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: release-name-loki
+  namespace: test-ns
+  labels:
+    app: loki
+    chart: loki-2.16.0
+    release: release-name
+    heritage: Helm
+rules:
+- apiGroups:
+  - extensions
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+  resourceNames:
+  - release-name-loki
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: release-name-loki
+  namespace: test-ns
+  labels:
+    app: loki
+    chart: loki-2.16.0
+    release: release-name
+    heritage: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-loki
+subjects:
+- kind: ServiceAccount
+  name: release-name-loki
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-loki-headless
+  namespace: test-ns
+  labels:
+    app: loki
+    chart: loki-2.16.0
+    release: release-name
+    heritage: Helm
+    variant: headless
+spec:
+  clusterIP: None
+  ports:
+  - port: 3100
+    protocol: TCP
+    name: http-metrics
+    targetPort: http-metrics
+  selector:
+    app: loki
+    release: release-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-loki-memberlist
+  namespace: test-ns
+  labels:
+    app: loki
+    chart: loki-2.16.0
+    release: release-name
+    heritage: Helm
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+  - name: http
+    port: 7946
+    targetPort: memberlist-port
+    protocol: TCP
+  selector:
+    app: loki
+    release: release-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-loki
+  namespace: test-ns
+  labels:
+    app: loki
+    chart: loki-2.16.0
+    release: release-name
+    heritage: Helm
+  annotations: {}
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3100
+    protocol: TCP
+    name: http-metrics
+    targetPort: http-metrics
+  selector:
+    app: loki
+    release: release-name
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: release-name-promtail
+  namespace: test-ns
+  labels:
+    helm.sh/chart: promtail-6.10.0
+    app.kubernetes.io/name: promtail
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.7.4
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: promtail
+      app.kubernetes.io/instance: release-name
+  updateStrategy: {}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: promtail
+        app.kubernetes.io/instance: release-name
+      annotations:
+        checksum/config: 82009e22fb5dd1cc32717be71e728f1fdbea29df04ab468fb01996d5dbcc42b9
+        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+    spec:
+      serviceAccountName: release-name-promtail
+      enableServiceLinks: true
+      securityContext:
+        runAsGroup: 0
+        runAsUser: 25000
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+      containers:
+      - name: promtail
+        image: docker.io/grafana/promtail:2.7.4
+        imagePullPolicy: Always
+        args:
+        - -config.file=/etc/promtail/promtail.yaml
+        volumeMounts:
+        - name: config
+          mountPath: /etc/promtail
+        - mountPath: /run/promtail
+          name: run
+        - mountPath: /var/lib/docker/containers
+          name: containers
+          readOnly: true
+        - mountPath: /var/log/pods
+          name: pods
+          readOnly: true
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        ports:
+        - name: http-metrics
+          containerPort: 3101
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsUser: 25000
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /ready
+            port: http-metrics
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      volumes:
+      - name: config
+        secret:
+          secretName: release-name-promtail
+      - hostPath:
+          path: /run/promtail
+        name: run
+      - hostPath:
+          path: /var/lib/docker/containers
+        name: containers
+      - hostPath:
+          path: /var/log/pods
+        name: pods
+      automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-loki
+  namespace: test-ns
+  labels:
+    app: loki
+    chart: loki-2.16.0
+    release: release-name
+    heritage: Helm
+  annotations: {}
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+      release: release-name
+  serviceName: release-name-loki-headless
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: loki
+        name: release-name-loki
+        release: release-name
+      annotations:
+        checksum/config: f9b589982c89ac0bea7797751079655a51e67d7d41c063ed83f3ab5b4b110f60
+        prometheus.io/port: http-metrics
+        prometheus.io/scrape: 'true'
+        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+    spec:
+      serviceAccountName: release-name-loki
+      securityContext:
+        fsGroup: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers: []
+      containers:
+      - name: loki
+        image: grafana/loki:2.6.1
+        imagePullPolicy: Always
+        args:
+        - -config.file=/etc/loki/loki.yaml
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: config
+          mountPath: /etc/loki
+        - name: storage
+          mountPath: /data
+          subPath: null
+        ports:
+        - name: http-metrics
+          containerPort: 3100
+          protocol: TCP
+        - name: grpc
+          containerPort: 9095
+          protocol: TCP
+        - name: memberlist-port
+          containerPort: 7946
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /ready
+            port: http-metrics
+          initialDelaySeconds: 45
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http-metrics
+          initialDelaySeconds: 45
+        resources:
+          limits:
+            memory: 1024Mi
+            cpu: 1000m
+          requests:
+            memory: 1024Mi
+            cpu: 1000m
+        securityContext:
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          runAsUser: 1001
+        env: null
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
+      terminationGracePeriodSeconds: 4800
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: config
+        secret:
+          secretName: release-name-loki
+      - name: storage
+        emptyDir: {}
+      automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    helm.sh/hook: test-success
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+  labels:
+    app: loki-stack
+    chart: loki-stack-2.9.10
+    release: release-name
+    heritage: Helm
+  name: release-name-loki-stack-test
+  namespace: test-ns
+spec:
+  containers:
+  - name: test
+    image: bats/bats:1.8.2
+    imagePullPolicy: Always
+    args:
+    - /var/lib/loki/test.sh
+    env:
+    - name: LOKI_SERVICE
+      value: release-name-loki
+    - name: LOKI_PORT
+      value: '3100'
+    volumeMounts:
+    - name: tests
+      mountPath: /var/lib/loki
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
+      runAsUser: 25000
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 250m
+      limits:
+        memory: 128Mi
+        cpu: 250m
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+  restartPolicy: Never
+  volumes:
+  - name: tests
+    configMap:
+      name: release-name-loki-stack-test
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    runAsUser: 25000
+    runAsNonRoot: true
+  automountServiceAccountToken: false
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978

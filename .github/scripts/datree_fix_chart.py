@@ -74,6 +74,7 @@ def fix_issue(check: str, template: dict) -> str:
 
     # Check if the function exists and call it
     if check_id is not None:
+        check_list = [check_id]
 
         for occurrence in check["occurrencesDetails"]:
             # Get the resource path
@@ -106,7 +107,9 @@ def fix_issue(check: str, template: dict) -> str:
                 }
 
                 fix_template.set_template(template, check_id, paths)
-                return check_id
+                check_list.append(check_id)
+
+        return ", ".join(check_list)
 
     else:
         print("No fix found for check ID: " + check["identifier"])
@@ -163,7 +166,7 @@ class LookupClass:
         "CONTAINER_CVE2021_25741_INCORRECT_SUBPATH_KEY": "check_50",
         "CIS_INVALID_VERB_SECRETS": "check_54",
         "CONTAINERS_INCORRECT_RESOURCES_VERBS_VALUE": "check_54",
-        "EKS_INVALID_CAPABILITIES_EKS": "check_34",
+        "EKS_INVALID_CAPABILITIES_EKS": "check_34"
     }
 
     @classmethod

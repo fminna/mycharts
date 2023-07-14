@@ -37,12 +37,13 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     # List of all checks
     all_checks = []
 
-    print("Starting to fix chart's issues ...\n")
+    if "Reports" in results:
+        print("Starting to fix chart's issues ...\n")
 
-    for check in results["Reports"]:
-        print(f"{check['Check']}: {check['Diagnostic']['Message']}")
-        check_id = fix_issue(check, template)
-        all_checks.append(check_id)
+        for check in results["Reports"]:
+            print(f"{check['Check']}: {check['Diagnostic']['Message']}")
+            check_id = fix_issue(check, template)
+            all_checks.append(check_id)
 
     print("\nAll issues fixed!\n")
 

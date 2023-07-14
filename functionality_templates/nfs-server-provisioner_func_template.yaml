@@ -260,16 +260,8 @@ spec:
             - SETUID
             - SETPCAP
             - NET_BIND_SERVICE
-            drop:
-            - CHOWN
-            - FOWNER
-            - FSETID
-            - KILL
-            - SETFCAP
-            - NET_RAW
-            - SYS_CHROOT
-            - MKNOD
-            - AUDIT_WRITE
+            - DAC_READ_SEARCH
+            - SYS_RESOURCE
           allowPrivilegeEscalation: false
           runAsUser: 1001
           readOnlyRootFilesystem: false

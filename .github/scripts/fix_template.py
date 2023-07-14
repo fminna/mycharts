@@ -37,7 +37,7 @@ def parse_yaml_template(chart_folder: str) -> list:
         template = list(yaml.load_all(file, Loader=yaml.FullLoader))
 
     # Remove null document (--- null) from template
-    template = [document for document in template if document is not None]
+    template = [document for document in template if document is not None and document["kind"] != "PodSecurityPolicy"]
     return template
 
 
@@ -53,8 +53,6 @@ def save_yaml_template(template: str, chart_folder: str):
     """
 
     file_path = f"{chart_folder}_template.yaml"
-    # file_path = f"test_files/{chart_folder}_template.yaml"
-
     # Remove null document (--- null) from template
     for document in template:
         if document is None:
@@ -363,11 +361,12 @@ def set_capabilities(obj: dict, add="", drop=""):
     if "image" not in obj:
         return
 
-    insecure_caps = ["ALL", "All", "all", "BPF", "MAC_ADMIN", "MAC_OVERRIDE", "NET_ADMIN",
-                     "NET_RAW", "SETPCAP", "PERFMON", "SYS_ADMIN", "SYS_BOOT", "SYS_MODULE", 
-                     "SYS_PTRACE", "SYS_RAWIO"]
+    if not drop:
+        drop = ["ALL"]
 
-    if "securityContext" not in obj:
+    if "securityContext" not in obj or \
+        obj["securityContext"] is None or \
+            not obj["securityContext"]:
         obj["securityContext"] = {
             "capabilities": {
                 "drop": drop
@@ -375,54 +374,75 @@ def set_capabilities(obj: dict, add="", drop=""):
         }
 
     # If no "capabilities" in securityContext, add "capabilities" and set drop to all
-    elif "capabilities" not in obj["securityContext"]:
+    if "capabilities" not in obj["securityContext"] or \
+        obj["securityContext"]["capabilities"] is None or \
+            not obj["securityContext"]["capabilities"]:
         obj["securityContext"]["capabilities"] = {
             "drop": drop
         }
 
-    # If "capabilities" in securityContext, but insecure capabilities are granted,
-    # drop only insecure ones
-    if "add" in obj["securityContext"]["capabilities"] and \
-        set(obj["securityContext"]["capabilities"]["add"]).intersection(insecure_caps):
+    # Drop ALL by default
+    if "add" in obj["securityContext"]["capabilities"]:
+        del obj["securityContext"]["capabilities"]["add"]
 
-        # Remove insecure capabilities from "add"
-        obj["securityContext"]["capabilities"]["add"] = [cap \
-            for cap in obj["securityContext"]["capabilities"]["add"]
-                if cap not in insecure_caps
-        ]
+    obj["securityContext"]["capabilities"]= {
+        "drop": drop
+    }
 
-        # If add is not empty, add capabilities from argument
-        if add:
-            obj["securityContext"]["capabilities"]["add"] += add
-
-        # If "add" is empty, delete it
-        if not obj["securityContext"]["capabilities"]["add"]:
-            del obj["securityContext"]["capabilities"]["add"]
-
-    # If add not in "capabilities", but the add argument is set, add it
-    elif add:
+    # Eventually, add/drop capabilities
+    if add:
         obj["securityContext"]["capabilities"]= {
                 "add": add
         }
 
-    if "add" not in obj["securityContext"]["capabilities"]:
-        if "drop" in obj["securityContext"]["capabilities"]:
-            obj["securityContext"]["capabilities"]["drop"] = drop
-        else:
-            obj["securityContext"]["capabilities"]= {
-                "drop": drop
-            }
 
-    elif obj["securityContext"]["capabilities"]["add"] != "all":
+    # insecure_caps = ["ALL", "All", "all", "BPF", "MAC_ADMIN", "MAC_OVERRIDE", "NET_ADMIN",
+    #                 "NET_RAW", "SETPCAP", "PERFMON", "SYS_ADMIN", "SYS_BOOT", "SYS_MODULE", 
+    #                 "SYS_PTRACE", "SYS_RAWIO"]
+    #
+    # # If "capabilities" in securityContext, but insecure capabilities are granted,
+    # # drop only insecure ones
+    # if "add" in obj["securityContext"]["capabilities"] and \
+    #     set(obj["securityContext"]["capabilities"]["add"]).intersection(insecure_caps):
 
-        insecure_caps.remove("ALL")
-        insecure_caps.remove("All")
-        insecure_caps.remove("all")
+    #     # Remove insecure capabilities from "add"
+    #     obj["securityContext"]["capabilities"]["add"] = [cap \
+    #         for cap in obj["securityContext"]["capabilities"]["add"]
+    #             if cap not in insecure_caps
+    #     ]
 
-        drop = [cap for cap in drop \
-                if cap not in obj["securityContext"]["capabilities"]["add"]]
+    #     # If add is not empty, add capabilities from argument
+    #     if add:
+    #         obj["securityContext"]["capabilities"]["add"] += add
 
-        obj["securityContext"]["capabilities"]["drop"] = drop
+    #     # If "add" is empty, delete it
+    #     if not obj["securityContext"]["capabilities"]["add"]:
+    #         del obj["securityContext"]["capabilities"]["add"]
+
+    # # If add not in "capabilities", but the add argument is set, add it
+    # elif add:
+    #     obj["securityContext"]["capabilities"]= {
+    #             "add": add
+    #     }
+
+    # if "add" not in obj["securityContext"]["capabilities"]:
+    #     if "drop" in obj["securityContext"]["capabilities"]:
+    #         obj["securityContext"]["capabilities"]["drop"] = drop
+    #     else:
+    #         obj["securityContext"]["capabilities"]= {
+    #             "drop": drop
+    #         }
+
+    # elif obj["securityContext"]["capabilities"]["add"] != "all":
+
+    #     insecure_caps.remove("ALL")
+    #     insecure_caps.remove("All")
+    #     insecure_caps.remove("all")
+
+    #     drop = [cap for cap in drop \
+    #             if cap not in obj["securityContext"]["capabilities"]["add"]]
+
+    #     obj["securityContext"]["capabilities"]["drop"] = drop
 
 
 def set_cpu_limit(obj: dict, value="250m"):
@@ -436,14 +456,17 @@ def set_cpu_limit(obj: dict, value="250m"):
     """
 
     # If resources is not set, Set it
-    if "resources" not in obj:
+    if "resources" not in obj or \
+        obj["resources"] is None or \
+            not obj["resources"]:
         obj["resources"] = {
             "limits": {
                 "cpu": value
             }
         }
     # If resources is set, but limits is not, Set it
-    elif "limits" not in obj["resources"]:
+    elif "limits" not in obj["resources"] or \
+        obj["resources"]["limits"] is None:
         obj["resources"]["limits"] = {
             "cpu": value
         }
@@ -463,14 +486,18 @@ def set_cpu_request(obj: dict, value="250m"):
     """
 
     # If resources is not set, Set it
-    if "resources" not in obj:
+    if "resources" not in obj or \
+        obj["resources"] is None or \
+            not obj["resources"]:
         obj["resources"] = {
             "requests": {
                 "cpu": value
             }
         }
     # If resources is set, but requests is not, Set it
-    elif "requests" not in obj["resources"]:
+    elif "requests" not in obj["resources"] or \
+        obj["resources"]["requests"] is None or \
+            not obj["resources"]["requests"]:
         obj["resources"]["requests"] = {
             "cpu": value
         }
@@ -490,14 +517,18 @@ def set_memory_limit(obj: dict, value="128Mi"):
     """
 
     # If resources is not set, Set it
-    if "resources" not in obj:
+    if "resources" not in obj or \
+        obj["resources"] is None or \
+            not obj["resources"]:
         obj["resources"] = {
             "limits": {
                 "memory": value
             }
         }
     # If resources is set, but limits is not, Set it
-    elif "limits" not in obj["resources"]:
+    elif "limits" not in obj["resources"] or \
+        obj["resources"]["limits"] is None or \
+            not obj["resources"]["limits"]:
         obj["resources"]["limits"] = {
             "memory": value
         }
@@ -517,14 +548,18 @@ def set_memory_request(obj: dict, value="128Mi"):
     """
 
     # If resources is not set, Set it
-    if "resources" not in obj:
+    if "resources" not in obj or \
+        obj["resources"] is None or \
+        not obj["resources"]:
         obj["resources"] = {
             "requests": {
                 "memory": value
             }
         }
     # If resources is set, but requests is not, Set it
-    elif "requests" not in obj["resources"]:
+    elif "requests" not in obj["resources"] or \
+        obj["resources"]["requests"] is None or \
+            not obj["resources"]["requests"]:
         obj["resources"]["requests"] = {
             "memory": value
         }
@@ -632,12 +667,16 @@ def set_uid(obj: dict, uid=25000):
             obj = obj["template"]["spec"]
 
     # If securityContext is not set, Set it
-    if "securityContext" not in obj:
+    if "securityContext" not in obj or \
+        obj["securityContext"] is None or \
+            not obj["securityContext"]:
         obj["securityContext"] = {
             "runAsUser": uid
         }
     # If securityContext is set, but runAsUser is not, Set it
-    elif "runAsUser" not in obj["securityContext"]:
+    elif "runAsUser" not in obj["securityContext"] or \
+        obj["securityContext"]["runAsUser"] is None or \
+            not obj["securityContext"]["runAsUser"]:
         obj["securityContext"]["runAsUser"] = uid
 
     else:
@@ -646,11 +685,15 @@ def set_uid(obj: dict, uid=25000):
     if "containers" in obj:
         # Set runAsUser for each container
         for container in obj["containers"]:
-            if "securityContext" not in container:
+            if "securityContext" not in container or \
+                container["securityContext"] is None or \
+                    not container["securityContext"]:
                 container["securityContext"] = {
                     "runAsUser": uid
                 }
-            elif "runAsUser" not in container["securityContext"]:
+            elif "runAsUser" not in container["securityContext"] or \
+                container["securityContext"]["runAsUser"] is None or \
+                    not container["securityContext"]["runAsUser"]:
                 container["securityContext"]["runAsUser"] = uid
             else:
                 container["securityContext"]["runAsUser"] = uid
@@ -677,7 +720,9 @@ def set_root(obj: dict, value=True, uid=25000):
             obj = obj["template"]["spec"]
 
     # If securityContext is not set in containers, Set it
-    if "securityContext" not in obj:
+    if "securityContext" not in obj or \
+        obj["securityContext"] is None or \
+            not obj["securityContext"]:
         obj["securityContext"] = {
             "runAsNonRoot": value,
             "runAsUser": uid
@@ -687,7 +732,9 @@ def set_root(obj: dict, value=True, uid=25000):
         obj["securityContext"]["runAsNonRoot"] = value
 
     # If runAsUser is not set in securityContext, Set it
-    if "runAsUser" not in obj["securityContext"]:
+    if "runAsUser" not in obj["securityContext"] or \
+        obj["securityContext"]["runAsUser"] is None or \
+            not obj["securityContext"]["runAsUser"]:
         obj["securityContext"]["runAsUser"] = uid
 
 
@@ -706,12 +753,16 @@ def set_priv_esc(obj: dict, value=False):
         return
 
     # If securityContext is not set, Set it
-    if "securityContext" not in obj:
+    if "securityContext" not in obj or \
+        obj["securityContext"] is None or \
+            not obj["securityContext"]:
         obj["securityContext"] = {
             "allowPrivilegeEscalation": value
         }
     # If allowPrivilegeEscalation is not set, Set it
-    elif "allowPrivilegeEscalation" not in obj["securityContext"]:
+    elif "allowPrivilegeEscalation" not in obj["securityContext"] or \
+        obj["securityContext"]["allowPrivilegeEscalation"] is None or \
+            not obj["securityContext"]["allowPrivilegeEscalation"]:
         obj["securityContext"]["allowPrivilegeEscalation"] = value
     # else, set allowPrivilegeEscalation to value
     else:
@@ -739,7 +790,7 @@ def set_host_port(obj: dict):
     # - hostPort
 
 
-def set_seccomp(obj: dict, profile="runtime/default"):
+def set_seccomp(obj: dict):
     """Set the runtime SecComp default profile to each K8s object.
 
     Policy: Ensure seccomp profile is set to docker/default or runtime/default
@@ -757,55 +808,45 @@ def set_seccomp(obj: dict, profile="runtime/default"):
     # "seccomp.security.alpha.kubernetes.io/defaultProfileName"
     # "seccomp.security.alpha.kubernetes.io/pod"
 
-    if "template" in obj["spec"]:
-        if "annotations" not in obj["spec"]["template"]["metadata"]:
-            obj["spec"]["template"]["metadata"]["annotations"] = {
-                "seccomp.security.alpha.kubernetes.io/defaultProfileName": profile
-            }
-        # If annotations is set, but seccomp.security.alpha.kubernetes.io/
-        #  defaultProfileName is not, Set it
-        else:
-            obj["spec"]["template"]["metadata"]["annotations"]["seccomp.security.alpha.kubernetes.io/defaultProfileName"] = profile
+    profile_name = "seccomp.security.alpha.kubernetes.io/defaultProfileName"
+    profile = "runtime/default"
 
-    elif "annotations" not in obj["metadata"]:
-        obj["metadata"]["annotations"] = {
-            "seccomp.security.alpha.kubernetes.io/defaultProfileName": profile
+    if "template" in obj["spec"]:
+        obj = obj["spec"]["template"]
+
+    if "metadata" not in obj or \
+        obj["metadata"] is None or not obj["metadata"]:
+        obj["metadata"] = {
+            "annotations": {
+                profile_name: profile
+            }
         }
-    # If annotations is set, but seccomp.security.alpha.kubernetes.io/ 
-    # defaultProfileName is not, Set it
+    elif "annotations" not in obj["metadata"] or \
+        obj["metadata"]["annotations"] is None or \
+            not obj["metadata"]["annotations"]:
+        obj["metadata"]["annotations"] = {
+            profile_name: profile
+        }
     else:
-        obj["metadata"]["annotations"]["seccomp.security.alpha.kubernetes.io/defaultProfileName"] = profile
+        obj["metadata"]["annotations"][profile_name] = profile
 
     ###############################################
 
-    # If template in obj spec, set obj to template
-    if "template" in obj["spec"]:
-        # If a securityContext already exists, set seccomp profile
-        if "securityContext" in obj["spec"]["template"]["spec"]:
-            obj["spec"]["template"]["spec"]["securityContext"]["seccompProfile"] = {
-                "type": "RuntimeDefault"
+    obj = obj["spec"]
+    profile = "RuntimeDefault"
+
+    if "securityContext" not in obj or \
+        obj["securityContext"] is None or \
+            not obj["securityContext"]:
+        obj["securityContext"] = {
+            "seccompProfile": {
+                "type": profile
             }
-        # else, add securityContext and set seccomp profile
-        else:
-            obj["spec"]["template"]["spec"]["securityContext"] = {
-                "seccompProfile": {
-                    "type": "RuntimeDefault"
-                }
-            }
-    # If no template, add to obj spec
+        }
     else:
-        # If a securityContext already exists, set seccomp profile
-        if "securityContext" in obj["spec"]:
-            obj["spec"]["securityContext"]["seccompProfile"] = {
-                "type": "RuntimeDefault"
-            }
-        # else, add securityContext and set seccomp profile
-        else:
-            obj["spec"]["securityContext"] = {
-                "seccompProfile": {
-                    "type": "RuntimeDefault"
-                }
-            }
+        obj["securityContext"]["seccompProfile"] = {
+            "type": profile
+        }
 
 
 def set_apparmor(obj: dict, cont_name: str, profile="runtime/default"):
@@ -833,7 +874,8 @@ def set_apparmor(obj: dict, cont_name: str, profile="runtime/default"):
         obj = obj["spec"]["template"]
 
     # If metadata not in obj, add it
-    if "metadata" not in obj:
+    if "metadata" not in obj or obj["metadata"] is None or \
+            not obj["metadata"]:
         obj["metadata"] = {
             "annotations": {
                 aux: profile
@@ -841,7 +883,9 @@ def set_apparmor(obj: dict, cont_name: str, profile="runtime/default"):
         }
 
     # If annotations not in metadata, add it
-    elif "annotations" not in obj["metadata"]:
+    elif "annotations" not in obj["metadata"] or \
+        obj["metadata"]["annotations"] is None or \
+            not obj["metadata"]["annotations"]:
         obj["metadata"]["annotations"] = {
             aux: profile
         }
@@ -956,12 +1000,16 @@ def set_read_only(obj: dict, value=True):
         return
 
     # If securityContext is not set, Set it
-    if "securityContext" not in obj:
+    if "securityContext" not in obj or \
+        obj["securityContext"] is None or \
+            not obj["securityContext"]:
         obj["securityContext"] = {
             "readOnlyRootFilesystem": value
         }
     # elIf readOnlyRootFilesystem is not set, Set it
-    elif "readOnlyRootFilesystem" not in obj["securityContext"]:
+    elif "readOnlyRootFilesystem" not in obj["securityContext"] or \
+        obj["securityContext"]["readOnlyRootFilesystem"] is None or \
+            not obj["securityContext"]["readOnlyRootFilesystem"]:
         obj["securityContext"]["readOnlyRootFilesystem"] = value
     # elIf readOnlyRootFilesystem is set to false, set it to true
     else:
@@ -977,9 +1025,10 @@ def set_subpath(obj: dict):
         obj (dict): K8s object to modify.
     """
 
-    for volume in obj["volumeMounts"]:
-        if "subPath" in volume:
-            del volume["subPath"]
+    if "volumeMounts" in obj and obj["volumeMounts"] is not None:
+        for volume in obj["volumeMounts"]:
+            if "subPath" in volume:
+                del volume["subPath"]
 
 
 def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret-volume"):
@@ -998,8 +1047,7 @@ def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret
     #         ": " + secret["valueFrom"]["secretKeyRef"]["key"]
     #     file.write(content)
 
-    # If volumes not in obj, add secret volume
-    if "volumes" not in obj:
+    if "volumes" not in obj or obj["volumes"] is None or not obj["volumes"]:
         obj["volumes"] = [{
             'name': volume_name,
             'secret': {
@@ -1021,13 +1069,15 @@ def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret
         if "envFrom" in container:
             del container["envFrom"]
 
-        if "env" in container:
+        if "env" in container and container["env"] is not None and \
+                container["env"]:
             # Delete all container["env"] with valueFrom and secretKeyRef
             container["env"] = [env_var for env_var in container["env"] if 'valueFrom' not in env_var]
 
         # Bind secret volume to container
         # If volumeMounts not in container, add secret volume
-        if "volumeMounts" not in container:
+        if "volumeMounts" not in container or container["volumeMounts"] is None or \
+                not container["volumeMounts"]:
             container["volumeMounts"] = [{
                 'name': volume_name,
                 'readOnly': True,
@@ -1110,20 +1160,38 @@ def set_cluster_roles(obj: dict):
     """
 
     for rule in obj["rules"]:
-        if "verbs" in rule:
+        # Sanitize apiGroups
+        if "apiGroups" in rule and rule["apiGroups"] is not None:
+            if rule["apiGroups"] == ["*"]:
+                rule["apiGroups"] = "v1"
 
-            # Checkov - CKV_K8S_155
-            rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
-                    "create", "update", "patch"]]
+        if "resources" in rule and rule["resources"] is not None:
+            if rule["resources"] == ["*"]:
+                rule["resources"] = []
 
-            # Datree - CIS_INVALID_VERB_SECRETS
-            rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
-                    "get", "list", "watch"]]
+        if "nonResourceURLs" in rule and rule["nonResourceURLs"] is not None:
+            if rule["nonResourceURLs"] == ["*"]:
+                rule["nonResourceURLs"] = []
 
-            # KICS - b7bca5c4-1dab-4c2c-8cbe-3050b9d59b14
-            # create, delete, get, list, patch, update, watch
-            rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
-                    "delete"]]
+        # Sanitize verbs
+        if "verbs" in rule and rule["verbs"] is not None:
+
+            if rule["verbs"] == ["*"]:
+                rule["verbs"] = []
+
+            else:
+                # Checkov - CKV_K8S_155
+                rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
+                        "create", "update", "patch", "escalate", "approve"]]
+
+                # Datree - CIS_INVALID_VERB_SECRETS
+                rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
+                        "get", "list", "watch"]]
+
+                # KICS - b7bca5c4-1dab-4c2c-8cbe-3050b9d59b14
+                # create, delete, get, list, patch, update, watch
+                rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
+                        "delete"]]
 
 
 def set_service_account(obj: dict, value=False):
@@ -1182,7 +1250,6 @@ def set_img_pull_policy(obj: dict, value="Always"):
         value (str): The value to set the pullPolicy to.
     """
 
-    # Set Image Pull Policy
     obj["imagePullPolicy"] = value
 
 
@@ -1254,6 +1321,20 @@ def assign_service_account(obj: dict):
     return
 
 
+def remove_sa_subjects(obj: dict):
+    """Remove ServiceAccount Subjects from a K8s RoleBinding.
+    
+    Policy: Ensure that ServiceAccount subjects are not used
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    if "subjects" in obj:
+        # Delete subjects
+        del obj["subjects"]
+
+
 def set_img_tag(obj: dict):
     """Set Image Tag for each K8s object.
 
@@ -1282,23 +1363,24 @@ def set_img_digest(obj: dict):
         obj (dict): K8s object to modify.
     """
 
-    if "@" in obj["image"]:
-        return obj
+    if "image" in obj:
+        if "@" in obj["image"]:
+            return obj
 
-    image_name, image_tag = "", ""
+        image_name, image_tag = "", ""
 
-    if ":" in obj["image"]:
-        image_name, image_tag = obj["image"].split(":")
-    else:
-        image_name = obj["image"]
+        if ":" in obj["image"]:
+            image_name, image_tag = obj["image"].split(":")
+        else:
+            image_name = obj["image"]
 
-    container = image_name.split("/")
-    image_tag = get_docker_img_tag(container[-1])
+        container = image_name.split("/")
+        image_tag = get_docker_img_tag(container[-1])
 
-    if image_tag:
-        # Get the image digest
-        image_digest = get_docker_img_digest(container[-1], image_tag)
-        obj["image"] = image_name + ":" + image_tag + "@" + image_digest
+        if image_tag:
+            # Get the image digest
+            image_digest = get_docker_img_digest(container[-1], image_tag)
+            obj["image"] = image_name + ":" + image_tag + "@" + image_digest
 
 
 def set_net_policy(name="test-network-policy") -> dict:
@@ -1443,6 +1525,7 @@ class FuncLookupClass:
     "check_56": remove_nodeport,
     "check_57": assign_service,
     "check_58": assign_service_account,
+    "check_59": remove_sa_subjects,
     }
 
     @classmethod

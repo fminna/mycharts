@@ -45,8 +45,8 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         resource_path = resource["resourceID"].split("/")
 
 
-        print(resource_path)
-        print(resource_path[-3])
+        # print(resource_path)
+        # print(resource_path[-3])
 
 
         resource_path = f"{resource_path[-2]}/{resource_path[-3]}/{resource_path[-1]}"

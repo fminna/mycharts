@@ -42,6 +42,10 @@ echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
 kics scan -p fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exclude-severities info --disable-secrets
 
+
+exit(0)
+
+
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"
 echo "Step 4 - Add functionalities"

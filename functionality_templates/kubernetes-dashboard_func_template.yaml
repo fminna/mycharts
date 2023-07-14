@@ -1,0 +1,291 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+  annotations: null
+  name: release-name-kubernetes-dashboard
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+  annotations: null
+  name: release-name-kubernetes-dashboard-certs
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+  name: kubernetes-dashboard-csrf
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+  name: kubernetes-dashboard-key-holder
+type: Opaque
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+  annotations: null
+  name: kubernetes-dashboard-settings
+data: null
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-kubernetes-dashboard-metrics
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+  annotations: null
+rules:
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - pods
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-kubernetes-dashboard-metrics
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+  annotations: null
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-kubernetes-dashboard-metrics
+subjects:
+- kind: ServiceAccount
+  name: release-name-kubernetes-dashboard
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: release-name-kubernetes-dashboard
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+  annotations: null
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  resourceNames:
+  - kubernetes-dashboard-key-holder
+  - kubernetes-dashboard-certs
+  - kubernetes-dashboard-csrf
+  verbs: []
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - kubernetes-dashboard-settings
+  verbs: []
+- apiGroups:
+  - ''
+  resources:
+  - services
+  resourceNames:
+  - heapster
+  - dashboard-metrics-scraper
+  verbs:
+  - proxy
+- apiGroups:
+  - ''
+  resources:
+  - services/proxy
+  resourceNames:
+  - heapster
+  - 'http:heapster:'
+  - 'https:heapster:'
+  - dashboard-metrics-scraper
+  - http:dashboard-metrics-scraper
+  verbs: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: release-name-kubernetes-dashboard
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+  annotations: null
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-kubernetes-dashboard
+subjects:
+- kind: ServiceAccount
+  name: release-name-kubernetes-dashboard
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-kubernetes-dashboard
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: kubernetes-dashboard
+    kubernetes.io/cluster-service: 'true'
+  annotations: null
+spec:
+  type: ClusterIP
+  ports:
+  - port: 443
+    targetPort: https
+    name: https
+  selector:
+    app.kubernetes.io/name: kubernetes-dashboard
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: kubernetes-dashboard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-kubernetes-dashboard
+  annotations: null
+  labels:
+    app.kubernetes.io/name: kubernetes-dashboard
+    helm.sh/chart: kubernetes-dashboard-6.0.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: v2.7.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: kubernetes-dashboard
+spec:
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubernetes-dashboard
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: kubernetes-dashboard
+  template:
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/name: kubernetes-dashboard
+        helm.sh/chart: kubernetes-dashboard-6.0.8
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: v2.7.0
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: kubernetes-dashboard
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: release-name-kubernetes-dashboard
+      containers:
+      - name: kubernetes-dashboard
+        image: kubernetesui/dashboard:v2.7.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - --namespace=default
+        - --auto-generate-certificates
+        - --metrics-provider=none
+        ports:
+        - name: https
+          containerPort: 8443
+          protocol: TCP
+        volumeMounts:
+        - name: kubernetes-dashboard-certs
+          mountPath: /certs
+        - mountPath: /tmp
+          name: tmp-volume
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /
+            port: 8443
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 2001
+          runAsUser: 1001
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: kubernetes-dashboard-certs
+        secret:
+          secretName: release-name-kubernetes-dashboard-certs
+      - name: tmp-volume
+        emptyDir: {}
+      automountServiceAccountToken: false

@@ -7,7 +7,7 @@ metadata:
     heritage: Helm
     release: release-name
   name: release-name-nfs-server-provisioner
-  namespace: test-ns
+automountServiceAccountToken: false
 ---
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
@@ -126,7 +126,6 @@ metadata:
     chart: nfs-server-provisioner-1.4.0
     heritage: Helm
     release: release-name
-  namespace: test-ns
 spec:
   type: ClusterIP
   ports:
@@ -191,7 +190,6 @@ metadata:
     chart: nfs-server-provisioner-1.4.0
     heritage: Helm
     release: release-name
-  namespace: test-ns
 spec:
   replicas: 1
   selector:
@@ -214,7 +212,7 @@ spec:
       containers:
       - name: nfs-server-provisioner
         image: k8s.gcr.io/sig-storage/nfs-provisioner:v3.0.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - name: nfs
           containerPort: 2049
@@ -254,14 +252,12 @@ spec:
           protocol: UDP
         securityContext:
           capabilities:
-            add:
-            - DAC_READ_SEARCH
-            - SYS_RESOURCE
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
           readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
         args:
         - -provisioner=cluster.local/release-name-nfs-server-provisioner
         env:
@@ -278,7 +274,7 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /export
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -288,11 +284,9 @@ spec:
         resources:
           requests:
             memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
-            cpu: 250m
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -305,50 +299,3 @@ spec:
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-      automountServiceAccountToken: false
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

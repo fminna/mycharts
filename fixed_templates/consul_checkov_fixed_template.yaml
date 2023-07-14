@@ -1,7 +1,3 @@
----
-# Source: consul/templates/connect-injector-disruptionbudget.yaml
-# PodDisruptionBudget to prevent degrading the connectInject cluster through
-# voluntary cluster changes.
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
@@ -18,12 +14,9 @@ spec:
   selector:
     matchLabels:
       app: consul
-      release: "release-name"
+      release: release-name
       component: connect-injector
 ---
-# Source: consul/templates/server-disruptionbudget.yaml
-# PodDisruptionBudget to prevent degrading the server cluster through
-# voluntary cluster changes.
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
@@ -40,15 +33,14 @@ spec:
   selector:
     matchLabels:
       app: consul
-      release: "release-name"
+      release: release-name
       component: server
 ---
-# Source: consul/templates/connect-inject-serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-consul-connect-injector
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -56,12 +48,11 @@ metadata:
     release: release-name
     component: connect-injector
 ---
-# Source: consul/templates/server-serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-consul-server
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -69,12 +60,11 @@ metadata:
     release: release-name
     component: server
 ---
-# Source: consul/templates/webhook-cert-manager-serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-consul-webhook-cert-manager
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -82,13 +72,11 @@ metadata:
     release: release-name
     component: webhook-cert-manager
 ---
-# Source: consul/templates/server-config-configmap.yaml
-# StatefulSet to run the actual Consul server cluster.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-consul-server-config
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -96,46 +84,21 @@ metadata:
     release: release-name
     component: server
 data:
-  server.json: |
-    {
-      "bind_addr": "0.0.0.0",
-      "bootstrap_expect": 1,
-      "client_addr": "0.0.0.0",
-      "connect": {
-        "enabled": true
-      },
-      "datacenter": "dc1",
-      "data_dir": "/consul/data",
-      "domain": "consul",
-      "ports": {
-        "grpc": 8502,
-        "grpc_tls": -1,
-        "serf_lan": 8301
-      },
-      "recursors": [],
-      "retry_join": ["release-name-consul-server.default.svc:8301"],
-      "server": true
-    }
-  extra-from-values.json: |-
-    {}
-    
-  ui-config.json: |-
-    {
-      "ui_config": {
-        "enabled": true
-      }
-    }
-  central-config.json: |-
-    {
-      "enable_central_service_config": true
-    }
+  server.json: "{\n  \"bind_addr\": \"0.0.0.0\",\n  \"bootstrap_expect\": 1,\n  \"\
+    client_addr\": \"0.0.0.0\",\n  \"connect\": {\n    \"enabled\": true\n  },\n \
+    \ \"datacenter\": \"dc1\",\n  \"data_dir\": \"/consul/data\",\n  \"domain\": \"\
+    consul\",\n  \"ports\": {\n    \"grpc\": 8502,\n    \"grpc_tls\": -1,\n    \"\
+    serf_lan\": 8301\n  },\n  \"recursors\": [],\n  \"retry_join\": [\"release-name-consul-server.default.svc:8301\"\
+    ],\n  \"server\": true\n}\n"
+  extra-from-values.json: '{}'
+  ui-config.json: "{\n  \"ui_config\": {\n    \"enabled\": true\n  }\n}"
+  central-config.json: "{\n  \"enable_central_service_config\": true\n}"
 ---
-# Source: consul/templates/webhook-cert-manager-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-consul-webhook-cert-manager-config
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -143,22 +106,13 @@ metadata:
     release: release-name
     component: webhook-cert-manager
 data:
-  webhook-config.json: |-
-    [
-      {
-        "name": "release-name-consul-connect-injector",
-        "tlsAutoHosts": [
-          "release-name-consul-connect-injector",
-          "release-name-consul-connect-injector.default",
-          "release-name-consul-connect-injector.default.svc",
-          "release-name-consul-connect-injector.default.svc.cluster.local"
-        ],
-        "secretName": "release-name-consul-connect-inject-webhook-cert",
-        "secretNamespace": "default"
-      }
-    ]
+  webhook-config.json: "[\n  {\n    \"name\": \"release-name-consul-connect-injector\"\
+    ,\n    \"tlsAutoHosts\": [\n      \"release-name-consul-connect-injector\",\n\
+    \      \"release-name-consul-connect-injector.default\",\n      \"release-name-consul-connect-injector.default.svc\"\
+    ,\n      \"release-name-consul-connect-injector.default.svc.cluster.local\"\n\
+    \    ],\n    \"secretName\": \"release-name-consul-connect-inject-webhook-cert\"\
+    ,\n    \"secretNamespace\": \"default\"\n  }\n]"
 ---
-# Source: consul/templates/crd-exportedservices.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -295,12 +249,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/crd-ingressgateways.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -408,16 +361,16 @@ spec:
                           that are exposed to ingress traffic.
                         properties:
                           hosts:
-                            description: "Hosts is a list of hostnames which should
-                              be associated to this service on the defined listener.
-                              Only allowed on layer 7 protocols, this will be used
-                              to route traffic to the service by matching the Host
-                              header of the HTTP request. \n If a host is provided
-                              for a service that also has a wildcard specifier defined,
-                              the host will override the wildcard-specifier-provided
-                              \"<service-name>.*\" domain for that listener. \n This
-                              cannot be specified when using the wildcard specifier,
-                              \"*\", or when using a \"tcp\" listener."
+                            description: "Hosts is a list of hostnames which should\
+                              \ be associated to this service on the defined listener.\
+                              \ Only allowed on layer 7 protocols, this will be used\
+                              \ to route traffic to the service by matching the Host\
+                              \ header of the HTTP request. \n If a host is provided\
+                              \ for a service that also has a wildcard specifier defined,\
+                              \ the host will override the wildcard-specifier-provided\
+                              \ \"<service-name>.*\" domain for that listener. \n\
+                              \ This cannot be specified when using the wildcard specifier,\
+                              \ \"*\", or when using a \"tcp\" listener."
                             items:
                               type: string
                             type: array
@@ -441,13 +394,14 @@ spec:
                             format: int32
                             type: integer
                           name:
-                            description: "Name declares the service to which traffic
-                              should be forwarded. \n This can either be a specific
-                              service, or the wildcard specifier, \"*\". If the wildcard
-                              specifier is provided, the listener must be of \"http\"
-                              protocol and means that the listener will forward traffic
-                              to all services. \n A name can be specified on multiple
-                              listeners, and will be exposed on both of the listeners."
+                            description: "Name declares the service to which traffic\
+                              \ should be forwarded. \n This can either be a specific\
+                              \ service, or the wildcard specifier, \"*\". If the\
+                              \ wildcard specifier is provided, the listener must\
+                              \ be of \"http\" protocol and means that the listener\
+                              \ will forward traffic to all services. \n A name can\
+                              \ be specified on multiple listeners, and will be exposed\
+                              \ on both of the listeners."
                             type: string
                           namespace:
                             description: Namespace is the namespace where the service
@@ -671,12 +625,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/crd-meshes.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -880,12 +833,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/crd-proxydefaults.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -1113,12 +1065,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/crd-servicedefaults.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -1603,12 +1554,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/crd-serviceintentions.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -1843,12 +1793,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/crd-serviceresolvers.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -2160,12 +2109,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/crd-servicerouters.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -2479,12 +2427,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/crd-servicesplitters.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -2672,12 +2619,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/crd-terminatinggateways.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -2816,13 +2762,11 @@ spec:
       status: {}
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: []
   storedVersions: []
 ---
-# Source: consul/templates/connect-inject-clusterrole.yaml
-# The ClusterRole to enable the Connect injector to get, list, watch and patch MutatingWebhookConfiguration.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2872,20 +2816,26 @@ rules:
   - get
   - patch
   - update
-- apiGroups: [ "" ]
-  resources: [ "endpoints", "services", "namespaces", "nodes" ]
+- apiGroups:
+  - ''
+  resources:
+  - endpoints
+  - services
+  - namespaces
+  - nodes
   verbs:
-  - "get"
-  - "list"
-  - "watch"
-- apiGroups: [ "" ]
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
   resources:
   - pods
   verbs:
-  - "get"
-  - "list"
-  - "watch"
-  - "update"
+  - get
+  - list
+  - watch
+  - update
 - apiGroups:
   - coordination.k8s.io
   resources:
@@ -2896,7 +2846,6 @@ rules:
   - list
   - update
 ---
-# Source: consul/templates/webhook-cert-manager-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2909,36 +2858,23 @@ metadata:
     component: webhook-cert-manager
 rules:
 - apiGroups:
-  - ""
+  - ''
   resources:
   - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
+  verbs: []
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
   - mutatingwebhookconfigurations
-  verbs:
-  - get
-  - list
-  - watch
-  - patch
+  verbs: []
 - apiGroups:
   - apps
   resources:
   - deployments
   resourceNames:
   - release-name-consul-webhook-cert-manager
-  verbs:
-  - get
+  verbs: []
 ---
-# Source: consul/templates/connect-inject-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2958,7 +2894,6 @@ subjects:
   name: release-name-consul-connect-injector
   namespace: default
 ---
-# Source: consul/templates/webhook-cert-manager-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2978,12 +2913,11 @@ subjects:
   name: release-name-consul-webhook-cert-manager
   namespace: default
 ---
-# Source: consul/templates/connect-inject-leader-election-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-consul-connect-inject-leader-election
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -2992,7 +2926,7 @@ metadata:
     component: connect-injector
 rules:
 - apiGroups:
-  - ""
+  - ''
   resources:
   - configmaps
   verbs:
@@ -3004,7 +2938,7 @@ rules:
   - patch
   - delete
 - apiGroups:
-  - ""
+  - ''
   resources:
   - configmaps/status
   verbs:
@@ -3012,19 +2946,18 @@ rules:
   - update
   - patch
 - apiGroups:
-  - ""
+  - ''
   resources:
   - events
   verbs:
   - create
   - patch
 ---
-# Source: consul/templates/server-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-consul-server
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -3033,12 +2966,11 @@ metadata:
     component: server
 rules: []
 ---
-# Source: consul/templates/connect-inject-leader-election-rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-consul-connect-inject-leader-election
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -3054,12 +2986,11 @@ subjects:
   name: release-name-consul-connect-injector
   namespace: default
 ---
-# Source: consul/templates/server-rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-consul-server
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -3071,16 +3002,14 @@ roleRef:
   kind: Role
   name: release-name-consul-server
 subjects:
-  - kind: ServiceAccount
-    name: release-name-consul-server
+- kind: ServiceAccount
+  name: release-name-consul-server
 ---
-# Source: consul/templates/connect-inject-service.yaml
-# The service for the Connect sidecar injector
 apiVersion: v1
 kind: Service
 metadata:
   name: release-name-consul-connect-injector
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -3093,16 +3022,14 @@ spec:
     targetPort: 8080
   selector:
     app: consul
-    release: "release-name"
+    release: release-name
     component: connect-injector
 ---
-# Source: consul/templates/dns-service.yaml
-# Service for Consul DNS.
 apiVersion: v1
 kind: Service
 metadata:
   name: release-name-consul-dns
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -3112,88 +3039,78 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: dns-tcp
-      port: 53
-      protocol: "TCP"
-      targetPort: dns-tcp
-    - name: dns-udp
-      port: 53
-      protocol: "UDP"
-      targetPort: dns-udp
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+    targetPort: dns-tcp
+  - name: dns-udp
+    port: 53
+    protocol: UDP
+    targetPort: dns-udp
   selector:
     app: consul
-    release: "release-name"
-    hasDNS: "true"
+    release: release-name
+    hasDNS: 'true'
 ---
-# Source: consul/templates/server-service.yaml
-# Headless service for Consul server DNS entries. This service should only
-# point to Consul servers. For access to an agent, one should assume that
-# the agent is installed locally on the node and the NODE_IP should be used.
-# If the node can't run a Consul agent, then this service can be used to
-# communicate directly to a server agent.
 apiVersion: v1
 kind: Service
 metadata:
   name: release-name-consul-server
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
     heritage: Helm
     release: release-name
     component: server
-  annotations:
+  annotations: null
 spec:
   clusterIP: None
-  # We want the servers to become available even if they're not ready
-  # since this DNS is also used for join operations.
   publishNotReadyAddresses: true
   ports:
-    - name: http
-      port: 8500
-      targetPort: 8500
-    - name: grpc
-      port: 8502
-      targetPort: 8502
-    - name: serflan-tcp
-      protocol: "TCP"
-      port: 8301
-      targetPort: 8301
-    - name: serflan-udp
-      protocol: "UDP"
-      port: 8301
-      targetPort: 8301
-    - name: serfwan-tcp
-      protocol: "TCP"
-      port: 8302
-      targetPort: 8302
-    - name: serfwan-udp
-      protocol: "UDP"
-      port: 8302
-      targetPort: 8302
-    - name: server
-      port: 8300
-      targetPort: 8300
-    - name: dns-tcp
-      protocol: "TCP"
-      port: 8600
-      targetPort: dns-tcp
-    - name: dns-udp
-      protocol: "UDP"
-      port: 8600
-      targetPort: dns-udp
+  - name: http
+    port: 8500
+    targetPort: 8500
+  - name: grpc
+    port: 8502
+    targetPort: 8502
+  - name: serflan-tcp
+    protocol: TCP
+    port: 8301
+    targetPort: 8301
+  - name: serflan-udp
+    protocol: UDP
+    port: 8301
+    targetPort: 8301
+  - name: serfwan-tcp
+    protocol: TCP
+    port: 8302
+    targetPort: 8302
+  - name: serfwan-udp
+    protocol: UDP
+    port: 8302
+    targetPort: 8302
+  - name: server
+    port: 8300
+    targetPort: 8300
+  - name: dns-tcp
+    protocol: TCP
+    port: 8600
+    targetPort: dns-tcp
+  - name: dns-udp
+    protocol: UDP
+    port: 8600
+    targetPort: dns-udp
   selector:
     app: consul
-    release: "release-name"
+    release: release-name
     component: server
 ---
-# Source: consul/templates/ui-service.yaml
-# UI Service for Consul Server
 apiVersion: v1
 kind: Service
 metadata:
   name: release-name-consul-ui
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -3203,20 +3120,18 @@ metadata:
 spec:
   selector:
     app: consul
-    release: "release-name"
+    release: release-name
     component: server
   ports:
-    - name: http
-      port: 80
-      targetPort: 8500
+  - name: http
+    port: 80
+    targetPort: 8500
 ---
-# Source: consul/templates/connect-inject-deployment.yaml
-# The deployment for running the Connect sidecar injector
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: release-name-consul-connect-injector
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -3239,117 +3154,118 @@ spec:
         release: release-name
         component: connect-injector
       annotations:
-        "consul.hashicorp.com/connect-inject": "false"
+        consul.hashicorp.com/connect-inject: 'false'
+        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
     spec:
       serviceAccountName: release-name-consul-connect-injector
       containers:
-        - name: sidecar-injector
-          image: "hashicorp/consul-k8s-control-plane:1.1.2"
-          ports:
-            - containerPort: 8080
-              name: webhook-server
-              protocol: TCP
-          env:
-            - name: NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: CONSUL_ADDRESSES
-              value: release-name-consul-server.default.svc
-            - name: CONSUL_GRPC_PORT
-              value: "8502"
-            - name: CONSUL_HTTP_PORT
-              value: "8500"
-            - name: CONSUL_DATACENTER
-              value: dc1
-            - name: CONSUL_API_TIMEOUT
-              value: 5s
-          command:
-            - "/bin/sh"
-            - "-ec"
-            - |
-              consul-k8s-control-plane inject-connect \
-                -log-level=info \
-                -log-json=false \
-                -default-inject=false \
-                -consul-image="hashicorp/consul:1.15.3" \
-                -consul-dataplane-image="hashicorp/consul-dataplane:1.1.2" \
-                -consul-k8s-image="hashicorp/consul-k8s-control-plane:1.1.2" \
-                -release-name="release-name" \
-                -release-namespace="default" \
-                -resource-prefix=release-name-consul \
-                -listen=:8080 \
-                -default-enable-transparent-proxy=true \
-                -enable-cni=false \
-                -transparent-proxy-default-overwrite-probes=true \
-                -enable-consul-dns=true \
-                -default-enable-metrics=false \
-                -enable-gateway-metrics=true  \
-                -default-enable-metrics-merging=false  \
-                -default-merged-metrics-port=20100 \
-                -default-prometheus-scrape-port=20200 \
-                -default-prometheus-scrape-path="/metrics" \
-                -allow-k8s-namespace="*" \
-                -tls-cert-dir=/etc/connect-injector/certs \
-                -default-envoy-proxy-concurrency=2 \
-                -init-container-memory-limit=150Mi \
-                -init-container-memory-request=25Mi \
-                -init-container-cpu-request=50m \
-                -enable-telemetry-collector=false  \
-          startupProbe:
-            httpGet:
-              path: /readyz/ready
-              port: 9445
-              scheme: HTTP
-            initialDelaySeconds: 30
-            failureThreshold: 15
-            periodSeconds: 2
-            timeoutSeconds: 5
-          livenessProbe:
-            httpGet:
-              path: /readyz/ready
-              port: 9445
-              scheme: HTTP
-            failureThreshold: 2
-            initialDelaySeconds: 1
-            successThreshold: 1
-            timeoutSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /readyz/ready
-              port: 9445
-              scheme: HTTP
-            failureThreshold: 2
-            initialDelaySeconds: 2
-            successThreshold: 1
-            timeoutSeconds: 5
-          volumeMounts:
-            - name: certs
-              mountPath: /etc/connect-injector/certs
-              readOnly: true
-          resources:
-            limits:
-              cpu: 50m
-              memory: 50Mi
-            requests:
-              cpu: 50m
-              memory: 50Mi
-      volumes:
+      - name: sidecar-injector
+        image: hashicorp/consul-k8s-control-plane:1.1.2
+        ports:
+        - containerPort: 8080
+          name: webhook-server
+          protocol: TCP
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: CONSUL_ADDRESSES
+          value: release-name-consul-server.default.svc
+        - name: CONSUL_GRPC_PORT
+          value: '8502'
+        - name: CONSUL_HTTP_PORT
+          value: '8500'
+        - name: CONSUL_DATACENTER
+          value: dc1
+        - name: CONSUL_API_TIMEOUT
+          value: 5s
+        command:
+        - /bin/sh
+        - -ec
+        - "consul-k8s-control-plane inject-connect \\\n  -log-level=info \\\n  -log-json=false\
+          \ \\\n  -default-inject=false \\\n  -consul-image=\"hashicorp/consul:1.15.3\"\
+          \ \\\n  -consul-dataplane-image=\"hashicorp/consul-dataplane:1.1.2\" \\\n\
+          \  -consul-k8s-image=\"hashicorp/consul-k8s-control-plane:1.1.2\" \\\n \
+          \ -release-name=\"release-name\" \\\n  -release-namespace=\"default\" \\\
+          \n  -resource-prefix=release-name-consul \\\n  -listen=:8080 \\\n  -default-enable-transparent-proxy=true\
+          \ \\\n  -enable-cni=false \\\n  -transparent-proxy-default-overwrite-probes=true\
+          \ \\\n  -enable-consul-dns=true \\\n  -default-enable-metrics=false \\\n\
+          \  -enable-gateway-metrics=true  \\\n  -default-enable-metrics-merging=false\
+          \  \\\n  -default-merged-metrics-port=20100 \\\n  -default-prometheus-scrape-port=20200\
+          \ \\\n  -default-prometheus-scrape-path=\"/metrics\" \\\n  -allow-k8s-namespace=\"\
+          *\" \\\n  -tls-cert-dir=/etc/connect-injector/certs \\\n  -default-envoy-proxy-concurrency=2\
+          \ \\\n  -init-container-memory-limit=150Mi \\\n  -init-container-memory-request=25Mi\
+          \ \\\n  -init-container-cpu-request=50m \\\n  -enable-telemetry-collector=false\
+          \  \\\n"
+        startupProbe:
+          httpGet:
+            path: /readyz/ready
+            port: 9445
+            scheme: HTTP
+          initialDelaySeconds: 30
+          failureThreshold: 15
+          periodSeconds: 2
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /readyz/ready
+            port: 9445
+            scheme: HTTP
+          failureThreshold: 2
+          initialDelaySeconds: 1
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readyz/ready
+            port: 9445
+            scheme: HTTP
+          failureThreshold: 2
+          initialDelaySeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 5
+        volumeMounts:
         - name: certs
-          secret:
-            defaultMode: 420
-            secretName: release-name-consul-connect-inject-webhook-cert
+          mountPath: /etc/connect-injector/certs
+          readOnly: true
+        resources:
+          limits:
+            cpu: 50m
+            memory: 50Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+        imagePullPolicy: Always
+      volumes:
+      - name: certs
+        secret:
+          defaultMode: 420
+          secretName: release-name-consul-connect-inject-webhook-cert
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsUser: 25000
+        runAsNonRoot: true
+      automountServiceAccountToken: false
 ---
-# Source: consul/templates/webhook-cert-manager-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: release-name-consul-webhook-cert-manager
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -3374,20 +3290,18 @@ spec:
         release: release-name
         component: webhook-cert-manager
       annotations:
-        "consul.hashicorp.com/connect-inject": "false"
-        "consul.hashicorp.com/config-checksum": afa8d5a0d29f42e30c73962a5a3289e4c48482c5a40a8fc0c5ee176a586f0236
+        consul.hashicorp.com/connect-inject: 'false'
+        consul.hashicorp.com/config-checksum: afa8d5a0d29f42e30c73962a5a3289e4c48482c5a40a8fc0c5ee176a586f0236
+        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
     spec:
       containers:
       - command:
-        - "/bin/sh"
-        - "-ec"
-        - |
-          consul-k8s-control-plane webhook-cert-manager \
-            -log-level=info \
-            -log-json=false \
-            -config-file=/bootstrap/config/webhook-config.json \
-            -deployment-name=release-name-consul-webhook-cert-manager \
-            -deployment-namespace=default
+        - /bin/sh
+        - -ec
+        - "consul-k8s-control-plane webhook-cert-manager \\\n  -log-level=info \\\n\
+          \  -log-json=false \\\n  -config-file=/bootstrap/config/webhook-config.json\
+          \ \\\n  -deployment-name=release-name-consul-webhook-cert-manager \\\n \
+          \ -deployment-namespace=default\n"
         image: hashicorp/consul-k8s-control-plane:1.1.2
         name: webhook-cert-manager
         resources:
@@ -3400,20 +3314,47 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /bootstrap/config
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        imagePullPolicy: Always
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       terminationGracePeriodSeconds: 10
       serviceAccountName: release-name-consul-webhook-cert-manager
       volumes:
       - name: config
         configMap:
           name: release-name-consul-webhook-cert-manager-config
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsUser: 25000
+        runAsNonRoot: true
+      automountServiceAccountToken: false
 ---
-# Source: consul/templates/server-statefulset.yaml
-# StatefulSet to run the actual Consul server cluster.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-consul-server
-  namespace: default
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
@@ -3430,7 +3371,7 @@ spec:
       chart: consul-helm
       release: release-name
       component: server
-      hasDNS: "true"
+      hasDNS: 'true'
   template:
     metadata:
       labels:
@@ -3438,134 +3379,145 @@ spec:
         chart: consul-helm
         release: release-name
         component: server
-        hasDNS: "true"
+        hasDNS: 'true'
       annotations:
-        "consul.hashicorp.com/connect-inject": "false"
-        "consul.hashicorp.com/config-checksum": 251dd23c6cc44bf8362acddc24c78440b6a65c4618785d027fae526958af5dde
+        consul.hashicorp.com/connect-inject: 'false'
+        consul.hashicorp.com/config-checksum: 251dd23c6cc44bf8362acddc24c78440b6a65c4618785d027fae526958af5dde
+        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
     spec:
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchLabels:
-                  app: consul
-                  release: "release-name"
-                  component: server
-              topologyKey: kubernetes.io/hostname
+          - labelSelector:
+              matchLabels:
+                app: consul
+                release: release-name
+                component: server
+            topologyKey: kubernetes.io/hostname
       terminationGracePeriodSeconds: 30
       serviceAccountName: release-name-consul-server
       securityContext:
         fsGroup: 1000
         runAsGroup: 1000
         runAsNonRoot: true
-        runAsUser: 100
+        runAsUser: 25000
+        seccompProfile:
+          type: RuntimeDefault
       volumes:
-        - name: config
-          configMap:
-            name: release-name-consul-server-config
-        - name: extra-config
-          emptyDir: {}
+      - name: config
+        configMap:
+          name: release-name-consul-server-config
+      - name: extra-config
+        emptyDir: {}
       containers:
-        - name: consul
-          image: "hashicorp/consul:1.15.3"
-          env:
-            - name: ADVERTISE_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: HOST_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: CONSUL_DISABLE_PERM_MGMT
-              value: "true"
-            
-          command:
-            - "/bin/sh"
-            - "-ec"
-            - |
-                cp /consul/config/extra-from-values.json /consul/extra-config/extra-from-values.json
-                [ -n "${HOST_IP}" ] && sed -Ei "s|HOST_IP|${HOST_IP?}|g" /consul/extra-config/extra-from-values.json
-                [ -n "${POD_IP}" ] && sed -Ei "s|POD_IP|${POD_IP?}|g" /consul/extra-config/extra-from-values.json
-                [ -n "${HOSTNAME}" ] && sed -Ei "s|HOSTNAME|${HOSTNAME?}|g" /consul/extra-config/extra-from-values.json
+      - name: consul
+        image: hashicorp/consul:1.13@sha256:26a1c6bbf659c1345fcedef33a89c7d8ee9ea002276448d2564de337501c2d03
+        env:
+        - name: ADVERTISE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: CONSUL_DISABLE_PERM_MGMT
+          value: 'true'
+        command:
+        - /bin/sh
+        - -ec
+        - "cp /consul/config/extra-from-values.json /consul/extra-config/extra-from-values.json\n\
+          [ -n \"${HOST_IP}\" ] && sed -Ei \"s|HOST_IP|${HOST_IP?}|g\" /consul/extra-config/extra-from-values.json\n\
+          [ -n \"${POD_IP}\" ] && sed -Ei \"s|POD_IP|${POD_IP?}|g\" /consul/extra-config/extra-from-values.json\n\
+          [ -n \"${HOSTNAME}\" ] && sed -Ei \"s|HOSTNAME|${HOSTNAME?}|g\" /consul/extra-config/extra-from-values.json\n\
+          \nexec /usr/local/bin/docker-entrypoint.sh consul agent \\\n  -advertise=\"\
+          ${ADVERTISE_IP}\" \\\n  -config-dir=/consul/config \\\n  -config-file=/consul/extra-config/extra-from-values.json\n"
+        volumeMounts:
+        - name: data-default
+          mountPath: /consul/data
+        - name: config
+          mountPath: /consul/config
+        - name: extra-config
+          mountPath: /consul/extra-config
+        ports:
+        - name: http
+          containerPort: 8500
+        - name: grpc
+          containerPort: 8502
+          protocol: TCP
+        - name: serflan-tcp
+          containerPort: 8301
+          protocol: TCP
+        - name: serflan-udp
+          containerPort: 8301
+          protocol: UDP
+        - name: serfwan-tcp
+          containerPort: 8302
+          protocol: TCP
+        - name: serfwan-udp
+          containerPort: 8302
+          protocol: UDP
+        - name: server
+          containerPort: 8300
+        - name: dns-tcp
+          containerPort: 8600
+          protocol: TCP
+        - name: dns-udp
+          containerPort: 8600
+          protocol: UDP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -ec
+            - 'curl http://127.0.0.1:8500/v1/status/leader \
 
-                exec /usr/local/bin/docker-entrypoint.sh consul agent \
-                  -advertise="${ADVERTISE_IP}" \
-                  -config-dir=/consul/config \
-                  -config-file=/consul/extra-config/extra-from-values.json
-          volumeMounts:
-            - name: data-default
-              mountPath: /consul/data
-            - name: config
-              mountPath: /consul/config
-            - name: extra-config
-              mountPath: /consul/extra-config
-          ports:
-            - name: http
-              containerPort: 8500
-            - name: grpc
-              containerPort: 8502
-              protocol: "TCP"
-            - name: serflan-tcp
-              containerPort: 8301
-              protocol: "TCP"
-            - name: serflan-udp
-              containerPort: 8301
-              protocol: "UDP"
-            - name: serfwan-tcp
-              containerPort: 8302
-              protocol: "TCP"
-            - name: serfwan-udp
-              containerPort: 8302
-              protocol: "UDP"
-            - name: server
-              containerPort: 8300
-            - name: dns-tcp
-              containerPort: 8600
-              protocol: "TCP"
-            - name: dns-udp
-              containerPort: 8600
-              protocol: "UDP"
-          readinessProbe:
-            # NOTE(mitchellh): when our HTTP status endpoints support the
-            # proper status codes, we should switch to that. This is temporary.
-            exec:
-              command:
-                - "/bin/sh"
-                - "-ec"
-                - |
-                  curl http://127.0.0.1:8500/v1/status/leader \
-                  2>/dev/null | grep -E '".+"'
-            failureThreshold: 2
-            initialDelaySeconds: 5
-            periodSeconds: 3
-            successThreshold: 1
-            timeoutSeconds: 5
-          resources:
-            limits:
-              cpu: 100m
-              memory: 100Mi
-            requests:
-              cpu: 100m
-              memory: 100Mi
-          securityContext:
-            null
-  volumeClaimTemplates:
-    - metadata:
-        name: data-default
-      spec:
-        accessModes:
-          - ReadWriteOnce
+              2>/dev/null | grep -E ''".+"''
+
+              '
+          failureThreshold: 2
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 5
         resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
           requests:
-            storage: 10Gi
+            cpu: 100m
+            memory: 100Mi
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        imagePullPolicy: Always
+      automountServiceAccountToken: false
+  volumeClaimTemplates:
+  - metadata:
+      name: data-default
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
 ---
-# Source: consul/templates/connect-inject-mutatingwebhookconfiguration.yaml
-# The MutatingWebhookConfiguration to enable the Connect injector.
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
@@ -3585,8 +3537,8 @@ webhooks:
       path: /mutate-v1alpha1-proxydefaults
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-proxydefaults.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3606,8 +3558,8 @@ webhooks:
       path: /mutate-v1alpha1-mesh
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-mesh.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3627,8 +3579,8 @@ webhooks:
       path: /mutate-v1alpha1-servicedefaults
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-servicedefaults.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3648,8 +3600,8 @@ webhooks:
       path: /mutate-v1alpha1-serviceresolver
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-serviceresolver.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3669,8 +3621,8 @@ webhooks:
       path: /mutate-v1alpha1-servicerouter
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-servicerouter.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3690,8 +3642,8 @@ webhooks:
       path: /mutate-v1alpha1-servicesplitter
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-servicesplitter.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3711,8 +3663,8 @@ webhooks:
       path: /mutate-v1alpha1-serviceintentions
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-serviceintentions.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3732,8 +3684,8 @@ webhooks:
       path: /mutate-v1alpha1-ingressgateway
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-ingressgateway.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3753,8 +3705,8 @@ webhooks:
       path: /mutate-v1alpha1-terminatinggateway
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-terminatinggateway.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3774,8 +3726,8 @@ webhooks:
       path: /mutate-v1alpha1-exportedservices
   failurePolicy: Fail
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   name: mutate-exportedservices.consul.hashicorp.com
   rules:
   - apiGroups:
@@ -3789,66 +3741,280 @@ webhooks:
     - exportedservices
   sideEffects: None
 - name: release-name-consul-connect-injector.consul.hashicorp.com
-  # The webhook will fail scheduling all pods that are not part of consul if all replicas of the webhook are unhealthy.
   objectSelector:
     matchExpressions:
     - key: app
       operator: NotIn
-      values: [ consul ]
+      values:
+      - consul
   failurePolicy: Fail
   sideEffects: None
   admissionReviewVersions:
-  - "v1beta1"
-  - "v1"
+  - v1beta1
+  - v1
   clientConfig:
     service:
       name: release-name-consul-connect-injector
       namespace: default
-      path: "/mutate"
+      path: /mutate
   rules:
-  - operations: [ "CREATE" ]
-    apiGroups: [ "" ]
-    apiVersions: [ "v1" ]
-    resources: [ "pods" ]
+  - operations:
+    - CREATE
+    apiGroups:
+    - ''
+    apiVersions:
+    - v1
+    resources:
+    - pods
   namespaceSelector:
-      matchExpressions:
-        - key: "kubernetes.io/metadata.name"
-          operator: "NotIn"
-          values: ["kube-system","local-path-storage","openebs"]
+    matchExpressions:
+    - key: kubernetes.io/metadata.name
+      operator: NotIn
+      values:
+      - kube-system
+      - local-path-storage
+      - openebs
 ---
-# Source: consul/templates/tests/test-runner.yaml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "release-name-consul-test"
-  namespace: default
+  name: release-name-consul-test
+  namespace: test-ns
   labels:
     app: consul
     chart: consul-helm
     heritage: Helm
     release: release-name
   annotations:
-    "helm.sh/hook": test-success
+    helm.sh/hook: test-success
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
 spec:
   containers:
-    - name: consul-test
-      image: "hashicorp/consul:1.15.3"
-      env:
-        - name: HOST_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
-        - name: CONSUL_HTTP_ADDR
-          value: http://$(HOST_IP):8500
-      command:
-        - "/bin/sh"
-        - "-ec"
-        - |
-            consul members | tee members.txt
-            if [ $(grep -c consul-server members.txt) != $(grep consul-server members.txt | grep -c alive) ]
-            then
-              echo "Failed because not all consul servers are available"
-              exit 1
-            fi
-
+  - name: consul-test
+    image: hashicorp/consul:1.13@sha256:26a1c6bbf659c1345fcedef33a89c7d8ee9ea002276448d2564de337501c2d03
+    env:
+    - name: HOST_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.hostIP
+    - name: CONSUL_HTTP_ADDR
+      value: http://$(HOST_IP):8500
+    command:
+    - /bin/sh
+    - -ec
+    - "consul members | tee members.txt\nif [ $(grep -c consul-server members.txt)\
+      \ != $(grep consul-server members.txt | grep -c alive) ]\nthen\n  echo \"Failed\
+      \ because not all consul servers are available\"\n  exit 1\nfi\n"
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
+      runAsUser: 25000
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 250m
+      limits:
+        memory: 128Mi
+        cpu: 250m
+    imagePullPolicy: Always
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    runAsUser: 25000
+    runAsNonRoot: true
+  automountServiceAccountToken: false
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978

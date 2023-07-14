@@ -159,7 +159,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
-    app: my-app
 spec:
   replicas: 1
   podManagementPolicy: ''
@@ -183,7 +182,6 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: primary
-        app: my-app
     spec:
       serviceAccountName: release-name-mysql
       affinity:
@@ -202,32 +200,21 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsNonRoot: true
-        runAsUser: 25000
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8.0.32-debian-11-r21
+        image: docker.io/bitnami/mysql:8-oracle@sha256:47e045b6313ef483654ac47c31e6fdbfc6ecf6b399a65c03859bee2cfbb1621f
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsNonRoot: false
           runAsUser: 1001
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: release-name-mysql
-              key: mysql-root-password
         - name: MYSQL_DATABASE
           value: my_database
-        envFrom: null
         ports:
         - name: mysql
           containerPort: 3306
@@ -283,11 +270,16 @@ spec:
         - name: config
           mountPath: /opt/bitnami/mysql/conf/my.cnf
           subPath: my.cnf
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: config
         configMap:
           name: release-name-mysql
-      automountServiceAccountToken: false
+      - name: secret-volume
+        secret:
+          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -302,47 +294,3 @@ spec:
       resources:
         requests:
           storage: 8Gi
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
