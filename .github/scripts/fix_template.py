@@ -261,7 +261,8 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                     no_path_checks = ["check_31", "check_29", "check_26", \
                                       "check_45", "check_54", "check_56", \
                                       "check_36", "check_12", "check_35", \
-                                      "check_37", "check_47", "check_63"]
+                                      "check_37", "check_47", "check_63", \
+                                      "check_64"]
                     if check_id in no_path_checks:
                         process_func(obj)
                         break
@@ -868,7 +869,7 @@ def set_uid(obj: dict, uid=25000):
         obj["securityContext"]["runAsUser"] = uid
 
 
-def set_root(obj: dict, value=True, uid=25000):
+def set_root(obj: dict, value=True, uid=25000, gid=25000):
     """Set the root user to each K8s object.
 
     Policy: Minimize the admission of root containers
@@ -905,6 +906,12 @@ def set_root(obj: dict, value=True, uid=25000):
         obj["securityContext"]["runAsUser"] is None or \
             not obj["securityContext"]["runAsUser"]:
         obj["securityContext"]["runAsUser"] = uid
+
+    # If runAsGroup is not set in securityContext, Set it
+    if "runAsGroup" not in obj["securityContext"] or \
+        obj["securityContext"]["runAsGroup"] is None or \
+            not obj["securityContext"]["runAsGroup"]:
+        obj["securityContext"]["runAsGroup"] = gid
 
 
 def set_priv_esc(obj: dict, value=False):
@@ -1075,6 +1082,16 @@ def remove_storage(obj: dict):
     """
 
     del obj["requests"]
+
+
+def set_pod_deployment(obj: dict):
+    """Convert Pod to Deployment object.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    obj["kind"] = "Deployment"
 
 
 def set_statefulset_service_name(obj: dict, service_name: str):
@@ -1381,12 +1398,20 @@ def set_cluster_roles(obj: dict):
 
                 if "pods/exec" in rule["resources"]:
                     obj["rules"].remove(rule)
+                    continue
 
                 if "secrets" in rule["resources"]:
                     obj["rules"].remove(rule)
+                    continue
+
+                if "events" in rule["resources"]:
+                    obj["rules"].remove(rule)
+                    continue
 
             if "nonResourceURLs" in rule:
                 obj["rules"].remove(rule)
+                continue
+
                 # if rule["nonResourceURLs"] is None:
                 #     rule["nonResourceURLs"] = ["pods"]
 
@@ -1500,6 +1525,9 @@ def set_label_values(obj: dict):
         obj (dict): K8s object to modify.
     """
 
+    if "metadata" not in obj or obj["metadata"] is None:
+        obj["metadata"] = {}
+
     if "labels" in obj["metadata"] and obj["metadata"]["labels"] is not None:
         obj["metadata"]["labels"]["app.kubernetes.io/name"] = "MyApp"
         obj["metadata"]["labels"]["app"] = "MyApp"
@@ -1513,6 +1541,9 @@ def set_label_values(obj: dict):
             obj = obj["template"]
         elif "jobTemplate" in obj:
             obj = obj["jobTemplate"]["spec"]["template"]
+
+    if "metadata" not in obj or obj["metadata"] is None:
+        obj["metadata"] = {}
 
     if "labels" in obj["metadata"] and obj["metadata"]["labels"] is not None:
         obj["metadata"]["labels"]["app.kubernetes.io/name"] = "MyApp"
@@ -1811,7 +1842,8 @@ class FuncLookupClass:
     "check_60": set_pod_disruption_budget,
     "check_61": remove_nodeport,
     "check_62": todo,
-    "check_63": set_deadline_seconds
+    "check_63": set_deadline_seconds,
+    "check_64": set_pod_deployment,
     }
 
     @classmethod

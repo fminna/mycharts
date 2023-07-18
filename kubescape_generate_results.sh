@@ -39,6 +39,7 @@ python .github/scripts/main.py --check
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
+# kubescape scan fixed_templates/${chart_name}_${tool}_fixed_template.yaml
 kubescape scan fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exceptions kubescape_exceptions.json
 kubescape scan fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exceptions kubescape_exceptions.json --format json --output test_files/kubescape_results222.json > /dev/null 2>&1
 

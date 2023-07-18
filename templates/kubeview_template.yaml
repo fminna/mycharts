@@ -7,9 +7,8 @@ metadata:
   namespace: default
 ---
 # Source: kubeview/templates/service-account.yaml
-kind: ClusterRole
-
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
   name: release-name-kubeview
 rules:
@@ -47,16 +46,13 @@ rules:
     verbs: ["get", "list"]
 ---
 # Source: kubeview/templates/service-account.yaml
-kind: ClusterRoleBinding
-
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
   name: release-name-kubeview
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  
   kind: ClusterRole
-  
   name: release-name-kubeview
 subjects:
   - kind: ServiceAccount
@@ -75,9 +71,7 @@ metadata:
     app.kubernetes.io/version: "0.1.31"
     app.kubernetes.io/managed-by: Helm
 spec:
-  
   type: LoadBalancer
-  
   ports:
     - port: 80
       targetPort: 8000
@@ -118,7 +112,6 @@ spec:
           env:
             - name: IN_CLUSTER
               value: "true"
-          
           ports:
             - name: http
               containerPort: 8000

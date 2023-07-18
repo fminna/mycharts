@@ -1,0 +1,300 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-fluent-bit
+  namespace: default
+  labels:
+    helm.sh/chart: fluent-bit-0.30.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.1.4
+    app.kubernetes.io/managed-by: Helm
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-fluent-bit
+  namespace: default
+  labels:
+    helm.sh/chart: fluent-bit-0.30.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.1.4
+    app.kubernetes.io/managed-by: Helm
+data:
+  custom_parsers.conf: "[PARSER]\n    Name docker_no_time\n    Format json\n    Time_Keep\
+    \ Off\n    Time_Key time\n    Time_Format %Y-%m-%dT%H:%M:%S.%L\n"
+  fluent-bit.conf: "[SERVICE]\n    Daemon Off\n    Flush 1\n    Log_Level info\n \
+    \   Parsers_File parsers.conf\n    Parsers_File custom_parsers.conf\n    HTTP_Server\
+    \ On\n    HTTP_Listen 0.0.0.0\n    HTTP_Port 2020\n    Health_Check On\n\n[INPUT]\n\
+    \    Name tail\n    Path /var/log/containers/*.log\n    multiline.parser docker,\
+    \ cri\n    Tag kube.*\n    Mem_Buf_Limit 5MB\n    Skip_Long_Lines On\n\n[INPUT]\n\
+    \    Name systemd\n    Tag host.*\n    Systemd_Filter _SYSTEMD_UNIT=kubelet.service\n\
+    \    Read_From_Tail On\n\n[FILTER]\n    Name kubernetes\n    Match kube.*\n  \
+    \  Merge_Log On\n    Keep_Log Off\n    K8S-Logging.Parser On\n    K8S-Logging.Exclude\
+    \ On\n\n[OUTPUT]\n    Name es\n    Match kube.*\n    Host elasticsearch-master\n\
+    \    Logstash_Format On\n    Retry_Limit False\n\n[OUTPUT]\n    Name es\n    Match\
+    \ host.*\n    Host elasticsearch-master\n    Logstash_Format On\n    Logstash_Prefix\
+    \ node\n    Retry_Limit False\n"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: release-name-fluent-bit
+  labels:
+    helm.sh/chart: fluent-bit-0.30.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.1.4
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - namespaces
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-fluent-bit
+  labels:
+    helm.sh/chart: fluent-bit-0.30.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.1.4
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-fluent-bit
+subjects:
+- kind: ServiceAccount
+  name: release-name-fluent-bit
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-fluent-bit
+  namespace: default
+  labels:
+    helm.sh/chart: fluent-bit-0.30.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.1.4
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - port: 2020
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: release-name-fluent-bit
+  namespace: test-ns
+  labels:
+    helm.sh/chart: fluent-bit-0.30.3
+    app.kubernetes.io/name: MyApp
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.1.4
+    app.kubernetes.io/managed-by: Helm
+    app: MyApp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      annotations:
+        checksum/config: af869d0c6a523900de3a80e2998f166171252ac108fa3e0917d98456b6eb2060
+        checksum/luascripts: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        container.apparmor.security.beta.kubernetes.io/fluent-bit: runtime/default
+      labels:
+        app.kubernetes.io/name: MyApp
+        app.kubernetes.io/instance: release-name
+        app: MyApp
+    spec:
+      serviceAccountName: release-name-fluent-bit
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      containers:
+      - name: fluent-bit
+        image: cr.fluentbit.io/fluent/fluent-bit:2.1.4
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 2020
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: http
+        volumeMounts:
+        - mountPath: /fluent-bit/etc/fluent-bit.conf
+          name: config
+          subPath: fluent-bit.conf
+        - mountPath: /fluent-bit/etc/custom_parsers.conf
+          name: config
+          subPath: custom_parsers.conf
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /var/lib/docker/containers
+          name: varlibdockercontainers
+          readOnly: true
+        - mountPath: /etc/machine-id
+          name: etcmachineid
+          readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
+      volumes:
+      - name: config
+        configMap:
+          name: release-name-fluent-bit
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: release-name-fluent-bit-test-connection
+  namespace: default
+  labels:
+    helm.sh/chart: fluent-bit-0.30.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 2.1.4
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    helm.sh/hook: test-success
+spec:
+  containers:
+  - name: wget
+    image: busybox:1.36.1-glibc
+    imagePullPolicy: Always
+    command:
+    - wget
+    args:
+    - release-name-fluent-bit:2020
+  restartPolicy: Never
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978

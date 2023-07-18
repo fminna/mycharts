@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 0.6.3
     app.kubernetes.io/managed-by: Helm
-automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -63,7 +62,6 @@ rules:
   - get
   - list
   - watch
-automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -102,7 +100,6 @@ subjects:
 - kind: ServiceAccount
   name: release-name-metrics-server
   namespace: default
-automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -227,7 +224,6 @@ spec:
       volumes:
       - name: tmp
         emptyDir: {}
-      automountServiceAccountToken: false
 ---
 apiVersion: apiregistration.k8s.io/v1
 kind: APIService

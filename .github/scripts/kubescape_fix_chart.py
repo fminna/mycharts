@@ -69,8 +69,6 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
             aux_path = aux_path.replace("//", "/default/")
             resource_list.append(aux_path)
 
-        print(resource_list)
-
         # Fix for all resources
         for resource_path in resource_list:
             # Extract only failed checks "status": { "status": "failed" }
@@ -138,11 +136,12 @@ def fix_issue(control: str, resource_path: str, template: dict) -> list:
             if "paths" in rule:
                 for path in rule["paths"]:
                     obj_path = path["fixPath"]["path"]
+                    if not obj_path:
+                        obj_path = path["failedPath"]
 
                     # Convert obj_path to the correct format
                     # 'spec.template.spec.containers[0].securityContext.capabilities.drop[0]'
                     if "containers" in obj_path:
-
                         # find the index of the first ']' occurrence
                         index = obj_path.find("]")
                         obj_path = obj_path[:index]
@@ -232,6 +231,12 @@ def fix_resource(template: dict, control_id: str, check_id: str, paths: dict) ->
         # fix_template.set_template(template, "check_32", paths)
         return ["check_22", "check_28", "check_34"]
 
+    # Non-root containers
+    elif control_id == "C-0013":
+        fix_template.set_template(template, "check_28", paths)
+        fix_template.set_template(template, "check_22", paths)
+        return ["check_28", "check_22"]
+
     else:
         fix_template.set_template(template, check_id, paths)
         return [check_id]
@@ -244,7 +249,7 @@ class LookupClass:
     _LOOKUP = {
         "C-0002": "check_54",
         "C-0007": "check_54",
-        "C-0075": "check_0",
+        "C-0075": "check_25",
         "C-0004": "check_1",
         "C-0009": "check_4",
         "C-0050": "check_4",
@@ -267,10 +272,18 @@ class LookupClass:
         "C-0014": "check_38",
         "C-0076": "check_43",
         "C-0077": "check_43",
-        "C-0048": "check_46",
+        "C-0048": "check_47",
         "C-0030": "check_40",
         "C-0053": "check_35",
-        "C-0015": "check_54"
+        "C-0015": "check_54",
+        "C-0073": "check_64", 
+        "C-0031": "check_54", 
+        "C-0065": "check_54",
+        "C-0026": "", # Kubernetes CronJob
+        "C-0012": "", # Applications credentials in configuration file
+        "C-0036": "", # Malicious admission controller
+        "C-0039": "", # Malicious admission controller (mutating)
+        "C-0037": "", # CoreDNS poisoning
     }
 
     @classmethod

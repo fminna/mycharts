@@ -170,13 +170,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: release-name-postgresql-ha-pgpool
-  namespace: default
+  namespace: test-ns
   labels:
-    app.kubernetes.io/name: postgresql-ha
+    app.kubernetes.io/name: MyApp
     helm.sh/chart: postgresql-ha-11.7.4
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: pgpool
+    app: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -189,11 +190,12 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: postgresql-ha
+        app.kubernetes.io/name: MyApp
         helm.sh/chart: postgresql-ha-11.7.4
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: pgpool
+        app: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/pgpool: runtime/default
     spec:
@@ -212,22 +214,25 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
+        runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
       initContainers: null
       containers:
       - name: pgpool
         image: docker.io/bitnami/pgpool:4.4.3-debian-11-r1
         imagePullPolicy: IfNotPresent
         securityContext:
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 1001
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -316,14 +321,15 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-postgresql-ha-postgresql
-  namespace: default
+  namespace: test-ns
   labels:
-    app.kubernetes.io/name: postgresql-ha
+    app.kubernetes.io/name: MyApp
     helm.sh/chart: postgresql-ha-11.7.4
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: postgresql
     role: data
+    app: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -341,12 +347,13 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: postgresql-ha
+        app.kubernetes.io/name: MyApp
         helm.sh/chart: postgresql-ha-11.7.4
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: postgresql
         role: data
+        app: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/postgresql: runtime/default
     spec:
@@ -365,10 +372,11 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
+        runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
       hostNetwork: false
       hostIPC: false
       initContainers: null
@@ -377,12 +385,14 @@ spec:
         image: docker.io/bitnami/postgresql-repmgr:15.3.0-debian-11-r6
         imagePullPolicy: IfNotPresent
         securityContext:
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 1001
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          runAsGroup: 25000
         lifecycle:
           preStop:
             exec:
@@ -531,3 +541,91 @@ spec:
       resources:
         requests:
           storage: 8Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978

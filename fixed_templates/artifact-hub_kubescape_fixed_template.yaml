@@ -209,10 +209,12 @@ metadata:
   labels:
     app.kubernetes.io/component: hub
     helm.sh/chart: artifact-hub-1.14.0
-    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/name: MyApp
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 1.14.0
     app.kubernetes.io/managed-by: Helm
+    app: MyApp
+  namespace: test-ns
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -231,8 +233,9 @@ spec:
         container.apparmor.security.beta.kubernetes.io/hub: runtime/default
       labels:
         app.kubernetes.io/component: hub
-        app.kubernetes.io/name: artifact-hub
+        app.kubernetes.io/name: MyApp
         app.kubernetes.io/instance: release-name
+        app: MyApp
     spec:
       serviceAccountName: hub
       initContainers:
@@ -272,6 +275,29 @@ spec:
         - name: http
           containerPort: 8000
           protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         resources:
           limits:
             memory: 128Mi
@@ -279,13 +305,6 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          capabilities:
-            drop:
-            - ALL
       volumes:
       - name: hub-config
         secret:
@@ -301,10 +320,12 @@ metadata:
   labels:
     app.kubernetes.io/component: trivy
     helm.sh/chart: artifact-hub-1.14.0
-    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/name: MyApp
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 1.14.0
     app.kubernetes.io/managed-by: Helm
+    app: MyApp
+  namespace: test-ns
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -320,8 +341,9 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/component: trivy
-        app.kubernetes.io/name: artifact-hub
+        app.kubernetes.io/name: MyApp
         app.kubernetes.io/instance: release-name
+        app: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/trivy: runtime/default
     spec:
@@ -343,6 +365,29 @@ spec:
         - name: http
           containerPort: 8081
           protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         resources:
           limits:
             memory: 128Mi
@@ -350,13 +395,6 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          capabilities:
-            drop:
-            - ALL
       volumes:
       - name: trivy
         emptyDir: {}
@@ -369,10 +407,12 @@ kind: StatefulSet
 metadata:
   name: release-name-postgresql
   labels:
-    app: postgresql
+    app: MyApp
     chart: postgresql-8.2.1
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
+  namespace: test-ns
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -389,20 +429,22 @@ spec:
     metadata:
       name: release-name-postgresql
       labels:
-        app: postgresql
+        app: MyApp
         chart: postgresql-8.2.1
         release: release-name
         heritage: Helm
         role: master
+        app.kubernetes.io/name: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/release-name-postgresql: runtime/default
     spec:
       securityContext:
         fsGroup: 1001
-        runAsNonRoot: true
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
       initContainers:
       - name: init-chmod-data
         image: docker.io/bitnami/minideb:stretch
@@ -428,7 +470,7 @@ spec:
       containers:
       - name: release-name-postgresql
         image: docker.io/artifacthub/postgres:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         resources:
           requests:
             cpu: 250m
@@ -438,6 +480,10 @@ spec:
             cpu: 250m
         securityContext:
           runAsUser: 1001
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
@@ -514,6 +560,10 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: db-migrator-install
+  namespace: test-ns
+  labels:
+    app: MyApp
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -549,6 +599,29 @@ spec:
           readOnly: true
         command:
         - ./migrate.sh
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         resources:
           limits:
             memory: 128Mi
@@ -556,13 +629,6 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          capabilities:
-            drop:
-            - ALL
       volumes:
       - name: db-migrator-config
         secret:
@@ -571,6 +637,9 @@ spec:
         seccompProfile:
           type: RuntimeDefault
     metadata:
+      labels:
+        app: MyApp
+        app.kubernetes.io/name: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/db-migrator: runtime/default
 ---
@@ -578,6 +647,10 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: scanner
+  namespace: test-ns
+  labels:
+    app: MyApp
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
     container.apparmor.security.beta.kubernetes.io/scanner: runtime/default
@@ -614,6 +687,29 @@ spec:
             - name: scanner-config
               mountPath: /home/scanner/.cfg
               readOnly: true
+            readinessProbe:
+              exec:
+                command:
+                - ls
+                - /
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            livenessProbe:
+              exec:
+                command:
+                - ls
+                - /
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            securityContext:
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 25000
+              runAsGroup: 25000
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
             resources:
               limits:
                 memory: 128Mi
@@ -621,13 +717,6 @@ spec:
               requests:
                 memory: 128Mi
                 cpu: 250m
-            securityContext:
-              allowPrivilegeEscalation: false
-              runAsNonRoot: true
-              runAsUser: 25000
-              capabilities:
-                drop:
-                - ALL
           volumes:
           - name: scanner-config
             secret:
@@ -635,11 +724,19 @@ spec:
           securityContext:
             seccompProfile:
               type: RuntimeDefault
+        metadata:
+          labels:
+            app: MyApp
+            app.kubernetes.io/name: MyApp
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: tracker
+  namespace: test-ns
+  labels:
+    app: MyApp
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
     container.apparmor.security.beta.kubernetes.io/tracker: runtime/default
@@ -676,6 +773,29 @@ spec:
             - name: tracker-config
               mountPath: /home/tracker/.cfg
               readOnly: true
+            readinessProbe:
+              exec:
+                command:
+                - ls
+                - /
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            livenessProbe:
+              exec:
+                command:
+                - ls
+                - /
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            securityContext:
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 25000
+              runAsGroup: 25000
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
             resources:
               limits:
                 memory: 128Mi
@@ -683,13 +803,6 @@ spec:
               requests:
                 memory: 128Mi
                 cpu: 250m
-            securityContext:
-              allowPrivilegeEscalation: false
-              runAsNonRoot: true
-              runAsUser: 25000
-              capabilities:
-                drop:
-                - ALL
           volumes:
           - name: tracker-config
             secret:
@@ -697,6 +810,10 @@ spec:
           securityContext:
             seccompProfile:
               type: RuntimeDefault
+        metadata:
+          labels:
+            app: MyApp
+            app.kubernetes.io/name: MyApp
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -717,3 +834,267 @@ spec:
       name: hub
       port:
         number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978

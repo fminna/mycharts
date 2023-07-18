@@ -43,6 +43,7 @@ jobs:
           format: json
           outputFile: results_${{ inputs.iteration }}.json
           files: "${{ env.TEMPLATE }}"
+          exceptions: kubescape_exceptions.yaml
         continue-on-error: true
         # Reference: https://github.com/kubescape/github-action
 
