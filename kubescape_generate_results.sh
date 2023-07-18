@@ -25,7 +25,7 @@ echo "Running analyzers on $chart_name ..."
 # Step 1 - Kubescape
 echo -e "\n -------------------------- \n"
 echo "Step 1 - Run Kubescape"
-kubescape scan templates/${chart_folder}_template.yaml --format json --output test_files/kubescape_results.json > /dev/null 2>&1
+kubescape scan templates/${chart_folder}_template.yaml --exceptions kubescape_exceptions.json --format json --output test_files/kubescape_results.json > /dev/null 2>&1
 python .github/scripts/main.py --count-checks
 
 # Step 2 - Fix Kubescape output
@@ -39,7 +39,12 @@ python .github/scripts/main.py --check
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
-kubescape scan fixed_templates/${chart_name}_${tool}_fixed_template.yaml
+kubescape scan fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exceptions kubescape_exceptions.json
+kubescape scan fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exceptions kubescape_exceptions.json --format json --output test_files/kubescape_results222.json > /dev/null 2>&1
+
+
+exit(0)
+
 
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"

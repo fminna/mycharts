@@ -163,6 +163,9 @@ def check_resource_path(path_list: str, document: dict) -> bool:
                 elif document["metadata"]["namespace"] == "test-ns":
                     return document["metadata"]["name"] == path_list[-1]
 
+                elif document["metadata"]["namespace"] == "kube-system":
+                    return document["metadata"]["name"] == path_list[-1]
+
                 elif document["metadata"]["namespace"] == path_list[1]:
                     return document["metadata"]["name"] == path_list[-1]
 
@@ -180,6 +183,37 @@ def check_resource_path(path_list: str, document: dict) -> bool:
     return False
 
 
+def get_app_label(template: dict, resource_path: str) -> str:
+    """Get the app label of the resource.
+    
+    Args:
+        template: The template to check.
+        resource_path: The resource path to check.
+        
+    Returns:
+        The app label of the resource.
+    """
+
+    app = "test-app"
+    for document in template:
+        if check_resource_path(resource_path.split("/"), document):
+            if "labels" in document["metadata"] and document["metadata"]["labels"] is not None:
+                if "app" in document["metadata"]["labels"]:
+                    app = document["metadata"]["labels"]["app"]
+
+    return app
+
+
+global resource_quota
+resource_quota = False
+
+global limit_range
+limit_range = False
+
+global network_policy
+network_policy = False
+
+
 def set_template(template: dict, check_id: str, check: dict) -> None:
     """Change the chart template for the Helm Chart.
     
@@ -191,21 +225,20 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
     Returns: None
     """
 
-    # If Network Policy missing issue, create and append one
-    if check_id == "check_40":
-        if check:
-        # Find resource name
-            for document in template:
-                if check_resource_path(check["resource_path"].split("/"), document):
-                    if "labels" in document["metadata"] and \
-                        "app" in document["metadata"]["labels"]:
-                        app = document["metadata"]["labels"]["app"]
-                        break
+    if not check:
+        return
 
+    # If Network Policy missing issue, create and append one
+    elif check_id == "check_40":
+        # app = get_app_label(template, check["resource_path"])
         # Append Network Policy to the template
         net_policy1, net_policy2 = set_net_policy()
         template.append(net_policy1)
         template.append(net_policy2)
+
+        # Set global variable to True
+        global network_policy
+        network_policy = True
 
     else:
 
@@ -226,17 +259,15 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                     obj = document
 
                     no_path_checks = ["check_31", "check_29", "check_26", \
-                                      "check_45", "check_54", "check_56"]
+                                      "check_45", "check_54", "check_56", \
+                                      "check_36", "check_12", "check_35", \
+                                      "check_37", "check_47", "check_63"]
                     if check_id in no_path_checks:
                         process_func(obj)
                         break
 
                     if check_id == "check_32":
                         process_func(obj, check["obj_path"])
-                        break
-
-                    if check_id == "check_35":
-                        process_func(obj)
                         break
 
                     if check_id == "check_33":
@@ -246,11 +277,6 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                             process_func(obj["spec"])
                         break
 
-                    # For KICS, do not iterate keys
-                    if check_id == "check_36":
-                        if "automountServiceAccountToken" in obj:
-                            keys = []
-
                     for key in keys:
                         if key:
                             if key.isdigit():
@@ -259,7 +285,12 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                                 continue
                             obj = obj[key]
 
-                    if check_id in ("check_23", "check_24", "check_34"):
+                    if check_id == "check_60":
+                        # app = get_app_label(template, check["resource_path"])
+                        pdp = set_pod_disruption_budget(obj)
+                        template.append(pdp)
+
+                    elif check_id in ("check_23", "check_24", "check_34"):
                         if "add" in check and "drop" in check:
                             process_func(obj, check["add"], check["drop"])
                         elif "add" in check:
@@ -271,13 +302,21 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
 
                     elif check_id == "check_48":
                         # Append namespace LimitRange to the template
-                        limit_range = process_func(obj)
-                        template.append(limit_range)
+                        limit_range1, limit_range2 = process_func(obj)
+                        global limit_range
+                        if not limit_range:
+                            template.append(limit_range1)
+                            template.append(limit_range2)
+                            limit_range = True
 
                     elif check_id == "check_49":
                         # Append namespace ResourceQuota to the template
-                        resource_quota = process_func(obj)
-                        template.append(resource_quota)
+                        resource_quota1, resource_quota2 = process_func(obj)
+                        global resource_quota
+                        if not resource_quota:
+                            template.append(resource_quota1)
+                            template.append(resource_quota2)
+                            resource_quota = True
 
                     elif "value" in check:
                         process_func(obj, check["value"])
@@ -464,8 +503,18 @@ def set_cpu_limit(obj: dict, value="250m"):
                 "cpu": value
             }
         }
+        set_cpu_request(obj, value)
+        set_memory_limit(obj)
+        set_memory_request(obj)
+
+    if "requests" in obj["resources"] and \
+        obj["resources"]["requests"] is not None and \
+            obj["resources"]["requests"]:
+        if "cpu" in obj["resources"]["requests"]:
+            value = obj["resources"]["requests"]["cpu"]
+
     # If resources is set, but limits is not, Set it
-    elif "limits" not in obj["resources"] or \
+    if "limits" not in obj["resources"] or \
         obj["resources"]["limits"] is None:
         obj["resources"]["limits"] = {
             "cpu": value
@@ -494,8 +543,18 @@ def set_cpu_request(obj: dict, value="250m"):
                 "cpu": value
             }
         }
+        set_cpu_limit(obj, value)
+        set_memory_limit(obj)
+        set_memory_request(obj)
+
+    if "limits" in obj["resources"] and \
+        obj["resources"]["limits"] is not None and \
+            obj["resources"]["limits"]:
+        if "cpu" in obj["resources"]["limits"]:
+            value = obj["resources"]["limits"]["cpu"]
+
     # If resources is set, but requests is not, Set it
-    elif "requests" not in obj["resources"] or \
+    if "requests" not in obj["resources"] or \
         obj["resources"]["requests"] is None or \
             not obj["resources"]["requests"]:
         obj["resources"]["requests"] = {
@@ -525,8 +584,18 @@ def set_memory_limit(obj: dict, value="128Mi"):
                 "memory": value
             }
         }
+        set_memory_request(obj, value)
+        set_cpu_limit(obj)
+        set_cpu_request(obj)
+
+    if "requests" in obj["resources"] and \
+        obj["resources"]["requests"] is not None and \
+            obj["resources"]["requests"]:
+        if "memory" in obj["resources"]["requests"]:
+            value = obj["resources"]["requests"]["memory"]
+
     # If resources is set, but limits is not, Set it
-    elif "limits" not in obj["resources"] or \
+    if "limits" not in obj["resources"] or \
         obj["resources"]["limits"] is None or \
             not obj["resources"]["limits"]:
         obj["resources"]["limits"] = {
@@ -556,8 +625,18 @@ def set_memory_request(obj: dict, value="128Mi"):
                 "memory": value
             }
         }
+        set_memory_limit(obj, value)
+        set_cpu_limit(obj)
+        set_cpu_request(obj)
+
+    if "limits" in obj["resources"] and \
+        obj["resources"]["limits"] is not None and \
+            obj["resources"]["limits"]:
+        if "memory" in obj["resources"]["limits"]:
+            value = obj["resources"]["limits"]["memory"]
+
     # If resources is set, but requests is not, Set it
-    elif "requests" not in obj["resources"] or \
+    if "requests" not in obj["resources"] or \
         obj["resources"]["requests"] is None or \
             not obj["resources"]["requests"]:
         obj["resources"]["requests"] = {
@@ -566,6 +645,46 @@ def set_memory_request(obj: dict, value="128Mi"):
 
     else:
         obj["resources"]["requests"]["memory"] = value
+
+
+def set_equal_requests(obj: dict):
+    """Set memory requests equal to memory limits.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    cpu_requests = "250m"
+    memory_requests = "128Mi"
+
+    if "cpu" in obj["resources"]["requests"]:
+        cpu_requests = obj["resources"]["requests"]["cpu"]
+
+    if "memory" in obj["resources"]["requests"]:
+        memory_requests = obj["resources"]["requests"]["memory"]
+
+    obj["resources"]["limits"]["cpu"] = cpu_requests
+    obj["resources"]["limits"]["memory"] = memory_requests
+
+
+def remove_host_path(obj: dict):
+    """Remove host path from K8s object.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
+
+    if "volumes" in obj and obj["volumes"] is not None and obj["volumes"]:
+        for volume in obj["volumes"]:
+            if "hostPath" in volume:
+                obj["volumes"].remove(volume)
 
 
 def set_limit_range(obj: dict) -> dict:
@@ -585,7 +704,7 @@ def set_limit_range(obj: dict) -> dict:
         if obj["metadata"]["namespace"] != "default":
             namespace = obj["metadata"]["namespace"]
 
-    limit_range = {
+    limit_range1 = {
         "apiVersion": "v1",
         "kind": "LimitRange",
         "metadata": {
@@ -606,7 +725,28 @@ def set_limit_range(obj: dict) -> dict:
             ]
         }
     }
-    return limit_range
+    limit_range2 = {
+        "apiVersion": "v1",
+        "kind": "LimitRange",
+        "metadata": {
+            "name": "cpu-min-max-demo-lr",
+            "namespace": "default"
+        },
+        "spec": {
+            "limits": [
+                {
+                    "max": {
+                        "cpu": "800m"
+                    },
+                    "min": {
+                        "cpu": "250m"
+                    },
+                    "type": "Container"
+                }
+            ]
+        }
+    }
+    return limit_range1, limit_range2
 
 
 def set_resource_quota(obj: dict) -> dict:
@@ -627,7 +767,7 @@ def set_resource_quota(obj: dict) -> dict:
         if obj["metadata"]["namespace"] != "default":
             namespace = obj["metadata"]["namespace"]
 
-    resource_quota = {
+    resource_quota1 = {
         "apiVersion": "v1",
         "kind": "ResourceQuota",
         "metadata": {
@@ -651,7 +791,32 @@ def set_resource_quota(obj: dict) -> dict:
             }
         }
     }
-    return resource_quota
+    resource_quota2 = {
+        "apiVersion": "v1",
+        "kind": "ResourceQuota",
+        "metadata": {
+            "name": "pods-high",
+            "namespace": "default"
+        },
+        "spec": {
+            "hard": {
+                "cpu": "1000",
+                "memory": "200Gi",
+                "pods": "10"
+            },
+            "scopeSelector": {
+                "matchExpressions": [
+                    {
+                        "operator": "In",
+                        "scopeName": "PriorityClass",
+                        "values": ["high"]
+                    }
+                ]
+            }
+        }
+    }
+
+    return resource_quota1, resource_quota2
 
 
 def set_uid(obj: dict, uid=25000):
@@ -665,6 +830,8 @@ def set_uid(obj: dict, uid=25000):
         obj = obj["spec"]
         if "template" in obj:
             obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
 
     # If securityContext is not set, Set it
     if "securityContext" not in obj or \
@@ -718,6 +885,8 @@ def set_root(obj: dict, value=True, uid=25000):
         obj = obj["spec"]
         if "template" in obj:
             obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
 
     # If securityContext is not set in containers, Set it
     if "securityContext" not in obj or \
@@ -808,11 +977,9 @@ def set_seccomp(obj: dict):
     # "seccomp.security.alpha.kubernetes.io/defaultProfileName"
     # "seccomp.security.alpha.kubernetes.io/pod"
 
-    profile_name = "seccomp.security.alpha.kubernetes.io/defaultProfileName"
+    # profile_name = "seccomp.security.alpha.kubernetes.io/defaultProfileName"
+    profile_name = "seccomp.security.alpha.kubernetes.io/pod"
     profile = "runtime/default"
-
-    if "template" in obj["spec"]:
-        obj = obj["spec"]["template"]
 
     if "metadata" not in obj or \
         obj["metadata"] is None or not obj["metadata"]:
@@ -832,7 +999,13 @@ def set_seccomp(obj: dict):
 
     ###############################################
 
-    obj = obj["spec"]
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
+
     profile = "RuntimeDefault"
 
     if "securityContext" not in obj or \
@@ -904,15 +1077,16 @@ def remove_storage(obj: dict):
     del obj["requests"]
 
 
-def set_statefulset_service_name(obj: dict, name: str):
+def set_statefulset_service_name(obj: dict, service_name: str):
     """Set the serviceName to each StatefulSet object.
     
     Args:
         obj (dict): K8s object to modify.
-        name (str): The name to set the serviceName to.
+        service_name (str): The name to set the serviceName to.
     """
 
-    obj["spec"]["serviceName"] = name
+    if service_name and service_name is not None and service_name != "":
+        obj["spec"]["serviceName"] = service_name
 
 
 def set_security_context(obj: dict):
@@ -942,6 +1116,8 @@ def set_pid_ns(obj: dict, value=False):
         obj = obj["spec"]
         if "template" in obj:
             obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
 
     # Set "hostPID" to False
     obj["hostPID"] = value
@@ -961,6 +1137,8 @@ def set_ipc_ns(obj: dict, value=False):
         obj = obj["spec"]
         if "template" in obj:
             obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
 
     # Set "hostIPC" to False
     obj["hostIPC"] = value
@@ -980,6 +1158,8 @@ def set_net_ns(obj: dict, value=False):
         obj = obj["spec"]
         if "template" in obj:
             obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
 
     # Set "hostNetwork" to False
     obj["hostNetwork"] = value
@@ -1090,6 +1270,11 @@ def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret
                 'mountPath': '/etc/' + volume_name
             })
 
+        # If env: null, delete env
+        if "env" in container and container["env"] is None and \
+            not container["env"]:
+            del container["env"]
+
 
 def remove_nodeport(obj: dict):
     """Remove the nodePort from each K8s Service object.
@@ -1101,7 +1286,9 @@ def remove_nodeport(obj: dict):
     """
 
     # Append to metadata annotations: networking.gke.io/load-balancer-type: 'Internal'
-    if "annotations" in obj["metadata"]:
+    if "annotations" in obj["metadata"] and \
+            obj["metadata"]["annotations"] is not None and \
+                obj["metadata"]["annotations"]:
         obj["metadata"]["annotations"]["networking.gke.io/load-balancer-type"] = "Internal"
     else:
         obj["metadata"]["annotations"] = {
@@ -1140,6 +1327,8 @@ def set_volume_mounts(obj: dict, value=True):
         obj = obj["spec"]
         if "template" in obj:
             obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
 
     if "volumeMounts" in obj:
         for volume in obj["volumeMounts"]:
@@ -1159,39 +1348,79 @@ def set_cluster_roles(obj: dict):
         obj (dict): K8s object to modify.
     """
 
-    for rule in obj["rules"]:
-        # Sanitize apiGroups
-        if "apiGroups" in rule and rule["apiGroups"] is not None:
-            if rule["apiGroups"] == ["*"]:
-                rule["apiGroups"] = "v1"
+    if "rules" not in obj or obj["rules"] is None or not obj["rules"]:
+        obj["rules"] = [{
+            "apiGroups": [
+                ""
+            ],
+            "resources": [
+                "pods"
+            ],
+            "verbs": [
+                "get"
+            ]
+        }]
 
-        if "resources" in rule and rule["resources"] is not None:
-            if rule["resources"] == ["*"]:
-                rule["resources"] = []
+    else:
+        for rule in obj["rules"]:
+            # Sanitize apiGroups
+            if "apiGroups" in rule:
+                if rule["apiGroups"] is None:
+                    rule["apiGroups"] = ["v1"]
+                elif rule["apiGroups"] == ["*"]:
+                    rule["apiGroups"] = ["v1"]
+                elif rule["apiGroups"] == [""]:
+                    rule["apiGroups"] = ["v1"]
 
-        if "nonResourceURLs" in rule and rule["nonResourceURLs"] is not None:
-            if rule["nonResourceURLs"] == ["*"]:
-                rule["nonResourceURLs"] = []
+            if "resources" in rule:
+                if rule["resources"] is None:
+                    rule["resources"] = ["pods"]
 
-        # Sanitize verbs
-        if "verbs" in rule and rule["verbs"] is not None:
+                elif rule["resources"] == ["*"]:
+                    rule["resources"] = ["pods"]
 
-            if rule["verbs"] == ["*"]:
-                rule["verbs"] = []
+                if "pods/exec" in rule["resources"]:
+                    obj["rules"].remove(rule)
 
-            else:
-                # Checkov - CKV_K8S_155
-                rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
-                        "create", "update", "patch", "escalate", "approve"]]
+                if "secrets" in rule["resources"]:
+                    obj["rules"].remove(rule)
 
-                # Datree - CIS_INVALID_VERB_SECRETS
-                rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
-                        "get", "list", "watch"]]
+            if "nonResourceURLs" in rule:
+                obj["rules"].remove(rule)
+                # if rule["nonResourceURLs"] is None:
+                #     rule["nonResourceURLs"] = ["pods"]
 
-                # KICS - b7bca5c4-1dab-4c2c-8cbe-3050b9d59b14
-                # create, delete, get, list, patch, update, watch
-                rule["verbs"] = [verb for verb in rule["verbs"] if verb not in [
-                        "delete"]]
+                # elif rule["nonResourceURLs"] == ["*"]:
+                #     rule["nonResourceURLs"] = ["pods"]
+
+            if "verbs" in rule:
+
+                if rule["verbs"] == ["*"]:
+                    rule["verbs"] = ["get"]
+
+                else:
+                    unsafe_verbs = ["create", "update", "patch", "escalate", "approve", \
+                                    "list", "watch", "delete", "impersonate"]
+                    rule["verbs"] = [verb for verb in rule["verbs"] if verb not in unsafe_verbs]
+
+                if rule["verbs"] is None:
+                    rule["verbs"] = ["get"]
+
+                elif rule["verbs"] == [""] or rule["verbs"] == []:
+                    rule["verbs"] = ["get"]
+
+
+def set_deadline_seconds(obj: dict, value=100):
+    """Set the deadlineSeconds for CronJob objects.
+    
+    Policy: CronJob should have a deadlineSeconds set
+    
+    Args:
+        obj (dict): K8s object to modify.
+        value (int): The value to set the deadlineSeconds to.
+    """
+
+    obj["spec"]["startingDeadlineSeconds"] = value
 
 
 def set_service_account(obj: dict, value=False):
@@ -1208,6 +1437,8 @@ def set_service_account(obj: dict, value=False):
         obj = obj["spec"]
         if "template" in obj:
             obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
 
     # Set "automountServiceAccountToken" to value
     obj["automountServiceAccountToken"] = value
@@ -1223,8 +1454,15 @@ def set_service_account_name(obj: dict, value="SAtest"):
         value (str): The value to set the serviceAccountName to.
     """
 
-    # Set "serviceAccountName" to testAT
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
+
     obj["serviceAccountName"] = value
+    obj["automountServiceAccountToken"] = False
 
 
 def set_k8s_ns(obj: dict, value="test-ns"):
@@ -1262,12 +1500,26 @@ def set_label_values(obj: dict):
         obj (dict): K8s object to modify.
     """
 
-    # Labels: app, tier, phase, version, owner, env
+    if "labels" in obj["metadata"] and obj["metadata"]["labels"] is not None:
+        obj["metadata"]["labels"]["app.kubernetes.io/name"] = "MyApp"
+        obj["metadata"]["labels"]["app"] = "MyApp"
+    else:
+        obj["metadata"]["labels"] = {"app.kubernetes.io/name": "MyApp"}
+        obj["metadata"]["labels"] = {"app": "MyApp"}
 
-    obj["metadata"]["labels"]["app"] = "my-app"
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]
 
-    if "template" in obj["spec"]:
-        obj["spec"]["template"]["metadata"]["labels"]["app"] = "my-app"
+    if "labels" in obj["metadata"] and obj["metadata"]["labels"] is not None:
+        obj["metadata"]["labels"]["app.kubernetes.io/name"] = "MyApp"
+        obj["metadata"]["labels"]["app"] = "MyApp"
+    else:
+        obj["metadata"]["labels"] = {"app.kubernetes.io/name": "MyApp"}
+        obj["metadata"]["labels"] = {"app": "MyApp"}
 
 
 def set_replicas(obj: dict, value=2):
@@ -1281,6 +1533,36 @@ def set_replicas(obj: dict, value=2):
     """
 
     obj["spec"]["replicas"] = value
+
+
+def set_pod_disruption_budget(obj: dict, app_name="test-pdb"):
+    """Set PodDisruptionBudget for a K8s StatefulSet.
+    
+    Policy: StatefulSets should be assigned with a PodDisruptionBudget to ensure high availability.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    # Set StatefulSet matchLabels to app_name
+    # Add app matchLabel and set it to app_name
+    obj["app"] = app_name
+    pdb = {
+        "apiVersion": "policy/v1",
+        "kind": "PodDisruptionBudget",
+        "metadata": {
+            "name": "myapp-pdb"
+        },
+        "spec": {
+            "maxUnavailable": 1,
+            "selector": {
+                "matchLabels": {
+                    "app": app_name
+                }
+            }
+        }
+    }
+    return pdb
 
 
 def assign_service(obj: dict):
@@ -1470,10 +1752,10 @@ class FuncLookupClass:
     "check_0": set_img_tag, 
     "check_1": set_memory_request,
     "check_2": set_memory_limit,
-    "check_3": todo, # memory requests not equal to it's limit
+    "check_3": set_equal_requests,
     "check_4": set_cpu_request,
     "check_5": set_cpu_limit,
-    "check_6": todo, # cpu requests not equal to it's limit
+    "check_6": set_equal_requests, 
     "check_7": set_liveness_probe,
     "check_8": set_readiness_probe,
     "check_9": set_img_digest,
@@ -1500,7 +1782,7 @@ class FuncLookupClass:
     "check_30": set_security_context,
     "check_31": set_seccomp,
     "check_32": set_apparmor,
-    "check_33": set_secrets_as_files, # secrets as files over env vars
+    "check_33": set_secrets_as_files, 
     "check_34": set_capabilities,
     "check_35": set_service_account,
     "check_36": set_service_account,
@@ -1514,7 +1796,7 @@ class FuncLookupClass:
     "check_44": todo, # valid restart policy
     "check_45": set_replicas, # deployment >1 replicas
     "check_46": todo, # owner label
-    "check_47": todo, # access underlying host
+    "check_47": remove_host_path, # access underlying host
     "check_48": set_limit_range, # limit range
     "check_49": set_resource_quota, # resource quota
     "check_50": set_subpath,
@@ -1526,6 +1808,10 @@ class FuncLookupClass:
     "check_57": assign_service,
     "check_58": assign_service_account,
     "check_59": remove_sa_subjects,
+    "check_60": set_pod_disruption_budget,
+    "check_61": remove_nodeport,
+    "check_62": todo,
+    "check_63": set_deadline_seconds
     }
 
     @classmethod

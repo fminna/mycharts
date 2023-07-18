@@ -159,6 +159,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   podManagementPolicy: ''
@@ -174,7 +176,6 @@ spec:
     metadata:
       annotations:
         checksum/configuration: 74f6d694934e49250ce5cfc5e93637df13431c704ef8367a3f69b565dd4aee71
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
         container.apparmor.security.beta.kubernetes.io/mysql: runtime/default
       labels:
         app.kubernetes.io/name: mysql
@@ -259,11 +260,11 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            memory: 1024Mi
-            cpu: 1000m
+            memory: 128Mi
+            cpu: 250m
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql

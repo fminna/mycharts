@@ -197,13 +197,10 @@ spec:
         app.kubernetes.io/managed-by: Helm
       annotations:
     spec:
-      
       securityContext:
         fsGroup: 1001
         runAsUser: 1001
-      affinity:
-        podAffinity:
-          
+      affinity: 
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -213,8 +210,6 @@ spec:
                     app.kubernetes.io/instance: release-name
                 topologyKey: kubernetes.io/hostname
               weight: 1
-        nodeAffinity:
-          
       serviceAccountName: release-name-external-dns
       containers:
         - name: external-dns
@@ -261,8 +256,3 @@ spec:
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 6
-          resources:
-            limits: {}
-            requests: {}
-          volumeMounts:
-      volumes:

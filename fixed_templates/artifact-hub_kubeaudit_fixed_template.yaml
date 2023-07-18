@@ -1,0 +1,694 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hub
+automountServiceAccountToken: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-postgresql
+  labels:
+    app: postgresql
+    chart: postgresql-8.2.1
+    release: release-name
+    heritage: Helm
+type: Opaque
+data:
+  postgresql-password: cG9zdGdyZXM=
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-migrator-config
+type: Opaque
+stringData:
+  tern.conf: '[database]
+
+    host = release-name-postgresql.default
+
+    port = 5432
+
+    database = hub
+
+    user = postgres
+
+    password = postgres
+
+    sslmode = prefer
+
+
+    [data]
+
+    loadSampleData = true'
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hub-config
+type: Opaque
+stringData:
+  hub.yaml: "restrictedHTTPClient: false\nlog:\n  level: info\n  pretty: false\ndb:\n\
+    \  host: release-name-postgresql.default\n  port: 5432\n  database: hub\n  user:\
+    \ postgres\n  password: postgres\nemail:\n  fromName: \n  from: \n  replyTo: \n\
+    \  smtp:\n    auth: plain\n    host: \n    port: 587\n    username: \n    password:\
+    \ \nimages:\n  store: pg\nserver:\n  allowPrivateRepositories: false\n  allowUserSignUp:\
+    \ true\n  bannersURL: \n  baseURL: \n  shutdownTimeout: 10s\n  addr: 0.0.0.0:8000\n\
+    \  metricsAddr: 0.0.0.0:8001\n  webBuildPath: ./web\n  widgetBuildPath: ./widget\n\
+    \  motd: \n  motdSeverity: info\n  basicAuth:\n    enabled: false\n    username:\
+    \ hub\n    password: changeme\n  cookie:\n    hashKey: default-unsafe-key\n  \
+    \  secure: false\n  csrf:\n    authKey: default-unsafe-key\n    secure: false\n\
+    \  oauth:\n  xffIndex: 0\nanalytics:\n  gaTrackingID: \ntheme:\n  colors:\n  \
+    \  primary: \"#417598\"\n    secondary: \"#2D4857\"\n  images:\n    appleTouchIcon192:\
+    \ \"/static/media/logo192_v2.png\"\n    appleTouchIcon512: \"/static/media/logo512_v2.png\"\
+    \n    openGraphImage: \"/static/media/artifactHub_v2.png\"\n    shortcutIcon:\
+    \ \"/static/media/logo_v2.png\"\n    websiteLogo: \"/static/media/logo/artifacthub-brand-white.svg\"\
+    \n  reportURL: \n  sampleQueries:\n  siteName: \"Artifact hub\""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: scanner-config
+type: Opaque
+stringData:
+  scanner.yaml: "restrictedHTTPClient: false\nlog:\n  level: info\n  pretty: false\n\
+    db:\n  host: release-name-postgresql.default\n  port: 5432\n  database: hub\n\
+    \  user: postgres\n  password: postgres\ncreds:\n  dockerUsername: \n  dockerPassword:\
+    \ \nevents:\n  scanningErrors: false\nscanner:\n  concurrency: 3\n  trivyURL:\
+    \ http://trivy:8081"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tracker-config
+type: Opaque
+stringData:
+  tracker.yaml: "restrictedHTTPClient: false\nlog:\n  level: info\n  pretty: false\n\
+    db:\n  host: release-name-postgresql.default\n  port: 5432\n  database: hub\n\
+    \  user: postgres\n  password: postgres\ncreds:\n  dockerUsername: \n  dockerPassword:\
+    \ \nimages:\n  store: pg\nevents:\n  trackingErrors: false\ntracker:\n  concurrency:\
+    \ 10\n  repositoryTimeout: 15m\n  repositoriesNames: []\n  repositoriesKinds:\
+    \ []\n  bypassDigestCheck: false\n  categoryModelPath: ./ml/category/model"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: job-reader
+rules:
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hub-job-reader
+subjects:
+- kind: ServiceAccount
+  name: hub
+roleRef:
+  kind: Role
+  name: job-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-postgresql-headless
+  labels:
+    app: postgresql
+    chart: postgresql-8.2.1
+    release: release-name
+    heritage: Helm
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: tcp-postgresql
+    port: 5432
+    targetPort: tcp-postgresql
+  selector:
+    app: postgresql
+    release: release-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-postgresql
+  labels:
+    app: postgresql
+    chart: postgresql-8.2.1
+    release: release-name
+    heritage: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - name: tcp-postgresql
+    port: 5432
+    targetPort: tcp-postgresql
+  selector:
+    app: postgresql
+    release: release-name
+    role: master
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hub
+  labels:
+    app.kubernetes.io/component: hub
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 1.14.0
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/component: hub
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trivy
+  labels:
+    app.kubernetes.io/component: trivy
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 1.14.0
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8081
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/component: trivy
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hub
+  labels:
+    app.kubernetes.io/component: hub
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 1.14.0
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: hub
+      app.kubernetes.io/name: artifact-hub
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/path: /metrics
+        prometheus.io/port: '8001'
+        container.apparmor.security.beta.kubernetes.io/hub: runtime/default
+        container.apparmor.security.beta.kubernetes.io/check-db-ready: runtime/default
+        container.apparmor.security.beta.kubernetes.io/check-db-migrator-run: runtime/default
+      labels:
+        app.kubernetes.io/component: hub
+        app.kubernetes.io/name: artifact-hub
+        app.kubernetes.io/instance: release-name
+    spec:
+      serviceAccountName: hub
+      initContainers:
+      - name: check-db-ready
+        image: docker.io/artifacthub/postgres:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: PGHOST
+          value: release-name-postgresql.default
+        - name: PGPORT
+          value: '5432'
+        - name: PGUSER
+          value: postgres
+        command:
+        - sh
+        - -c
+        - until pg_isready; do echo waiting for database; sleep 2; done;
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      - name: check-db-migrator-run
+        image: bitnami/kubectl:1.27
+        imagePullPolicy: IfNotPresent
+        command:
+        - kubectl
+        - wait
+        - --namespace=default
+        - --for=condition=complete
+        - job/db-migrator-install
+        - --timeout=60s
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      containers:
+      - name: hub
+        image: artifacthub/hub:v1.14.0
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: hub-config
+          mountPath: /home/hub/.cfg
+          readOnly: true
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      volumes:
+      - name: hub-config
+        secret:
+          secretName: hub-config
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trivy
+  labels:
+    app.kubernetes.io/component: trivy
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 1.14.0
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: trivy
+      app.kubernetes.io/name: artifact-hub
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: trivy
+        app.kubernetes.io/name: artifact-hub
+        app.kubernetes.io/instance: release-name
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/trivy: runtime/default
+    spec:
+      containers:
+      - name: trivy
+        image: aquasec/trivy:0.37.3
+        command:
+        - trivy
+        - --debug
+        - --cache-dir
+        - /trivy
+        - server
+        - --listen
+        - 0.0.0.0:8081
+        volumeMounts:
+        - name: trivy
+          mountPath: /trivy
+        ports:
+        - name: http
+          containerPort: 8081
+          protocol: TCP
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      volumes:
+      - name: trivy
+        emptyDir: {}
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-postgresql
+  labels:
+    app: postgresql
+    chart: postgresql-8.2.1
+    release: release-name
+    heritage: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  serviceName: release-name-postgresql-headless
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: postgresql
+      release: release-name
+      role: master
+  template:
+    metadata:
+      name: release-name-postgresql
+      labels:
+        app: postgresql
+        chart: postgresql-8.2.1
+        release: release-name
+        heritage: Helm
+        role: master
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/release-name-postgresql: runtime/default
+        container.apparmor.security.beta.kubernetes.io/init-chmod-data: runtime/default
+    spec:
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      - name: init-chmod-data
+        image: docker.io/bitnami/minideb:stretch
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        command:
+        - /bin/sh
+        - -c
+        - "mkdir -p /data/data\nchmod 700 /data/data\nfind /data -mindepth 0 -maxdepth\
+          \ 1 -not -name \".snapshot\" -not -name \"lost+found\" | \\\n  xargs chown\
+          \ -R 1001:1001\nchmod -R 777 /dev/shm\n"
+        securityContext:
+          runAsUser: 25000
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - name: data
+          mountPath: /data
+          subPath: null
+        - name: dshm
+          mountPath: /dev/shm
+      containers:
+      - name: release-name-postgresql
+        image: docker.io/artifacthub/postgres:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        securityContext:
+          runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        env:
+        - name: BITNAMI_DEBUG
+          value: 'false'
+        - name: POSTGRESQL_PORT_NUMBER
+          value: '5432'
+        - name: POSTGRESQL_VOLUME_DIR
+          value: /data
+        - name: PGDATA
+          value: /data/pgdata
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-postgresql
+              key: postgresql-password
+        - name: POSTGRES_DB
+          value: hub
+        - name: POSTGRESQL_ENABLE_LDAP
+          value: 'no'
+        ports:
+        - name: tcp-postgresql
+          containerPort: 5432
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - exec pg_isready -U "postgres" -d "hub" -h 127.0.0.1 -p 5432
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - -e
+            - 'exec pg_isready -U "postgres" -d "hub" -h 127.0.0.1 -p 5432
+
+              '
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
+        volumeMounts:
+        - name: dshm
+          mountPath: /dev/shm
+        - name: data
+          mountPath: /data
+          subPath: null
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Gi
+      automountServiceAccountToken: false
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 8Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrator-install
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  ttlSecondsAfterFinished: null
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+      - name: check-db-ready
+        image: docker.io/artifacthub/postgres:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: PGHOST
+          value: release-name-postgresql.default
+        - name: PGPORT
+          value: '5432'
+        - name: PGUSER
+          value: postgres
+        command:
+        - sh
+        - -c
+        - until pg_isready; do echo waiting for database; sleep 2; done;
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      containers:
+      - name: db-migrator
+        image: artifacthub/db-migrator:v1.14.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TERN_CONF
+          value: /home/db-migrator/.cfg/tern.conf
+        volumeMounts:
+        - name: db-migrator-config
+          mountPath: /home/db-migrator/.cfg
+          readOnly: true
+        command:
+        - ./migrate.sh
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      volumes:
+      - name: db-migrator-config
+        secret:
+          secretName: db-migrator-config
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+    metadata:
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/db-migrator: runtime/default
+        container.apparmor.security.beta.kubernetes.io/check-db-ready: runtime/default
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scanner
+spec:
+  schedule: 15,45 * * * *
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          initContainers:
+          - name: check-db-ready
+            image: docker.io/artifacthub/postgres:latest
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: PGHOST
+              value: release-name-postgresql.default
+            - name: PGPORT
+              value: '5432'
+            - name: PGUSER
+              value: postgres
+            command:
+            - sh
+            - -c
+            - until pg_isready; do echo waiting for database; sleep 2; done;
+          containers:
+          - name: scanner
+            image: artifacthub/scanner:v1.14.0
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+            - name: scanner-config
+              mountPath: /home/scanner/.cfg
+              readOnly: true
+          volumes:
+          - name: scanner-config
+            secret:
+              secretName: scanner-config
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tracker
+spec:
+  schedule: 1,30 * * * *
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          initContainers:
+          - name: check-db-ready
+            image: docker.io/artifacthub/postgres:latest
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: PGHOST
+              value: release-name-postgresql.default
+            - name: PGPORT
+              value: '5432'
+            - name: PGUSER
+              value: postgres
+            command:
+            - sh
+            - -c
+            - until pg_isready; do echo waiting for database; sleep 2; done;
+          containers:
+          - name: tracker
+            image: artifacthub/tracker:v1.14.0
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+            - name: tracker-config
+              mountPath: /home/tracker/.cfg
+              readOnly: true
+          volumes:
+          - name: tracker-config
+            secret:
+              secretName: tracker-config
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hub
+  labels:
+    app.kubernetes.io/component: hub
+    helm.sh/chart: artifact-hub-1.14.0
+    app.kubernetes.io/name: artifact-hub
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 1.14.0
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  defaultBackend:
+    service:
+      name: hub
+      port:
+        number: 80

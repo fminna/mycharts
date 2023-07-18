@@ -2,7 +2,7 @@
 # Source: consul/templates/connect-injector-disruptionbudget.yaml
 # PodDisruptionBudget to prevent degrading the connectInject cluster through
 # voluntary cluster changes.
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: release-name-consul-connect-injector
@@ -24,7 +24,7 @@ spec:
 # Source: consul/templates/server-disruptionbudget.yaml
 # PodDisruptionBudget to prevent degrading the server cluster through
 # voluntary cluster changes.
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: release-name-consul-server
@@ -164,7 +164,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
   name: exportedservices.consul.hashicorp.com
   labels:
     app: consul
@@ -306,7 +305,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
+  
   name: ingressgateways.consul.hashicorp.com
   labels:
     app: consul
@@ -682,7 +681,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
+  
   name: meshes.consul.hashicorp.com
   labels:
     app: consul
@@ -891,7 +890,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
+  
   name: proxydefaults.consul.hashicorp.com
   labels:
     app: consul
@@ -1124,7 +1123,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
+  
   name: servicedefaults.consul.hashicorp.com
   labels:
     app: consul
@@ -1614,7 +1613,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
+  
   name: serviceintentions.consul.hashicorp.com
   labels:
     app: consul
@@ -1854,7 +1853,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
+  
   name: serviceresolvers.consul.hashicorp.com
   labels:
     app: consul
@@ -2171,7 +2170,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
+  
   name: servicerouters.consul.hashicorp.com
   labels:
     app: consul
@@ -2490,7 +2489,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
+  
   name: servicesplitters.consul.hashicorp.com
   labels:
     app: consul
@@ -2683,7 +2682,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
-  creationTimestamp: null
+  
   name: terminatinggateways.consul.hashicorp.com
   labels:
     app: consul
@@ -3552,8 +3551,6 @@ spec:
             requests:
               cpu: 100m
               memory: 100Mi
-          securityContext:
-            null
   volumeClaimTemplates:
     - metadata:
         name: data-default

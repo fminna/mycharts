@@ -314,8 +314,7 @@ spec:
     spec:
       serviceAccountName: hub
       initContainers:
-        -
-          name: check-db-ready
+        - name: check-db-ready
           image: docker.io/artifacthub/postgres:latest
           imagePullPolicy: IfNotPresent
           env:
@@ -566,7 +565,7 @@ spec:
             secretName: db-migrator-config
 ---
 # Source: artifact-hub/templates/scanner_cronjob.yaml
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: scanner
@@ -607,7 +606,7 @@ spec:
                 secretName: scanner-config
 ---
 # Source: artifact-hub/templates/tracker_cronjob.yaml
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: tracker

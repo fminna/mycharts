@@ -166,7 +166,11 @@ class LookupClass:
         "CONTAINER_CVE2021_25741_INCORRECT_SUBPATH_KEY": "check_50",
         "CIS_INVALID_VERB_SECRETS": "check_54",
         "CONTAINERS_INCORRECT_RESOURCES_VERBS_VALUE": "check_54",
-        "EKS_INVALID_CAPABILITIES_EKS": "check_34"
+        "EKS_INVALID_CAPABILITIES_EKS": "check_34",
+        "CIS_INVALID_VALUE_CREATE_POD": "check_54",
+        "CIS_INVALID_WILDCARD_ROLE": "check_54",
+        "CIS_INVALID_VALUE_BIND_IMPERSONATE_ESCALATE": "check_54",
+        "CONTAINERS_INCORRECT_KEY_HOSTPATH": "check_47"
     }
 
     @classmethod

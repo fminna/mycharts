@@ -17,6 +17,7 @@
 
 from typing import Callable
 import json
+import re
 import kubeaudit_fix_chart
 import fix_template
 
@@ -40,30 +41,51 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
 
     print("Starting to fix chart's issues ...\n")
 
-    for resource in results["results"]:
-        # Extract current resource path
-        resource_path = resource["resourceID"].split("/")
+    for result in results["results"]:
+        resources_path = result["resourceID"]
+        resource_list = []
+        aux_path = ""
 
+        # Multiple resources
+        if resources_path.count("path") > 1:
+            # Split result["resourceID"] by this substring "path=*/api=*/v1/""
+            regex_pattern = r"path=[\d]+/api=[\w.]+/v1"
+            aux_path_list = re.split(regex_pattern, resources_path)
 
-        # print(resource_path)
-        # print(resource_path[-3])
+            for sub_path in aux_path_list:
+                aux_sub_path = sub_path.split("/")
+                aux_sub_path = [x for x in aux_sub_path if x != ""]
 
+                if aux_sub_path:
+                    # If there is no namespace, add "default" at the beginning
+                    if len(aux_sub_path) < 3:
+                        aux_sub_path.insert(0, "default")
+                    aux_sub_path = f"{aux_sub_path[-2]}/{aux_sub_path[-3]}/{aux_sub_path[-1]}"
+                    resource_list.append(aux_sub_path)
 
-        resource_path = f"{resource_path[-2]}/{resource_path[-3]}/{resource_path[-1]}"
+        else:
+            aux_path = result["resourceID"].split("/")
+            aux_path = f"{aux_path[-2]}/{aux_path[-3]}/{aux_path[-1]}"
+            aux_path = aux_path.replace("//", "/default/")
+            resource_list.append(aux_path)
 
-        # Extract only failed checks "status": { "status": "failed" }
-        for control in resource["controls"]:
-            if control["status"]["status"] == "failed":
+        print(resource_list)
 
-                print(f"{control['controlID']}: {control['name']}")
-                check_id = fix_issue(control, resource_path, template)
+        # Fix for all resources
+        for resource_path in resource_list:
+            # Extract only failed checks "status": { "status": "failed" }
+            for control in result["controls"]:
+                if control["status"]["status"] == "failed":
 
-                for rule in control["rules"]:
-                    if "paths" in rule:
-                        for _ in rule["paths"]:
-                            all_checks.append(check_id)
-                    else:
-                        all_checks.append(check_id)
+                    print(f"{control['controlID']}: {control['name']}")
+                    check_id = fix_issue(control, resource_path, template)
+
+                    for rule in control["rules"]:
+                        if "paths" in rule:
+                            for _ in rule["paths"]:
+                                all_checks.extend(check_id)
+                        else:
+                            all_checks.extend(check_id)
 
     print("\nAll issues fixed!\n")
 
@@ -86,7 +108,7 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     fix_template.save_yaml_template(template, name)
 
 
-def fix_issue(control: str, resource_path: str, template: dict) -> str:
+def fix_issue(control: str, resource_path: str, template: dict) -> list:
     """Fixes an issue based on the Kubescape check ID.
 
     Source: https://hub.armosec.io/docs/controls
@@ -95,6 +117,9 @@ def fix_issue(control: str, resource_path: str, template: dict) -> str:
         control (dict): The dictionary representing a check to fix.
         resource_path (str): The path to the resource to fix.
         template (dict): The parsed YAML template.
+
+    Returns:
+        check_id_list (list): A list of all checks that were fixed.
     """
 
     # Get function from lookup dictionary
@@ -103,8 +128,13 @@ def fix_issue(control: str, resource_path: str, template: dict) -> str:
 
     # Check if the function exists and call it
     if check_id is not None:
-        for rule in control["rules"]:
+        check_id_list = []
 
+        for rule in control["rules"]:
+            paths = {
+                    "resource_path": resource_path,
+                    "obj_path": ""
+            }
             if "paths" in rule:
                 for path in rule["paths"]:
                     obj_path = path["fixPath"]["path"]
@@ -128,69 +158,83 @@ def fix_issue(control: str, resource_path: str, template: dict) -> str:
                         obj_path = obj_path.split(".")[:-2]
                         obj_path = ".".join(obj_path)
 
-                    obj_path = obj_path.replace(".", "/")
-
-                    paths = {
-                        "resource_path": resource_path,
-                        "obj_path": obj_path
-                    }
-            else: # then there is no "paths"
-                paths = {
-                        "resource_path": resource_path,
-                        "obj_path": ""
-                }
-
-            # Memory requests & limits
-            if control["controlID"] == "C-0004":
-                fix_template.set_template(template, "check_1", paths)
-                fix_template.set_template(template, "check_2", paths)
-                return "check_1, check_2"
-
-            # CPU requests & limits
-            elif control["controlID"] == "C-0050":
-                fix_template.set_template(template, "check_4", paths)
-                fix_template.set_template(template, "check_5", paths)
-                return "check_4, check_5"
-
-            # Memory & CPU limits
-            elif control["controlID"] == "C-0009":
-                fix_template.set_template(template, "check_2", paths)
-                fix_template.set_template(template, "check_5", paths)
-                return "check_2, check_5"
-
-            # Linux hardening - AppArmor/Seccomp/SELinux/Capabilities
-            elif control["controlID"] == "C-0055":
-                fix_template.set_template(template, "check_31", paths)
-                # SeLinux ?
-                fix_template.set_template(template, "check_34", paths)
-                cont_name = kubeaudit_fix_chart.get_cont_name(template, resource_path, obj_path)
-                paths["obj_path"] = cont_name
-                fix_template.set_template(template, "check_32", paths)
-                return "check_31, check_32, check_34"
-
-            # Host PID/IPC privileges
-            elif control["controlID"] == "C-0038":
-                fix_template.set_template(template, "check_10", paths)
-                fix_template.set_template(template, "check_11", paths)
-                return "check_10, check_11"
-
-            # CVE-2022-0492-cgroups-container-escape
-            elif control["controlID"] == "C-0086":
-                fix_template.set_template(template, "check_22", paths)
-                fix_template.set_template(template, "check_28", paths)
-                fix_template.set_template(template, "check_34", paths)
-                cont_name = kubeaudit_fix_chart.get_cont_name(template, resource_path, obj_path)
-                paths["obj_path"] = cont_name
-                # fix_template.set_template(template, "check_32", paths)
-                return "check_22, check_28, check_34"
-
+                    paths["obj_path"] = obj_path.replace(".", "/")
+                    aux_id = fix_resource(template, control["controlID"], check_id, paths)
             else:
-                fix_template.set_template(template, check_id, paths)
-                return check_id
+                aux_id = fix_resource(template, control["controlID"], check_id, paths)
+
+            check_id_list.extend(aux_id)
+        return check_id_list
 
     else:
         print("No fix found for check ID: " + control["controlID"])
         return None
+
+
+def fix_resource(template: dict, control_id: str, check_id: str, paths: dict) -> list:
+    """Fixes a resource based on the Kubescape check ID.
+    
+    Args:
+        template (dict): The parsed YAML template.
+        control_id (str): The Kubescape control ID.
+        check_id (str): The general check ID.
+        paths (dict): The paths to the resource to fix.
+    
+    Returns:
+        (list): A list of all checks that were fixed.
+    """
+
+    # Memory requests & limits
+    if control_id == "C-0004":
+        fix_template.set_template(template, "check_1", paths)
+        fix_template.set_template(template, "check_2", paths)
+        return ["check_1", "check_2"]
+
+    # CPU requests & limits
+    elif control_id == "C-0050":
+        fix_template.set_template(template, "check_4", paths)
+        fix_template.set_template(template, "check_5", paths)
+        return ["check_4", "check_5"]
+
+    # Memory & CPU limits
+    elif control_id == "C-0009":
+        fix_template.set_template(template, "check_2", paths)
+        fix_template.set_template(template, "check_5", paths)
+        return ["check_2", "check_5"]
+
+    # Linux hardening - AppArmor/Seccomp/SELinux/Capabilities
+    elif control_id == "C-0055":
+        fix_template.set_template(template, "check_31", paths)
+        # SeLinux ?
+        fix_template.set_template(template, "check_34", paths)
+        cont_name = kubeaudit_fix_chart.get_cont_name(template, \
+                                                      paths["resource_path"], \
+                                                      paths["obj_path"])
+        paths["obj_path"] = cont_name
+        fix_template.set_template(template, "check_32", paths)
+        return ["check_31", "check_32", "check_34"]
+
+    # Host PID/IPC privileges
+    elif control_id == "C-0038":
+        fix_template.set_template(template, "check_10", paths)
+        fix_template.set_template(template, "check_11", paths)
+        return ["check_10", "check_11"]
+
+    # CVE-2022-0492-cgroups-container-escape
+    elif control_id == "C-0086":
+        fix_template.set_template(template, "check_22", paths)
+        fix_template.set_template(template, "check_28", paths)
+        fix_template.set_template(template, "check_34", paths)
+        cont_name = kubeaudit_fix_chart.get_cont_name(template, \
+                                                      paths["resource_path"], \
+                                                      paths["obj_path"])
+        paths["obj_path"] = cont_name
+        # fix_template.set_template(template, "check_32", paths)
+        return ["check_22", "check_28", "check_34"]
+
+    else:
+        fix_template.set_template(template, check_id, paths)
+        return [check_id]
 
 
 class LookupClass:
@@ -198,6 +242,8 @@ class LookupClass:
     """
 
     _LOOKUP = {
+        "C-0002": "check_54",
+        "C-0007": "check_54",
         "C-0075": "check_0",
         "C-0004": "check_1",
         "C-0009": "check_4",
@@ -224,6 +270,7 @@ class LookupClass:
         "C-0048": "check_46",
         "C-0030": "check_40",
         "C-0053": "check_35",
+        "C-0015": "check_54"
     }
 
     @classmethod

@@ -155,7 +155,6 @@ metadata:
     heritage: Helm
     release: release-name
 spec:
-  # TODO: Investigate how/if nfs-provisioner can be scaled out beyond 1 replica
   replicas: 1
   selector:
     matchLabels:
@@ -170,7 +169,6 @@ spec:
         heritage: Helm
         release: release-name
     spec:
-      # NOTE: This is 10 seconds longer than the default nfs-provisioner --grace-period value of 90sec
       terminationGracePeriodSeconds: 100
       serviceAccountName: release-name-nfs-server-provisioner
       containers:

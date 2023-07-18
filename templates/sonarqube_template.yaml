@@ -23,7 +23,6 @@ metadata:
   name: release-name-sonarqube-monitoring-passcode
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
 type: Opaque
@@ -37,7 +36,6 @@ metadata:
   name: release-name-sonarqube-config
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
 data:
@@ -50,7 +48,6 @@ metadata:
   name: release-name-sonarqube-init-fs
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
 data:
@@ -63,7 +60,6 @@ metadata:
   name: release-name-sonarqube-init-sysctl
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
 data:
@@ -94,7 +90,6 @@ metadata:
   name: release-name-sonarqube-install-plugins
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
 data:
@@ -107,7 +102,6 @@ metadata:
   name: release-name-sonarqube-jdbc-config
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
 data:
@@ -121,7 +115,6 @@ metadata:
   name: release-name-sonarqube-tests
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
 data:
@@ -191,12 +184,11 @@ metadata:
   name: release-name-sonarqube
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
-
 spec:
   type: ClusterIP
+  clusterIP: None
   ports:
     - port: 9000
       targetPort: http
@@ -226,6 +218,7 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
+      app: sonarqube
       app.kubernetes.io/name: postgresql
       app.kubernetes.io/instance: release-name
       role: primary
@@ -367,7 +360,6 @@ metadata:
   name: release-name-sonarqube
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
     app.kubernetes.io/name: sonarqube-release-name-sonarqube
@@ -543,7 +535,6 @@ metadata:
     "helm.sh/hook": test-success
   labels:
     app: sonarqube
-    chart: sonarqube-10.0.0_521
     release: release-name
     heritage: Helm
 spec:

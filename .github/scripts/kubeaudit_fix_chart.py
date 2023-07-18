@@ -177,6 +177,7 @@ class LookupClass:
     """
 
     _LOOKUP = {
+        "NamespaceHostPIDTrue": "check_10",
         "AppArmorAnnotationMissing": "check_32", 
         "AppArmorInvalidAnnotation": "check_32",
         "CapabilityOrSecurityContextMissing": "check_34", 
@@ -193,9 +194,13 @@ class LookupClass:
         "RunAsNonRootPSCNilCSCNil": "check_28",
         "CapabilityAdded": "check_34",
         "CapabilityShouldDropAll": "check_34",
-        "NamespacehostPIDTrue": "check_10",
         "NamespaceHosthostIPCTrue": "check_11",
-        "NamespaceHostNetworkTrue": "check_12"
+        "NamespaceHostNetworkTrue": "check_12",
+        "AllowPrivilegeEscalationTrue": "check_22",
+        "SensitivePathsMounted": "check_47",
+        "RunAsUserPSCRoot": "check_13",
+        "RunAsUserCSCRoot": "check_13",
+        "PrivilegedTrue": "check_21"
     }
 
     @classmethod

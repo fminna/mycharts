@@ -41,6 +41,12 @@ echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
 terrascan scan -i k8s -f fixed_templates/${chart_name}_${tool}_fixed_template.yaml
 
+
+
+exit(0)
+
+
+
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"
 echo "Step 4 - Add functionalities"

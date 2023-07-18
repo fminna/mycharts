@@ -239,7 +239,7 @@ metadata:
 spec:
   containers:
     - name: wget
-      image: "busybox:latest"
+      image: "busybox:1.36.1-glibc"
       imagePullPolicy: Always
       command: ['wget']
       args: ['release-name-fluent-bit:2020']

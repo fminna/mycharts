@@ -41,6 +41,8 @@ echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
 kubeaudit all -f fixed_templates/${chart_name}_${tool}_fixed_template.yaml --minseverity "error"
 
+exit(0)
+
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"
 echo "Step 4 - Add functionalities"

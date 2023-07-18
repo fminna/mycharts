@@ -243,7 +243,7 @@ metadata:
 spec:
   containers:
   - name: hook1-container
-    image: curlimages/curl
+    image: "docker.io/curlimages/curl:8.1.2"
     imagePullPolicy: IfNotPresent
     command: ['sh', '-c', 'curl http://release-name-pihole-web:80/']
   restartPolicy: Never

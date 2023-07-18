@@ -39,7 +39,7 @@ python .github/scripts/main.py --check
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
-helm datree test fixed_templates/${chart_name}_${tool}_fixed_template.yaml --only-k8s-files --quiet --output json > test_files/datree_results.json
+helm datree test fixed_templates/${chart_name}_${tool}_fixed_template.yaml --only-k8s-files --quiet
 
 
 exit(0)

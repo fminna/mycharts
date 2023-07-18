@@ -16,7 +16,7 @@
 """
 
 from typing import Callable
-import yaml
+import copy
 import json
 import re
 import fix_template
@@ -132,13 +132,14 @@ def fix_issue(check: str, template: dict) -> str:
 
     # Check if the function exists and call it
     if check_id is not None:
-        for file in check["files"]:
+        for jdx, file in enumerate(check["files"]):
 
             resource_path = file["resource_type"] + "/" + \
                             file["resource_name"]
             obj_path = file["search_key"]
 
-            no_path_checks = ["check_26", "check_48", "check_49", "check_53"]
+            no_path_checks = ["check_26", "check_36", "check_48", "check_49", "check_53", \
+                              "check_61"]
             if check_id in no_path_checks:
                 obj_path = ""
 
@@ -165,10 +166,12 @@ def fix_issue(check: str, template: dict) -> str:
                     if idx:
                         obj_path += "/" + idx
 
-            if check_id == "check_23":
-                obj_path = "spec/template/spec/containers/" + str(idx)
+            #     if "containers" in obj_path:
+            #         obj_path = f"spec/template/spec/containers/{str(idx)}"
+            #     elif "initContainers" in obj_path:
+            #         obj_path = f"spec/template/spec/initContainers/{str(idx)}"
 
-            elif check_id == "check_52":
+            if check_id == "check_52":
                 obj_path = obj_path.replace(".", "/")
                 obj_path = obj_path.replace("volumeClaimTemplates", "volumeClaimTemplates/0")
                 # Delete the last part of obj_path after requests
@@ -179,8 +182,73 @@ def fix_issue(check: str, template: dict) -> str:
                 "obj_path": obj_path
             }
 
+            if "." in obj_path:
+                paths["obj_path"] = obj_path.replace(".", "/")
+
             if check_id == "check_53":
-                paths["value"] = get_headless_service_name(template)
+                service_name = get_headless_service_name(template)
+
+                if not service_name:
+                    # Get StatefulSet object
+                    stateful_set = get_resource_dict(template, resource_path.split("/"))
+
+                    if "serviceName" in stateful_set["spec"]:
+                        service_name = stateful_set["spec"]["serviceName"]
+
+                        # Build Service service_path
+                        service_path = "Service/"
+                        if "namespace" in stateful_set["metadata"]:
+                            service_path += f"{stateful_set['metadata']['namespace']}/"
+                        else:
+                            service_path += "default/"
+                        service_path += service_name
+
+                        # Find Service and add ClusterIP: None
+                        service = get_resource_dict(template, service_path.split("/"))
+                        service["spec"]["clusterIP"] = "None"
+
+                    else:
+                        print("TODO: create headless service for statefulset!")
+
+                paths["value"] = service_name
+
+            elif check_id == "check_62":
+                if jdx == 0:
+                    continue
+                # Get the shared Service Account
+                k8s_resource = get_resource_dict(template, resource_path.split("/"))
+                sa_resource_path = "ServiceAccount/"
+                if "namespace" in k8s_resource["metadata"]:
+                    sa_resource_path += k8s_resource["metadata"]["namespace"] + "/"
+                else:
+                    sa_resource_path += "default/"
+                if "template" in k8s_resource["spec"]:
+                    k8s_resource = k8s_resource["spec"]["template"]["spec"]
+                else:
+                    k8s_resource = k8s_resource["spec"]
+
+                sa_resource_path += k8s_resource["serviceAccountName"]
+                service_account = get_resource_dict(template, sa_resource_path.split("/"))
+                service_account = copy.copy(service_account)
+                # Set new name
+                service_account["metadata"]["name"] = "test-SA" + str(jdx)
+                if "namespace" in service_account["metadata"] and \
+                        service_account["metadata"]["namespace"] == "default":
+                    service_account["metadata"]["namespace"] = "test-ns"
+                # Append new SA to the template
+                template.append(service_account)
+                # Add value to paths
+                paths["value"] = "test-SA" + str(jdx)
+                paths["obj_path"] = paths["obj_path"].replace("/serviceAccountName", "")
+                check_id = "check_37"
+
+            checks_remove_last = ["check_10", "check_11", "check_12"]
+            if check_id in checks_remove_last:
+                # Remove last part of paths["obj_path"] after the last "/"
+                paths["obj_path"] = "/".join(paths["obj_path"].split("/")[:-1])
+
+            if check["query_id"] == "268ca686-7fb7-4ae9-b129-955a2a89064e":
+                return check_id
 
             fix_template.set_template(template, check_id, paths)
 
@@ -190,6 +258,47 @@ def fix_issue(check: str, template: dict) -> str:
     else:
         print("No fix found for check ID: " + check["query_id"])
         return None
+
+
+def get_resource_dict(template: dict, resource_path: str) -> dict:
+    """Gets a K8s object from the YAML template.
+    
+    Args:
+        template (dict): The parsed YAML template.
+        resource_path (str): The path to the resource in the YAML template.
+        
+    Returns:
+        document (dict): The K8s resource object.
+    """
+
+    for document in template:
+        if document["kind"] == resource_path[0]:
+            if "namespace" in document["metadata"]:
+
+                # Ignore default ns
+                if document["metadata"]["namespace"] == "default":
+                    if document["metadata"]["name"] == resource_path[-1]:
+                        return document
+
+                # If the namespace was added during fixing, ignore it
+                elif document["metadata"]["namespace"] == "test-ns":
+                    if document["metadata"]["name"] == resource_path[-1]:
+                        return document
+
+                elif document["metadata"]["namespace"] == resource_path[1]:
+                    if document["metadata"]["name"] == resource_path[-1]:
+                        return document
+
+                elif document["metadata"]["namespace"] == resource_path[1] and \
+                    document["metadata"]["name"] == resource_path[-1]:
+                    return document
+
+            elif resource_path[1] == "default":
+                if document["metadata"]["name"] == resource_path[-1]:
+                    return document
+
+            elif document["metadata"]["name"] == resource_path[1]:
+                return document
 
 
 def get_headless_service_name(template: dict) -> str:
@@ -203,9 +312,11 @@ def get_headless_service_name(template: dict) -> str:
     """
 
     for document in template:
-        if document["kind"] == "Service" and \
-            document["spec"]["clusterIP"] == "None":
-            return document["metadata"]["name"]
+        if document["kind"] == "Service":
+            if "clusterIP" in document["spec"] and document["spec"]["clusterIP"] is not None and \
+                document["spec"]["clusterIP"]:
+                if document["spec"]["clusterIP"] == "None":
+                    return document["metadata"]["name"]
 
     return ""
 
@@ -278,8 +389,8 @@ class LookupClass:
         "235236ee-ad78-4065-bd29-61b061f28ce0": "check_23",
         "19ebaa28-fc86-4a58-bcfa-015c9e22fe40": "check_23",
         "302736f4-b16c-41b8-befe-c0baffa0bd9d": "check_10",
-        "6b6bdfb3-c3ae-44cb-88e4-7405c1ba2c8a": "check_11",
-        "cd290efd-6c82-4e9d-a698-be12ae31d536": "check_12",
+        "cd290efd-6c82-4e9d-a698-be12ae31d536": "check_11",
+        "6b6bdfb3-c3ae-44cb-88e4-7405c1ba2c8a": "check_12",
         "caa3479d-885d-4882-9aac-95e5e78ef5c2": "check_25",
         "3d658f8b-d988-41a0-a841-40043121de1e": "check_33",
         "8cf4671a-cf3d-46fc-8389-21e7405063a2": "check_52",
@@ -287,7 +398,15 @@ class LookupClass:
         "b7652612-de4e-4466-a0bf-1cd81f0c6063": "check_55",
         "845acfbe-3e10-4b8e-b656-3b404d36dfb2": "check_56",
         "056ac60e-fe07-4acc-9b34-8e1d51716ab9": "check_54",
-        "b7bca5c4-1dab-4c2c-8cbe-3050b9d59b14": "check_54"
+        "b7bca5c4-1dab-4c2c-8cbe-3050b9d59b14": "check_54",
+        "1db3a5a5-bf75-44e5-9e44-c56cfc8b1ac5": "check_60",
+        "26763a1c-5dda-4772-b507-5fca7fb5f165": "check_61",
+        "aee3c7d2-a811-4201-90c7-11c028be9a46": "check_6",
+        "c1032cf7-3628-44e2-bd53-38c17cf31b6b": "check_62",
+        "592ad21d-ad9b-46c6-8d2d-fad09d62a942": "check_54",
+        "aa8f7a35-9923-4cad-bd61-a19b7f6aac91": "check_47",
+        "5308a7a8-06f8-45ac-bf10-791fe21de46e": "check_47",
+        "192fe40b-b1c3-448a-aba2-6cc19a300fe3": "check_63"
     }
 
     @classmethod

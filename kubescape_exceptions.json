@@ -1,0 +1,22 @@
+[
+    {
+        "name": "Forbidden Container Registries",
+        "policyType": "postureExceptionPolicy",
+        "actions": [
+            "alertOnly"
+        ],
+        "resources": [
+            {
+                "designatorType": "Attributes",
+                "attributes": {
+                    "kind": ".*"
+                }
+            }
+        ],
+        "posturePolicies": [
+            {
+                "controlID": "C-0001" 
+            }
+        ]
+    }
+]

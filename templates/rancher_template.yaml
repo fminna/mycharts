@@ -182,7 +182,7 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - 
+    - "host"
     secretName: tls-rancher-ingress
 ---
 # Source: rancher/templates/validate-psp-install.yaml
@@ -217,7 +217,7 @@ globalDefault: false
 description: "Priority class used by pods critical to rancher's functionality."
 ---
 # Source: rancher/templates/post-delete-hook-psp.yaml
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodSecurityPolicy
 metadata:
   name: release-name-rancher-post-delete

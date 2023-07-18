@@ -18,6 +18,7 @@
 from typing import Callable
 import json
 import fix_template
+import kics_fix_chart
 
 
 def iterate_checks(chart_folder: str, json_path: str) -> None:
@@ -40,10 +41,14 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     if "Reports" in results:
         print("Starting to fix chart's issues ...\n")
 
-        for check in results["Reports"]:
-            print(f"{check['Check']}: {check['Diagnostic']['Message']}")
-            check_id = fix_issue(check, template)
-            all_checks.append(check_id)
+        if "Reports" not in results or results["Reports"] is None or not results["Reports"]:
+            pass
+
+        else:
+            for check in results["Reports"]:
+                print(f"{check['Check']}: {check['Diagnostic']['Message']}")
+                check_id = fix_issue(check, template)
+                all_checks.append(check_id)
 
     print("\nAll issues fixed!\n")
 
@@ -79,20 +84,34 @@ def get_container_path(template: dict, resource_path: str, cont_name: str) -> st
     """
 
     cont_path = ""
-
     for document in template:
-        if fix_template.check_resource_path(resource_path.split("/"), document):
+        aux_path = ""
 
+        if fix_template.check_resource_path(resource_path.split("/"), document):
             document = document["spec"]
             cont_path += "spec/"
 
             if "template" in document:
                 document = document["template"]["spec"]
                 cont_path += "template/spec/"
+            elif "jobTemplate" in document:
+                document = document["jobTemplate"]["spec"]["template"]["spec"]
+                cont_path += "jobTemplate/spec/template/spec/"
 
             for idx, container in enumerate(document["containers"]):
                 if container["name"] == cont_name:
-                    cont_path += "containers/" + str(idx)
+                    aux_path = "containers/" + str(idx)
+                    break
+
+            if not aux_path and "initContainers" in document:
+                for idx, container in enumerate(document["initContainers"]):
+                    if container["name"] == cont_name:
+                        aux_path = "initContainers/" + str(idx)
+                        break
+
+        if aux_path:
+            cont_path += aux_path
+            break
 
     return cont_path
 
@@ -117,6 +136,8 @@ def fix_issue(check: str, template: dict) -> str:
         # resource["kind"]["namespace"]["name"]
         kind = check["Object"]["K8sObject"]["GroupVersionKind"]["Kind"]
         namespace = check["Object"]["K8sObject"]["Namespace"]
+        if not namespace:
+            namespace = "default"
         name = check["Object"]["K8sObject"]["Name"]
         resource_path = f"{kind}/{namespace}/{name}"
 
@@ -138,6 +159,25 @@ def fix_issue(check: str, template: dict) -> str:
         if check["Check"] == "unset-memory-requirements":
             fix_template.set_template(template, "check_1", paths)
             fix_template.set_template(template, "check_2", paths)
+
+            k8s_resource = kics_fix_chart.get_resource_dict(template, resource_path.split("/"))
+
+            if k8s_resource and k8s_resource is not None:
+                if "spec" in k8s_resource:
+                    k8s_resource = k8s_resource["spec"]
+                    if "template" in k8s_resource:
+                        k8s_resource = k8s_resource["template"]["spec"]
+                    elif "jobTemplate" in k8s_resource:
+                        k8s_resource = k8s_resource["jobTemplate"]["spec"]["template"]["spec"]
+
+                # if "initContainers" in k8s_resource and k8s_resource["initContainers"] is not None:
+                #     for idx, container in enumerate(k8s_resource["initContainers"]):
+                        # paths["obj_path"] = paths["obj_path"].replace("containers", "initContainers")
+                        # Replace the container index with idx
+                        # paths["obj_path"] = paths["obj_path"].replace(paths["obj_path"].split("/")[-1], str(idx))
+                        # fix_template.set_template(template, "check_1", paths)
+                        # fix_template.set_template(template, "check_2", paths)
+
             return "check_1, check_2"
 
         # CPU limits & requests
