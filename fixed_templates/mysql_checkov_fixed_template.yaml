@@ -207,14 +207,13 @@ spec:
         image: docker.io/bitnami/mysql:8-oracle@sha256:47e045b6313ef483654ac47c31e6fdbfc6ecf6b399a65c03859bee2cfbb1621f
         imagePullPolicy: Always
         securityContext:
-          runAsNonRoot: false
-          runAsUser: 1001
+          runAsNonRoot: true
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          runAsGroup: 25000
+          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

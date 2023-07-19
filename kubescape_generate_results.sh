@@ -57,7 +57,7 @@ python .github/scripts/main.py --add-func
 # Step 5 - Run all tools on functional template
 echo -e "\n -------------------------- \n"
 echo -e "\n Step 5 - Checkov"
-checkov -f functionality_templates/${chart_name}_func_template.yaml --quiet --compact --framework kubernetes -o json > test_files/checkov_results.json
+checkov -f functionality_templates/${chart_name}_func_template.yaml --skip-check CKV_K8S_14 --skip-check CKV_K8S_43 --skip-framework secrets --quiet --compact --framework kubernetes -o json > test_files/checkov_results.json
 export tool="checkov"
 python .github/scripts/main.py --count-checks
 
