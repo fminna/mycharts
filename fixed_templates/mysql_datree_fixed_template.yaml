@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -17,7 +17,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -32,7 +32,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -102,7 +102,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql-headless
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -126,7 +126,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -159,8 +159,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   podManagementPolicy: ''
@@ -198,27 +196,26 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        seccompProfile:
-          type: RuntimeDefault
-        runAsUser: 25000
-      initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8-oracle@sha256:47e045b6313ef483654ac47c31e6fdbfc6ecf6b399a65c03859bee2cfbb1621f
-        imagePullPolicy: Always
+        image: docker.io/bitnami/mysql:8.0.32-debian-11-r21
+        imagePullPolicy: IfNotPresent
         securityContext:
           runAsNonRoot: true
           runAsUser: 25000
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-mysql
+              key: mysql-root-password
         - name: MYSQL_DATABASE
           value: my_database
+        envFrom: null
         ports:
         - name: mysql
           containerPort: 3306
@@ -263,28 +260,19 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
           requests:
             memory: 128Mi
-            cpu: 250m
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
         - name: config
           mountPath: /opt/bitnami/mysql/conf/my.cnf
           subPath: my.cnf
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       volumes:
       - name: config
         configMap:
           name: release-name-mysql
-      - name: secret-volume
-        secret:
-          secretName: my-secret
-      automountServiceAccountToken: false
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -299,47 +287,3 @@ spec:
       resources:
         requests:
           storage: 8Gi
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
