@@ -97,16 +97,8 @@ def find_resource_idx(template: dict, resource_path: str, obj_path: str, obj_nam
             objects = document
 
             for key in keys:
-
-                if key == "containers" and "template" in objects:
-                    objects = objects["template"]["spec"]
-
-                elif key == "initContainers" and "template" in objects:
-                    objects = objects["template"]["spec"]
-
-                elif key == "env":
-                    break
-
+                if key not in objects:
+                    return ""
                 objects = objects[key]
 
             for idx, obj in enumerate(objects):
@@ -139,7 +131,7 @@ def fix_issue(check: str, template: dict) -> str:
             obj_path = file["search_key"]
 
             no_path_checks = ["check_26", "check_36", "check_48", "check_49", "check_53", \
-                              "check_61"]
+                              "check_56", "check_65"]
             if check_id in no_path_checks:
                 obj_path = ""
 
@@ -400,13 +392,15 @@ class LookupClass:
         "056ac60e-fe07-4acc-9b34-8e1d51716ab9": "check_54",
         "b7bca5c4-1dab-4c2c-8cbe-3050b9d59b14": "check_54",
         "1db3a5a5-bf75-44e5-9e44-c56cfc8b1ac5": "check_60",
-        "26763a1c-5dda-4772-b507-5fca7fb5f165": "check_61",
+        "26763a1c-5dda-4772-b507-5fca7fb5f165": "check_56",
         "aee3c7d2-a811-4201-90c7-11c028be9a46": "check_6",
         "c1032cf7-3628-44e2-bd53-38c17cf31b6b": "check_62",
         "592ad21d-ad9b-46c6-8d2d-fad09d62a942": "check_54",
         "aa8f7a35-9923-4cad-bd61-a19b7f6aac91": "check_47",
         "5308a7a8-06f8-45ac-bf10-791fe21de46e": "check_47",
-        "192fe40b-b1c3-448a-aba2-6cc19a300fe3": "check_63"
+        "192fe40b-b1c3-448a-aba2-6cc19a300fe3": "check_63",
+        "249328b8-5f0f-409f-b1dd-029f07882e11": "check_65",
+        "b23e9b98-0cb6-4fc9-b257-1f3270442678": "check_60",
     }
 
     @classmethod

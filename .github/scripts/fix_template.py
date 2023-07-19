@@ -151,7 +151,7 @@ def check_resource_path(path_list: str, document: dict) -> bool:
     """
 
     if path_list and document:
-        if document["kind"] == path_list[0]:
+        if document["kind"].casefold() == path_list[0].casefold():
 
             if "namespace" in document["metadata"]:
 
@@ -262,13 +262,9 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                                       "check_45", "check_54", "check_56", \
                                       "check_36", "check_12", "check_35", \
                                       "check_37", "check_47", "check_63", \
-                                      "check_64"]
+                                      "check_64", "check_65", "check_67"]
                     if check_id in no_path_checks:
                         process_func(obj)
-                        break
-
-                    if check_id == "check_32":
-                        process_func(obj, check["obj_path"])
                         break
 
                     if check_id == "check_33":
@@ -683,9 +679,11 @@ def remove_host_path(obj: dict):
             obj = obj["jobTemplate"]["spec"]["template"]["spec"]
 
     if "volumes" in obj and obj["volumes"] is not None and obj["volumes"]:
-        for volume in obj["volumes"]:
-            if "hostPath" in volume:
-                obj["volumes"].remove(volume)
+        obj["volumes"] = [volume for volume in obj["volumes"] if "hostPath" not in volume]
+
+    # if volumes: null, remove it
+    if "volumes" in obj and obj["volumes"] is None or not obj["volumes"]:
+        del obj["volumes"]
 
 
 def set_limit_range(obj: dict) -> dict:
@@ -1028,8 +1026,66 @@ def set_seccomp(obj: dict):
             "type": profile
         }
 
+    # for container in obj["containers"]:
+    #     if "securityContext" not in container or \
+    #         container["securityContext"] is None or \
+    #             not container["securityContext"]:
+    #         container["securityContext"] = {
+    #             "seccompProfile": {
+    #                 "type": profile
+    #             }
+    #         }
+    #     else:
+    #         container["securityContext"]["seccompProfile"] = {
+    #             "type": profile
+    #         }
 
-def set_apparmor(obj: dict, cont_name: str, profile="runtime/default"):
+    # if "initContainers" in obj and obj["initContainers"] is not None and obj["initContainers"]:
+    #     for container in obj["initContainers"]:
+    #         if "securityContext" not in container or \
+    #             container["securityContext"] is None or \
+    #                 not container["securityContext"]:
+    #             container["securityContext"] = {
+    #                 "seccompProfile": {
+    #                     "type": profile
+    #                 }
+    #             }
+    #         else:
+    #             container["securityContext"]["seccompProfile"] = {
+    #                 "type": profile
+    #             }
+
+
+def get_container_names(obj: dict) -> list:
+    """Get the names of all containers in the object.
+    
+    Args:
+        obj (dict): K8s object to parse.
+    
+    Returns:
+        list: A list of container names.
+    """
+
+    container_list = []
+
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
+
+    for container in obj["containers"]:
+        container_list.append(container["name"])
+
+    if "initContainers" in obj and obj["initContainers"] is not None and obj["initContainers"]:
+        for container in obj["initContainers"]:
+            container_list.append(container["name"])
+
+    return container_list
+
+
+def set_apparmor(obj: dict, cont_name="", profile="runtime/default"):
     """Set the runtime AppArmor default profile to each K8s object.
 
     Policy: Containers should be configured with an AppArmor profile to 
@@ -1041,37 +1097,36 @@ def set_apparmor(obj: dict, cont_name: str, profile="runtime/default"):
         profile (str): The name to set the apparmorProfile to.
     """
 
-    # if not cont_name, get the name of the first container in containers
     if not cont_name:
+        container_list = get_container_names(obj)
+    else:
+        container_list = [cont_name]
+
+    for cont_name in container_list:
+        aux = "container.apparmor.security.beta.kubernetes.io/" + cont_name
+
         if "template" in obj["spec"]:
-            cont_name = obj["spec"]["template"]["spec"]["containers"][0]["name"]
-        else:
-            cont_name = obj["spec"]["containers"][0]["name"]
+            obj = obj["spec"]["template"]
 
-    aux = "container.apparmor.security.beta.kubernetes.io/" + cont_name
+        # If metadata not in obj, add it
+        if "metadata" not in obj or obj["metadata"] is None or \
+                not obj["metadata"]:
+            obj["metadata"] = {
+                "annotations": {
+                    aux: profile
+                }
+            }
 
-    if "template" in obj["spec"]:
-        obj = obj["spec"]["template"]
-
-    # If metadata not in obj, add it
-    if "metadata" not in obj or obj["metadata"] is None or \
-            not obj["metadata"]:
-        obj["metadata"] = {
-            "annotations": {
+        # If annotations not in metadata, add it
+        elif "annotations" not in obj["metadata"] or \
+            obj["metadata"]["annotations"] is None or \
+                not obj["metadata"]["annotations"]:
+            obj["metadata"]["annotations"] = {
                 aux: profile
             }
-        }
-
-    # If annotations not in metadata, add it
-    elif "annotations" not in obj["metadata"] or \
-        obj["metadata"]["annotations"] is None or \
-            not obj["metadata"]["annotations"]:
-        obj["metadata"]["annotations"] = {
-            aux: profile
-        }
-    # If annotations in metadata, add the apparmor annotation
-    else:
-        obj["metadata"]["annotations"][aux] = profile
+        # If annotations in metadata, add the apparmor annotation
+        else:
+            obj["metadata"]["annotations"][aux] = profile
 
 
 def remove_storage(obj: dict):
@@ -1092,6 +1147,29 @@ def set_pod_deployment(obj: dict):
     """
 
     obj["kind"] = "Deployment"
+
+
+def remove_cluster_admin(obj: dict):
+    """Remove cluster-admin role from ClusterRoleBinding objects.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    obj["roleRef"]["name"] = "view"
+
+
+def set_ingress_host(obj: dict, host="*.example.com"):
+    """Set the host to each Ingress object.
+    
+    Args:
+        obj (dict): K8s object to modify.
+        host (str): The name to set the host to.
+    """
+
+    for host in obj["spec"]["rules"]:
+        if host["host"] == "*":
+            host["host"] = "*.example.com"
 
 
 def set_statefulset_service_name(obj: dict, service_name: str):
@@ -1222,10 +1300,11 @@ def set_subpath(obj: dict):
         obj (dict): K8s object to modify.
     """
 
-    if "volumeMounts" in obj and obj["volumeMounts"] is not None:
-        for volume in obj["volumeMounts"]:
-            if "subPath" in volume:
-                del volume["subPath"]
+    if "volumeMounts" in obj and obj["volumeMounts"] is not None and obj["volumeMounts"]:
+        obj["volumeMounts"] = [volume for volume in obj["volumes"] if "subPath" not in volume]
+
+    if "volumeMounts" in obj and obj["volumeMounts"] is None or not obj["volumeMounts"]:
+        del obj["volumeMounts"]
 
 
 def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret-volume"):
@@ -1354,6 +1433,15 @@ def set_volume_mounts(obj: dict, value=True):
             else:
                 volume["readOnly"] = value
 
+    # Otherwise, iterate containers
+    elif "containers" in obj:
+        for container in obj["containers"]:
+            for volume in container["volumeMounts"]:
+                if "readOnly" in volume:
+                    volume["readOnly"] = value
+                else:
+                    volume["readOnly"] = value
+
 
 def set_cluster_roles(obj: dict):
     """Remove dangerous verbs from ClusterRoles for each K8s object.
@@ -1464,8 +1552,6 @@ def set_service_account(obj: dict, value=False):
             obj = obj["template"]["spec"]
         elif "jobTemplate" in obj:
             obj = obj["jobTemplate"]["spec"]["template"]["spec"]
-
-    # Set "automountServiceAccountToken" to value
     obj["automountServiceAccountToken"] = value
 
 
@@ -1616,6 +1702,19 @@ def assign_service(obj: dict):
     # namespace of the DeploymentLike, but not the Service namespace.
 
     return
+
+
+def set_pdb_max_unavailable(obj: dict, value=1):
+    """Set maxUnavailable for a K8s PodDisruptionBudget.
+    
+    Policy: Ensure PodDisruptionBudget has maxUnavailable greater than 0.
+    
+    Args:
+        obj (dict): K8s object to modify.
+        value (int): The value to set the maxUnavailable to.
+    """
+
+    obj["spec"]["maxUnavailable"] = value
 
 
 def assign_service_account(obj: dict):
@@ -1840,10 +1939,12 @@ class FuncLookupClass:
     "check_58": assign_service_account,
     "check_59": remove_sa_subjects,
     "check_60": set_pod_disruption_budget,
-    "check_61": remove_nodeport,
     "check_62": todo,
     "check_63": set_deadline_seconds,
     "check_64": set_pod_deployment,
+    "check_65": remove_cluster_admin, 
+    "check_66": set_ingress_host,
+    "check_67": set_pdb_max_unavailable,
     }
 
     @classmethod

@@ -42,29 +42,6 @@ roleRef:
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
 ---
-# Source: rancher/templates/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: release-name-rancher
-  labels:
-    app: release-name-rancher
-    chart: rancher-2.7.4
-    heritage: Helm
-    release: release-name
-spec:
-  ports:
-  - port: 80
-    targetPort: 80
-    protocol: TCP
-    name: http
-  - port: 443
-    targetPort: 444
-    protocol: TCP
-    name: https-internal
-  selector:
-    app: release-name-rancher
----
 # Source: rancher/templates/deployment.yaml
 kind: Deployment
 apiVersion: apps/v1
@@ -171,7 +148,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
 spec:
   rules:
-  - host:   # hostname to access rancher server
+  - host: "*.example.com"
     http:
       paths:
       - backend:
@@ -215,44 +192,6 @@ metadata:
 value: 1000000000
 globalDefault: false
 description: "Priority class used by pods critical to rancher's functionality."
----
-# Source: rancher/templates/post-delete-hook-psp.yaml
-apiVersion: policy/v1
-kind: PodSecurityPolicy
-metadata:
-  name: release-name-rancher-post-delete
-  labels: 
-    app: release-name-rancher
-    chart: rancher-2.7.4
-    heritage: Helm
-    release: release-name
-  annotations:
-    "helm.sh/hook": post-delete
-    "helm.sh/hook-weight": "1"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
-spec:
-  privileged: false
-  hostNetwork: false
-  hostIPC: false
-  hostPID: false
-  runAsUser:
-    rule: 'RunAsAny'
-  seLinux:
-    rule: 'RunAsAny'
-  supplementalGroups:
-    rule: 'MustRunAs'
-    ranges:
-      - min: 1
-        max: 65535
-  fsGroup:
-    rule: 'MustRunAs'
-    ranges:
-      - min: 1
-        max: 65535
-  readOnlyRootFilesystem: false
-  volumes:
-    - 'secret'
-    - 'configMap'
 ---
 # Source: rancher/templates/post-delete-hook-service-account.yaml
 apiVersion: v1

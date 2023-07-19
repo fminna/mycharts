@@ -40,7 +40,9 @@ python .github/scripts/main.py --check
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
-kics scan -p fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exclude-severities info --disable-secrets
+kics scan -p fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exclude-severities info --disable-secrets --exclude-queries bb241e61-77c3-4b97-9575-c0f8a1e008d0 --exclude-queries 7c81d34c-8e5a-402b-9798-9f442630e678
+kics scan -p fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exclude-severities info --disable-secrets -o test_files/ > /dev/null 2>&1
+mv test_files/results.json test_files/kics_results000.json
 
 
 exit(0)

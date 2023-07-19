@@ -358,13 +358,10 @@ spec:
         checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
         checksum/secret: 4d843dbc55b577c8529cb4a32b3ce894c77415c44a22bd10766078e4dd11b043
     spec:
-      
       securityContext:
         fsGroup: 1001
       serviceAccountName: release-name-redis
-      affinity:
-        podAffinity:
-          
+      affinity: 
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -375,8 +372,6 @@ spec:
                     app.kubernetes.io/component: master
                 topologyKey: kubernetes.io/hostname
               weight: 1
-        nodeAffinity:
-          
       terminationGracePeriodSeconds: 30
       containers:
         - name: redis
@@ -411,7 +406,6 @@ spec:
           livenessProbe:
             initialDelaySeconds: 20
             periodSeconds: 5
-            # One second longer than command timeout should prevent generation of zombie processes.
             timeoutSeconds: 6
             successThreshold: 1
             failureThreshold: 5
@@ -513,13 +507,11 @@ spec:
         checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
         checksum/secret: 8d4067e74965347a3a26439056e4a77d4c1000c4bb14e9380730e294eb8d2e54
     spec:
-      
       securityContext:
         fsGroup: 1001
       serviceAccountName: release-name-redis
+      automountServiceAccountToken: false
       affinity:
-        podAffinity:
-          
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -530,8 +522,7 @@ spec:
                     app.kubernetes.io/component: replica
                 topologyKey: kubernetes.io/hostname
               weight: 1
-        nodeAffinity:
-          
+        nodeAffinity: 
       terminationGracePeriodSeconds: 30
       containers:
         - name: redis

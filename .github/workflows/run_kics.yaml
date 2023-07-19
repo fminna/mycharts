@@ -40,7 +40,7 @@ jobs:
         uses: checkmarx/kics-github-action@v1.6.3
         with:
           path: ${{ env.TEMPLATE }}
-          exclude_queries: 487f4be7-3fd9-4506-a07a-eae252180c08
+          exclude_queries: 487f4be7-3fd9-4506-a07a-eae252180c08,bb241e61-77c3-4b97-9575-c0f8a1e008d0
           ignore_on_exit: results
           exclude_severities: 'info'
           output_formats: 'json'

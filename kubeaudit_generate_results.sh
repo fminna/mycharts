@@ -39,7 +39,7 @@ python .github/scripts/main.py --check
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
-kubeaudit all -f fixed_templates/${chart_name}_${tool}_fixed_template.yaml --minseverity "error"
+kubeaudit all -f fixed_templates/${chart_name}_${tool}_fixed_template.yaml --minseverity "error" -c kubeaudit-config.yaml
 
 exit(0)
 

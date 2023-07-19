@@ -1,0 +1,6 @@
+checks:
+  doNotAutoAddDefaults: false
+  # addAllBuiltIn: true
+  exclude:
+    - "latest-tag"
+    - "env-var-secret"

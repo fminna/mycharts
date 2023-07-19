@@ -106,97 +106,6 @@ automountServiceAccountToken: true
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: loki
-  labels:
-    helm.sh/chart: loki-5.6.3
-    app.kubernetes.io/name: loki
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: 2.8.2
-    app.kubernetes.io/managed-by: Helm
-data:
-  config.yaml: "\nauth_enabled: true\ncommon:\n  compactor_address: 'loki-backend'\n\
-    \  path_prefix: /var/loki\n  replication_factor: 3\n  storage:\n    s3:\n    \
-    \  bucketnames: chunks\n      insecure: false\n      s3forcepathstyle: false\n\
-    frontend:\n  scheduler_address: query-scheduler-discovery.default.svc.cluster.local.:9095\n\
-    frontend_worker:\n  scheduler_address: query-scheduler-discovery.default.svc.cluster.local.:9095\n\
-    index_gateway:\n  mode: ring\nlimits_config:\n  enforce_metric_name: false\n \
-    \ max_cache_freshness_per_query: 10m\n  reject_old_samples: true\n  reject_old_samples_max_age:\
-    \ 168h\n  split_queries_by_interval: 15m\nmemberlist:\n  join_members:\n  - loki-memberlist\n\
-    query_range:\n  align_queries_with_step: true\nruler:\n  storage:\n    s3:\n \
-    \     bucketnames: ruler\n      insecure: false\n      s3forcepathstyle: false\n\
-    \    type: s3\nruntime_config:\n  file: /etc/loki/runtime-config/runtime-config.yaml\n\
-    schema_config:\n  configs:\n  - from: \"2022-01-11\"\n    index:\n      period:\
-    \ 24h\n      prefix: loki_index_\n    object_store: s3\n    schema: v12\n    store:\
-    \ boltdb-shipper\nserver:\n  grpc_listen_port: 9095\n  http_listen_port: 3100\n\
-    storage_config:\n  hedging:\n    at: 250ms\n    max_per_second: 20\n    up_to:\
-    \ 3\ntable_manager:\n  retention_deletes_enabled: false\n  retention_period: 0\n"
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: loki-gateway
-  namespace: default
-  labels:
-    helm.sh/chart: loki-5.6.3
-    app.kubernetes.io/name: loki
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: 2.8.2
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/component: gateway
-data:
-  nginx.conf: "worker_processes  5;  ## Default: 1\nerror_log  /dev/stderr;\npid \
-    \       /tmp/nginx.pid;\nworker_rlimit_nofile 8192;\n\nevents {\n  worker_connections\
-    \  4096;  ## Default: 1024\n}\n\nhttp {\n  client_body_temp_path /tmp/client_temp;\n\
-    \  proxy_temp_path       /tmp/proxy_temp_path;\n  fastcgi_temp_path     /tmp/fastcgi_temp;\n\
-    \  uwsgi_temp_path       /tmp/uwsgi_temp;\n  scgi_temp_path        /tmp/scgi_temp;\n\
-    \n  client_max_body_size  4M;\n\n  proxy_read_timeout    600; ## 10 minutes\n\
-    \  proxy_send_timeout    600;\n  proxy_connect_timeout 600;\n\n  proxy_http_version\
-    \    1.1;\n\n  default_type application/octet-stream;\n  log_format   main '$remote_addr\
-    \ - $remote_user [$time_local]  $status '\n        '\"$request\" $body_bytes_sent\
-    \ \"$http_referer\" '\n        '\"$http_user_agent\" \"$http_x_forwarded_for\"\
-    ';\n  access_log   /dev/stderr  main;\n\n  sendfile     on;\n  tcp_nopush   on;\n\
-    \  resolver kube-dns.kube-system.svc.cluster.local.;\n  \n\n  server {\n    listen\
-    \             8080;\n    listen             [::]:8080;\n\n    location = / {\n\
-    \      return 200 'OK';\n      auth_basic off;\n    }\n\n\n    # Distributor\n\
-    \    location = /api/prom/push {\n      proxy_pass       http://loki-write.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /loki/api/v1/push {\n      proxy_pass       http://loki-write.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /distributor/ring {\n      proxy_pass       http://loki-write.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n\n    # Ingester\n    location = /flush {\n      proxy_pass       http://loki-write.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location ^~ /ingester/ {\n      proxy_pass       http://loki-write.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /ingester {\n      internal;        # to suppress 301\n\
-    \    }\n\n    # Ring\n    location = /ring {\n      proxy_pass       http://loki-write.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n\n    # MemberListKV\n    location = /memberlist {\n      proxy_pass \
-    \      http://loki-write.default.svc.cluster.local:3100$request_uri;\n    }\n\n\
-    \n    # Ruler\n    location = /ruler/ring {\n      proxy_pass       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /api/prom/rules {\n      proxy_pass       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location ^~ /api/prom/rules/ {\n      proxy_pass       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /loki/api/v1/rules {\n      proxy_pass       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location ^~ /loki/api/v1/rules/ {\n      proxy_pass       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /prometheus/api/v1/alerts {\n      proxy_pass       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /prometheus/api/v1/rules {\n      proxy_pass       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n\n    # Compactor\n    location = /compactor/ring {\n      proxy_pass\
-    \       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n    }\n\
-    \    location = /loki/api/v1/delete {\n      proxy_pass       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /loki/api/v1/cache/generation_numbers {\n      proxy_pass\
-    \       http://loki-backend.default.svc.cluster.local:3100$request_uri;\n    }\n\
-    \n    # IndexGateway\n    location = /indexgateway/ring {\n      proxy_pass  \
-    \     http://loki-backend.default.svc.cluster.local:3100$request_uri;\n    }\n\
-    \n    # QueryScheduler\n    location = /scheduler/ring {\n      proxy_pass   \
-    \    http://loki-backend.default.svc.cluster.local:3100$request_uri;\n    }\n\n\
-    \n    # QueryFrontend, Querier\n    location = /api/prom/tail {\n      proxy_pass\
-    \       http://loki-read.default.svc.cluster.local:3100$request_uri;\n      proxy_set_header\
-    \ Upgrade $http_upgrade;\n      proxy_set_header Connection \"upgrade\";\n   \
-    \ }\n    location = /loki/api/v1/tail {\n      proxy_pass       http://loki-read.default.svc.cluster.local:3100$request_uri;\n\
-    \      proxy_set_header Upgrade $http_upgrade;\n      proxy_set_header Connection\
-    \ \"upgrade\";\n    }\n    location ^~ /api/prom/ {\n      proxy_pass       http://loki-read.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /api/prom {\n      internal;        # to suppress 301\n\
-    \    }\n    location ^~ /loki/api/v1/ {\n      proxy_pass       http://loki-read.default.svc.cluster.local:3100$request_uri;\n\
-    \    }\n    location = /loki/api/v1 {\n      internal;        # to suppress 301\n\
-    \    }\n  }\n}\n"
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: loki-runtime
   namespace: default
   labels:
@@ -374,33 +283,6 @@ subjects:
 - kind: ServiceAccount
   name: release-name-loki-grafana-agent
   namespace: default
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: query-scheduler-discovery
-  labels:
-    app.kubernetes.io/name: loki
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/component: backend
-    prometheus.io/service-monitor: 'false'
-spec:
-  type: ClusterIP
-  clusterIP: None
-  publishNotReadyAddresses: true
-  ports:
-  - name: http-metrics
-    port: 3100
-    targetPort: http-metrics
-    protocol: TCP
-  - name: grpc
-    port: 9095
-    targetPort: grpc
-    protocol: TCP
-  selector:
-    app.kubernetes.io/name: loki
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/component: backend
 ---
 apiVersion: v1
 kind: Service
@@ -744,6 +626,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -1120,7 +1003,6 @@ spec:
         app.kubernetes.io/component: write
         app.kubernetes.io/part-of: memberlist
     spec:
-      serviceAccountName: loki
       automountServiceAccountToken: true
       enableServiceLinks: true
       securityContext:
@@ -1359,7 +1241,7 @@ metadata:
 spec:
   containers:
   - name: busybox
-    image: busybox:1.36-musl
+    image: busybox:1.36
     imagePullPolicy: IfNotPresent
     command:
     - wget
@@ -1369,6 +1251,7 @@ spec:
       readOnlyRootFilesystem: true
       runAsNonRoot: true
       runAsUser: 25000
+      runAsGroup: 25000
     resources:
       requests:
         cpu: 250m
@@ -1378,7 +1261,7 @@ spec:
         memory: 128Mi
   initContainers:
   - name: sleep
-    image: busybox:1.36-musl
+    image: busybox:1.36
     imagePullPolicy: IfNotPresent
     command:
     - sleep
@@ -1387,6 +1270,7 @@ spec:
       readOnlyRootFilesystem: true
       runAsNonRoot: true
       runAsUser: 25000
+      runAsGroup: 25000
     resources:
       requests:
         cpu: 250m
@@ -1413,7 +1297,7 @@ metadata:
 spec:
   containers:
   - name: loki-helm-test
-    image: docker.io/grafana/loki-helm-test:latest
+    image: docker.io/grafana/loki-helm-test:canary-test-3d3c570-WIP
     env:
     - name: CANARY_PROMETHEUS_ADDRESS
       value: http://prometheus:9090
@@ -1425,6 +1309,7 @@ spec:
       readOnlyRootFilesystem: true
       runAsNonRoot: true
       runAsUser: 25000
+      runAsGroup: 25000
     resources:
       requests:
         cpu: 250m

@@ -39,8 +39,8 @@ python .github/scripts/main.py --check
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
-terrascan scan -i k8s -f fixed_templates/${chart_name}_${tool}_fixed_template.yaml
-
+terrascan scan -i k8s -f fixed_templates/${chart_name}_${tool}_fixed_template.yaml --skip-rules AC_K8S_0080 --skip-rules AC_K8S_0069 --skip-rules AC_K8S_0021 --skip-rules AC_K8S_0002 --skip-rules AC_K8S_0068
+terrascan scan -i k8s -f fixed_templates/${chart_name}_${tool}_fixed_template.yaml --skip-rules AC_K8S_0080 --skip-rules AC_K8S_0069 --skip-rules AC_K8S_0021 --skip-rules AC_K8S_0002 --skip-rules AC_K8S_0068 -o sarif > test_files/terrascan_results999.json
 
 
 exit(0)

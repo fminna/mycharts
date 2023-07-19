@@ -649,56 +649,6 @@ spec:
     name: agentport
     protocol: TCP
 ---
-# Source: datadog/templates/agent-services.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: release-name-datadog-cluster-agent-admission-controller
-  namespace: default
-  labels:
-    app: "release-name-datadog"
-    chart: "datadog-3.31.0"
-    release: "release-name"
-    heritage: "Helm"
-    helm.sh/chart: 'datadog-3.31.0'
-    app.kubernetes.io/name: "release-name-datadog"
-    app.kubernetes.io/instance: "release-name"
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/version: "7"
-spec:
-  selector:
-    app: release-name-datadog-cluster-agent
-  ports:
-  - port: 443
-    targetPort: 8000
----
-# Source: datadog/templates/agent-services.yaml
-apiVersion: v1
-kind: Service
-
-metadata:
-  name: release-name-datadog
-  namespace: default
-  labels:
-    app: "release-name-datadog"
-    chart: "datadog-3.31.0"
-    release: "release-name"
-    heritage: "Helm"
-    helm.sh/chart: 'datadog-3.31.0'
-    app.kubernetes.io/name: "release-name-datadog"
-    app.kubernetes.io/instance: "release-name"
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/version: "7"
-spec:
-  selector:
-    app: release-name-datadog
-  ports:
-    - protocol: UDP
-      port: 8125
-      targetPort: 8125
-      name: dogstatsdport
-  internalTrafficPolicy: Local
----
 # Source: datadog/templates/cluster-agent-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment

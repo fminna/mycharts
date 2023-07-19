@@ -226,7 +226,8 @@ class LookupClass:
         "unsafe-sysctls": "check_41",
         "sensitive-host-mounts": "check_47",
         "dangling-service": "check_57",
-        "non-existent-service-account": "check_58"
+        "non-existent-service-account": "check_58",
+        "pdb-max-unavailable": "check_67",
     }
 
     @classmethod

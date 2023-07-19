@@ -1981,6 +1981,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -2001,6 +2002,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -2063,6 +2065,7 @@ spec:
             - ALL
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         volumeMounts:
         - name: memberlist
           mountPath: /etc/ml_secret_key
@@ -2090,6 +2093,7 @@ spec:
           privileged: false
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         image: quay.io/frrouting/frr:8.4.2
         env:
         - name: TINI_SUBREAPER
@@ -2145,6 +2149,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -2175,6 +2180,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m

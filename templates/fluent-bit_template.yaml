@@ -211,16 +211,16 @@ spec:
         - name: config
           configMap:
             name: release-name-fluent-bit
-        - hostPath:
+        - name: varlog
+          hostPath:
             path: /var/log
-          name: varlog
-        - hostPath:
+        - name: varlibdockercontainers
+          hostPath:
             path: /var/lib/docker/containers
-          name: varlibdockercontainers
-        - hostPath:
+        - name: etcmachineid
+          hostPath:
             path: /etc/machine-id
             type: File
-          name: etcmachineid
 ---
 # Source: fluent-bit/templates/tests/test-connection.yaml
 apiVersion: v1

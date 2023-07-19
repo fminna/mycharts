@@ -104,7 +104,6 @@ spec:
         app.kubernetes.io/name: kubeview
         app.kubernetes.io/instance: release-name
     spec:
-      serviceAccountName: release-name-kubeview
       containers:
         - name: kubeview
           image: "ghcr.io/benc-uk/kubeview:0.1.31"

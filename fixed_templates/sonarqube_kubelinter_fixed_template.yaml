@@ -184,7 +184,6 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: sonarqube
       app.kubernetes.io/name: postgresql
       app.kubernetes.io/instance: release-name
       role: primary
@@ -377,6 +376,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
       - name: init-sysctl
         image: busybox:1.32
         imagePullPolicy: IfNotPresent
@@ -389,6 +389,7 @@ spec:
             - ALL
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -555,6 +556,7 @@ spec:
       readOnlyRootFilesystem: true
       runAsNonRoot: true
       runAsUser: 25000
+      runAsGroup: 25000
   containers:
   - name: release-name-ui-test
     image: bitnami/minideb-extras
@@ -580,6 +582,7 @@ spec:
       readOnlyRootFilesystem: true
       runAsNonRoot: true
       runAsUser: 25000
+      runAsGroup: 25000
   volumes:
   - name: tests
     configMap:

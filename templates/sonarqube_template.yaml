@@ -129,22 +129,16 @@ kind: Service
 metadata:
   name: release-name-postgresql-headless
   labels:
+    service: postgresql-headless
     app.kubernetes.io/name: postgresql
     helm.sh/chart: postgresql-10.15.0
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
-    # Use this annotation in addition to the actual publishNotReadyAddresses
-    # field below because the annotation will stop being respected soon but the
-    # field is broken in some versions of Kubernetes:
-    # https://github.com/kubernetes/kubernetes/issues/58662
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
   namespace: default
 spec:
   type: ClusterIP
   clusterIP: None
-  # We want all pods in the StatefulSet to have their addresses published for
-  # the sake of the other Postgresql pods even before they're ready, since they
-  # have to be able to talk to each other in order to become ready.
   publishNotReadyAddresses: true
   ports:
     - name: tcp-postgresql
@@ -177,27 +171,6 @@ spec:
     app.kubernetes.io/instance: release-name
     role: primary
 ---
-# Source: sonarqube/templates/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: release-name-sonarqube
-  labels:
-    app: sonarqube
-    release: release-name
-    heritage: Helm
-spec:
-  type: ClusterIP
-  clusterIP: None
-  ports:
-    - port: 9000
-      targetPort: http
-      protocol: TCP
-      name: http
-  selector:
-    app: sonarqube
-    release: release-name
----
 # Source: sonarqube/charts/postgresql/templates/statefulset.yaml
 apiVersion: apps/v1
 kind: StatefulSet
@@ -218,7 +191,7 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: sonarqube
+      service: postgresql-headless
       app.kubernetes.io/name: postgresql
       app.kubernetes.io/instance: release-name
       role: primary

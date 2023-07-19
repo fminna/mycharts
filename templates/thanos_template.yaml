@@ -232,12 +232,9 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: query
     spec:
-      
       serviceAccountName: release-name-thanos-query
       automountServiceAccountToken: true
       affinity:
-        podAffinity:
-          
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -248,8 +245,6 @@ spec:
                     app.kubernetes.io/component: query
                 topologyKey: kubernetes.io/hostname
               weight: 1
-        nodeAffinity:
-          
       securityContext:
         fsGroup: 1001
       containers:
@@ -295,8 +290,3 @@ spec:
               path: /-/ready
               port: http
               scheme: HTTP
-          resources:
-            limits: {}
-            requests: {}
-          volumeMounts:
-      volumes:

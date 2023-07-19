@@ -535,8 +535,7 @@ spec:
     spec:
       restartPolicy: Never
       initContainers:
-        -
-          name: check-db-ready
+        - name: check-db-ready
           image: docker.io/artifacthub/postgres:latest
           imagePullPolicy: IfNotPresent
           env:
@@ -580,8 +579,7 @@ spec:
         spec:
           restartPolicy: Never
           initContainers:
-            -
-              name: check-db-ready
+            - name: check-db-ready
               image: docker.io/artifacthub/postgres:latest
               imagePullPolicy: IfNotPresent
               env:
@@ -621,8 +619,7 @@ spec:
         spec:
           restartPolicy: Never
           initContainers:
-            -
-              name: check-db-ready
+            - name: check-db-ready
               image: docker.io/artifacthub/postgres:latest
               imagePullPolicy: IfNotPresent
               env:

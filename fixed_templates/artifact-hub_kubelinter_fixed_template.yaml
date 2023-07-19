@@ -251,6 +251,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -272,6 +273,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -295,6 +297,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -356,6 +359,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -419,6 +423,7 @@ spec:
           runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsGroup: 25000
         volumeMounts:
         - name: data
           mountPath: /data
@@ -536,6 +541,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -560,6 +566,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         resources:
           requests:
             cpu: 250m
@@ -605,6 +612,7 @@ spec:
               readOnlyRootFilesystem: true
               runAsNonRoot: true
               runAsUser: 25000
+              runAsGroup: 25000
             resources:
               requests:
                 cpu: 250m
@@ -624,6 +632,7 @@ spec:
               readOnlyRootFilesystem: true
               runAsNonRoot: true
               runAsUser: 25000
+              runAsGroup: 25000
             resources:
               requests:
                 cpu: 250m
@@ -669,6 +678,7 @@ spec:
               readOnlyRootFilesystem: true
               runAsNonRoot: true
               runAsUser: 25000
+              runAsGroup: 25000
             resources:
               requests:
                 cpu: 250m
@@ -688,6 +698,7 @@ spec:
               readOnlyRootFilesystem: true
               runAsNonRoot: true
               runAsUser: 25000
+              runAsGroup: 25000
             resources:
               requests:
                 cpu: 250m

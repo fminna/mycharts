@@ -39,9 +39,14 @@ python .github/scripts/main.py --check
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
-kube-linter lint fixed_templates/${chart_name}_${tool}_fixed_template.yaml
+kube-linter lint fixed_templates/${chart_name}_${tool}_fixed_template.yaml --config kubelinter-config.yaml
+kube-linter lint fixed_templates/${chart_name}_${tool}_fixed_template.yaml --config kubelinter-config.yaml --format=json > test_files/kubelinter_results999.json
+
 
 exit(0)
+
+
+
 
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"

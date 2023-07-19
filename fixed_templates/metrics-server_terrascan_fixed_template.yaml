@@ -1,0 +1,255 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-metrics-server
+  namespace: default
+  labels:
+    helm.sh/chart: metrics-server-3.10.0
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.6.3
+    app.kubernetes.io/managed-by: Helm
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:metrics-server-aggregated-reader
+  labels:
+    helm.sh/chart: metrics-server-3.10.0
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.6.3
+    app.kubernetes.io/managed-by: Helm
+    rbac.authorization.k8s.io/aggregate-to-admin: 'true'
+    rbac.authorization.k8s.io/aggregate-to-edit: 'true'
+    rbac.authorization.k8s.io/aggregate-to-view: 'true'
+rules:
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - pods
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:release-name-metrics-server
+  labels:
+    helm.sh/chart: metrics-server-3.10.0
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.6.3
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - nodes/metrics
+  verbs:
+  - get
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  - nodes
+  - namespaces
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-metrics-server:system:auth-delegator
+  labels:
+    helm.sh/chart: metrics-server-3.10.0
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.6.3
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: release-name-metrics-server
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:release-name-metrics-server
+  labels:
+    helm.sh/chart: metrics-server-3.10.0
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.6.3
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:release-name-metrics-server
+subjects:
+- kind: ServiceAccount
+  name: release-name-metrics-server
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: release-name-metrics-server-auth-reader
+  namespace: kube-system
+  labels:
+    helm.sh/chart: metrics-server-3.10.0
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.6.3
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+- kind: ServiceAccount
+  name: release-name-metrics-server
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-metrics-server
+  namespace: default
+  labels:
+    helm.sh/chart: metrics-server-3.10.0
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.6.3
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-metrics-server
+  namespace: test-ns
+  labels:
+    helm.sh/chart: metrics-server-3.10.0
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.6.3
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: metrics-server
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: metrics-server
+        app.kubernetes.io/instance: release-name
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/metrics-server: runtime/default
+    spec:
+      schedulerName: null
+      serviceAccountName: release-name-metrics-server
+      priorityClassName: system-cluster-critical
+      containers:
+      - name: metrics-server
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        image: registry.k8s.io/metrics-server/metrics-server:v0.6.3
+        imagePullPolicy: IfNotPresent
+        args:
+        - --secure-port=10250
+        - --cert-dir=/tmp
+        - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+        - --kubelet-use-node-status-port
+        - --metric-resolution=15s
+        ports:
+        - name: https
+          protocol: TCP
+          containerPort: 10250
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /livez
+            port: https
+            scheme: HTTPS
+          initialDelaySeconds: 0
+          periodSeconds: 10
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /readyz
+            port: https
+            scheme: HTTPS
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
+---
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1beta1.metrics.k8s.io
+  labels:
+    helm.sh/chart: metrics-server-3.10.0
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.6.3
+    app.kubernetes.io/managed-by: Helm
+spec:
+  group: metrics.k8s.io
+  groupPriorityMinimum: 100
+  insecureSkipTLSVerify: true
+  service:
+    name: release-name-metrics-server
+    namespace: default
+    port: 443
+  version: v1beta1
+  versionPriority: 100

@@ -80,47 +80,46 @@ def get_resource_namespace(template: dict, kind: str, name: str) -> str:
     return "default"
 
 
-def get_container_path(template: dict, resource_path: str):
+def get_container_path(template: dict, resource_path: list) -> tuple:
     """Gets the path (e.g., spec/template/spec/containers/0) to a container in a K8s resource.
     
     Args:
         template (dict): The parsed YAML template.
-        resource_path (str): The path to the resource.
+        resource_path (list): The path to the resource.
 
     Returns:
-        str: The path to the container.
+        tuple: The path to the container and the list of containers.
     """
 
-    resource_path = resource_path.split("/")
+    cont_path = ""
+    containers = []
+    init_containers = []
 
     for document in template:
+        aux_path = ""
 
-        if document["kind"] == resource_path[0]:
+        if fix_template.check_resource_path(resource_path, document):
+            document = document["spec"]
+            cont_path += "spec/"
 
-            if "namespace" in document["metadata"] and \
-                document["metadata"]["namespace"] == resource_path[1]:
+            if "template" in document:
+                document = document["template"]["spec"]
+                cont_path += "template/spec/"
+            elif "jobTemplate" in document:
+                document = document["jobTemplate"]["spec"]["template"]["spec"]
+                cont_path += "jobTemplate/spec/template/spec/"
 
-                    if document["metadata"]["name"] == resource_path[2]:
+            containers = document["containers"]
+            aux_path = "containers/"
 
-                        if "template" in document["spec"]:
-                            cont_path = "spec/template/spec/containers/"
-                            containers = document["spec"]["template"]["spec"]["containers"]
-                        else:
-                            cont_path = "spec/template/spec/containers/"
-                            containers = document["spec"]["containers"]
+            if "initContainers" in document:
+                init_containers = document["initContainers"]
 
-            elif document["metadata"]["name"] == resource_path[2]:
+        if containers:
+            cont_path += aux_path
+            break
 
-                if "template" in document["spec"]:
-                            cont_path = "spec/template/spec/containers/"
-                            containers = document["spec"]["template"]["spec"]["containers"]
-                else:
-                    cont_path = "spec/template/spec/containers/"
-                    containers = document["spec"]["containers"]
-
-            return cont_path, containers
-
-    return "", ""
+    return cont_path, containers, init_containers
 
 
 def fix_issue(check: str, template: dict) -> str:
@@ -144,35 +143,36 @@ def fix_issue(check: str, template: dict) -> str:
             for location in logical_location["logicalLocations"]:
 
                 kind = location["kind"]
-                # convert kind to standard format
+                # convert kind to standard format --- removing kubernetes_
                 kind = kind[11:]
                 # convert each character after '_' to uppercase
                 kind = ''.join([word.capitalize() for word in kind.split('_')])
                 name = location["name"]
                 namespace = get_resource_namespace(template, kind, name)
-
                 resource_path = f"{kind}/{namespace}/{name}"
-                obj_path = ""
+                paths = {
+                        "resource_path": resource_path,
+                        "obj_path": ""
+                }
 
                 checks_with_paths = ["AC_K8S_0069", "AC_K8S_0078", "AC_K8S_0085", \
                                      "AC_K8S_0097", "AC_K8S_0098", "AC_K8S_0099", \
-                                        "AC_K8S_0100"]
+                                     "AC_K8S_0100", "AC_K8S_0072", "AC_K8S_0070", \
+                                     "AC_K8S_0087", "AC_K8S_0068", "AC_K8S_0080", \
+                                      "AC_K8S_0079"]
                 if check['ruleId'] in checks_with_paths:
                     # Call fix_template for each container in the K8s resource
-                    cont_path, containers = get_container_path(template, resource_path)
+                    cont_path, containers, init_containers = get_container_path(template, resource_path.split("/"))
                     for idx in range(len(containers)):
-                        obj_path = cont_path + str(idx)
-                        paths = {
-                            "resource_path": resource_path,
-                            "obj_path": obj_path
-                        }
+                        paths["obj_path"] = cont_path + str(idx)
+                        fix_template.set_template(template, check_id, paths)
+
+                    for idx in range(len(init_containers)):
+                        cont_path = cont_path.replace("containers", "initContainers")
+                        paths["obj_path"] = cont_path + str(idx)
                         fix_template.set_template(template, check_id, paths)
 
                 else :
-                    paths = {
-                        "resource_path": resource_path,
-                        "obj_path": obj_path
-                    }
                     fix_template.set_template(template, check_id, paths)
 
                 return check_id
@@ -207,7 +207,14 @@ class LookupClass:
         "AC_K8S_0064": "check_30",
         "AC_K8S_0072": "check_8",
         "AC_K8S_0079": "check_13",
-        "AC_K8S_0084": "check_12"
+        "AC_K8S_0084": "check_12",
+        "AC_K8S_0111": "check_56",
+        "AC_K8S_0068": "check_0",
+        "AC_K8S_0076": "check_47",
+        "AC_K8S_0081": "check_55",
+        "AC_K8S_0082": "check_10",
+        "AC_K8S_0021": "", # AlwaysPullImages plugin is not set https://docs.bridgecrew.io/docs/ensure-that-the-admission-control-plugin-alwayspullimages-is-set
+        "AC_K8S_0002": "", # TLS disabled can affect the confidentiality of the data in transit
     }
 
     @classmethod

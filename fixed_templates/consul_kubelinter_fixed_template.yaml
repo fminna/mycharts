@@ -10,7 +10,7 @@ metadata:
     release: release-name
     component: connect-injector
 spec:
-  maxUnavailable: 0
+  maxUnavailable: 1
   selector:
     matchLabels:
       app: consul
@@ -29,7 +29,7 @@ metadata:
     release: release-name
     component: server
 spec:
-  maxUnavailable: 0
+  maxUnavailable: 1
   selector:
     matchLabels:
       app: consul
@@ -3245,6 +3245,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
       volumes:
       - name: certs
         secret:
@@ -3307,6 +3308,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
       terminationGracePeriodSeconds: 10
       serviceAccountName: release-name-consul-webhook-cert-manager
       volumes:
@@ -3754,6 +3756,7 @@ spec:
       readOnlyRootFilesystem: true
       runAsNonRoot: true
       runAsUser: 25000
+      runAsGroup: 25000
     resources:
       requests:
         cpu: 250m
