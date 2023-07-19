@@ -71,5 +71,5 @@ jobs:
           git config user.email github-actions@github.com
           git add fixed_templates/${{ inputs.chart_folder }}_${{ inputs.first_tool }}_fixed_template.yaml
           git commit -m "Fixed ${{ inputs.chart_folder }} template chart"
-          git push
+          git push --force
         continue-on-error: true
