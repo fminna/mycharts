@@ -87,6 +87,7 @@ def main():
     chart_folder = os.environ.get("chart_folder")
 
     tool = os.environ.get("first_tool")
+    # tool = os.environ.get("tool")
 
     # Fix the chart based on the results of a tool
     if args.check:
@@ -99,7 +100,7 @@ def main():
         elif iteration == "2" or iteration == "3":
             chart_folder = f"fixed_templates/{chart_folder}"
 
-        result_path = f"test_files/{tool}_results.json"
+        # result_path = f"test_files/{tool}_results.json"
 
         # Check if there are any failed tests
         if tool == "checkov":
@@ -154,8 +155,9 @@ def main():
         tool = os.environ.get("second_tool")
         iteration = os.environ.get("iteration")
         result_path = f"results_{iteration}.json"
-        # result_path = f"test_files/{tool}_results.json"
 
+        # tool = os.environ.get("tool")
+        # result_path = f"test_files/{tool}_results.json"
         count_checks.count_checks(result_path, tool)
 
     else:
