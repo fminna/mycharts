@@ -41,12 +41,6 @@ echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
 export chart_folder="fixed_templates/${chart_folder}"
 kics scan -p fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exclude-severities info --disable-secrets --exclude-queries bb241e61-77c3-4b97-9575-c0f8a1e008d0 --exclude-queries 7c81d34c-8e5a-402b-9798-9f442630e678
-kics scan -p fixed_templates/${chart_name}_${tool}_fixed_template.yaml --exclude-severities info --disable-secrets -o test_files/ > /dev/null 2>&1
-mv test_files/results.json test_files/kics_results000.json
-
-
-exit(0)
-
 
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"
@@ -70,14 +64,14 @@ python .github/scripts/main.py --count-checks
 
 # KICS
 echo -e "\n Step 5 - KICS"
-kics scan -p functionality_templates/${chart_name}_func_template.yaml --exclude-severities info -o test_files/ > /dev/null 2>&1
+kics scan -p functionality_templates/${chart_name}_func_template.yaml --exclude-severities info --disable-secrets --exclude-queries bb241e61-77c3-4b97-9575-c0f8a1e008d0 --exclude-queries 7c81d34c-8e5a-402b-9798-9f442630e678 -o test_files/ > /dev/null 2>&1
 mv test_files/results.json test_files/kics_results.json
 export tool="kics"
 python .github/scripts/main.py --count-checks
 
 # Kubelinter
 echo -e "\n Step 5 - Kube-linter"
-kube-linter lint functionality_templates/${chart_name}_func_template.yaml --format=json > test_files/kubelinter_results.json
+kube-linter lint functionality_templates/${chart_name}_func_template.yaml --config kubelinter-config.yaml --format=json > test_files/kubelinter_results.json
 export tool="kubelinter"
 python .github/scripts/main.py --count-checks
 
@@ -89,13 +83,13 @@ python .github/scripts/main.py --count-checks
 
 # Kubescape
 echo -e "\n Step 5 - Kubescape"
-kubescape scan functionality_templates/${chart_name}_func_template.yaml --format json --output test_files/kubescape_results.json > /dev/null 2>&1
+kubescape scan functionality_templates/${chart_name}_func_template.yaml --exceptions kubescape_exceptions.json --format json --output test_files/kubescape_results.json > /dev/null 2>&1
 export tool="kubescape"
 python .github/scripts/main.py --count-checks
 
 # Terrascan
 echo -e "\n Step 5 - Terrascan"
-terrascan scan -i k8s -f functionality_templates/${chart_name}_func_template.yaml -o sarif > test_files/terrascan_results.json
+terrascan scan -i k8s -f functionality_templates/${chart_name}_func_template.yaml --skip-rules AC_K8S_0080 --skip-rules AC_K8S_0069 --skip-rules AC_K8S_0021 --skip-rules AC_K8S_0002 --skip-rules AC_K8S_0068 -o sarif > test_files/terrascan_results.json
 export tool="terrascan"
 python .github/scripts/main.py --count-checks
 

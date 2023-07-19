@@ -1302,7 +1302,7 @@ def set_subpath(obj: dict):
     """
 
     if "volumeMounts" in obj and obj["volumeMounts"] is not None and obj["volumeMounts"]:
-        obj["volumeMounts"] = [volume for volume in obj["volumes"] if "subPath" not in volume]
+        obj["volumeMounts"] = [volume for volume in obj["volumeMounts"] if "subPath" not in volume]
 
     if "volumeMounts" in obj and obj["volumeMounts"] is None or not obj["volumeMounts"]:
         del obj["volumeMounts"]
