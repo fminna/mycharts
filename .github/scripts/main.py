@@ -155,9 +155,6 @@ def main():
         tool = os.environ.get("second_tool")
         iteration = os.environ.get("iteration")
         result_path = f"results_{iteration}.json"
-
-        # tool = os.environ.get("tool")
-        # result_path = f"test_files/{tool}_results.json"
         count_checks.count_checks(result_path, tool)
 
     else:

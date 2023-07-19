@@ -14,10 +14,8 @@ fi
 
 # Set up environment variables
 export chart_folder="${chart_name}"
-export tool="checkov"
-
-# Remove previous results by deleting all files in test_files
-rm -rf test_files/*
+export first_tool="checkov"
+export iteration="1"
 
 # Run Analyzers
 echo "Running analyzers on $chart_name ..."
@@ -25,71 +23,73 @@ echo "Running analyzers on $chart_name ..."
 # Step 1 - Checkov
 echo -e "\n -------------------------- \n"
 echo "Step 1 - Run Checkov"
-checkov -f templates/${chart_folder}_template.yaml --quiet --compact --framework kubernetes -o json > test_files/checkov_results.json
+checkov -f templates/${chart_folder}_template.yaml --quiet --compact --framework kubernetes -o json > results_${iteration}.json
 
 # Step 2 - Fix Checkov output
 echo -e "\n -------------------------- \n"
 echo "Step 2 - Fix issues"
-export chart_folder="templates/${chart_folder}"
-export tool="checkov"
 python .github/scripts/main.py --check
 
 # Step 3 - Debug
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
-export chart_folder="fixed_templates/${chart_folder}"
+export iteration="2"
 checkov -f fixed_templates/${chart_name}_checkov_fixed_template.yaml --skip-check CKV_K8S_14 --skip-check CKV_K8S_43 --skip-framework secrets --quiet --compact --framework kubernetes
 
 # Step 4 - Add functionalities
 echo -e "\n -------------------------- \n"
 echo "Step 4 - Add functionalities"
-export chart_folder="${chart_name}"
-export tool="checkov"
+export iteration="3"
 python .github/scripts/main.py --add-func
 
 # Step 5 - Run all tools on functional template
 echo -e "\n -------------------------- \n"
 echo -e "\n Step 5 - Checkov"
-checkov -f functionality_templates/${chart_name}_func_template.yaml --skip-check CKV_K8S_14 --skip-check CKV_K8S_43 --skip-framework secrets --quiet --compact --framework kubernetes -o json > test_files/checkov_results.json
-export tool="checkov"
+checkov -f functionality_templates/${chart_name}_func_template.yaml --skip-check CKV_K8S_14 --skip-check CKV_K8S_43 --skip-framework secrets --quiet --compact --framework kubernetes -o json > results_${iteration}.json
+export second_tool="checkov"
 python .github/scripts/main.py --count-checks
 
 # Datree
 echo -e "\n Step 5 - Datree"
-helm datree test functionality_templates/${chart_name}_func_template.yaml --only-k8s-files --quiet --output json > test_files/datree_results.json 
-export tool="datree"
+helm datree test functionality_templates/${chart_name}_func_template.yaml --only-k8s-files --quiet --output json > results_${iteration}.json
+export second_tool="datree"
 python .github/scripts/main.py --count-checks
 
 # KICS
 echo -e "\n Step 5 - KICS"
-kics scan -p functionality_templates/${chart_name}_func_template.yaml --exclude-severities info --disable-secrets --exclude-queries bb241e61-77c3-4b97-9575-c0f8a1e008d0 --exclude-queries 7c81d34c-8e5a-402b-9798-9f442630e678 -o test_files/ > /dev/null 2>&1
-mv test_files/results.json test_files/kics_results.json
-export tool="kics"
+kics scan -p functionality_templates/${chart_name}_func_template.yaml --exclude-severities info --disable-secrets --exclude-queries bb241e61-77c3-4b97-9575-c0f8a1e008d0 --exclude-queries 7c81d34c-8e5a-402b-9798-9f442630e678 -o . > /dev/null 2>&1
+mv results.json results_${iteration}.json
+export second_tool="kics"
 python .github/scripts/main.py --count-checks
 
 # Kubelinter
 echo -e "\n Step 5 - Kube-linter"
-kube-linter lint functionality_templates/${chart_name}_func_template.yaml --config kubelinter-config.yaml --format=json > test_files/kubelinter_results.json
-export tool="kubelinter"
+kube-linter lint functionality_templates/${chart_name}_func_template.yaml --config kubelinter-config.yaml --format=json > results_${iteration}.json
+export second_tool="kubelinter"
 python .github/scripts/main.py --count-checks
 
 # Kubeaudit
 echo -e "\n Step 5 - Kubeaudit"
-kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --minseverity "error" --format json > test_files/kubeaudit_results.json
-export tool="kubeaudit"
+kubeaudit all -f functionality_templates/${chart_name}_func_template.yaml --minseverity "error" --format json > results_${iteration}.json
+export second_tool="kubeaudit"
 python .github/scripts/main.py --count-checks
 
 # Kubescape
 echo -e "\n Step 5 - Kubescape"
-kubescape scan functionality_templates/${chart_name}_func_template.yaml --exceptions kubescape_exceptions.json --format json --output test_files/kubescape_results.json > /dev/null 2>&1
-export tool="kubescape"
+kubescape scan functionality_templates/${chart_name}_func_template.yaml --exceptions kubescape_exceptions.json --format json --output results_${iteration}.json > /dev/null 2>&1
+export second_tool="kubescape"
 python .github/scripts/main.py --count-checks
 
 # Terrascan
 echo -e "\n Step 5 - Terrascan"
-terrascan scan -i k8s -f functionality_templates/${chart_name}_func_template.yaml --skip-rules AC_K8S_0080 --skip-rules AC_K8S_0069 --skip-rules AC_K8S_0021 --skip-rules AC_K8S_0002 --skip-rules AC_K8S_0068 -o sarif > test_files/terrascan_results.json
-export tool="terrascan"
+terrascan scan -i k8s -f functionality_templates/${chart_name}_func_template.yaml --skip-rules AC_K8S_0080 --skip-rules AC_K8S_0069 --skip-rules AC_K8S_0021 --skip-rules AC_K8S_0002 --skip-rules AC_K8S_0068 -o sarif > results_${iteration}.json
+export second_tool="terrascan"
 python .github/scripts/main.py --count-checks
 
+# Delete result files
+rm results_1.json
+rm results_3.json
+
+# END
 echo -e "\n -------------------------- \n"
 echo "Done running analyzers on $chart_name"

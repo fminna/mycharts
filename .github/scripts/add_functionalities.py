@@ -222,8 +222,6 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> None
 
             fix_template.set_template(template, check_id, check)
 
-    print("\nAll functionalities added!\n")
-
     # Print all found checks
     all_checks = [str(x) for x in all_checks if x is not None]
 
