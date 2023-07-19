@@ -209,11 +209,11 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 25000
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -263,8 +263,8 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           requests:
             memory: 128Mi
             cpu: 250m
