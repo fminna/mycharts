@@ -167,10 +167,11 @@ def fix_issue(check: str, template: dict) -> str:
                         paths["obj_path"] = cont_path + str(idx)
                         fix_template.set_template(template, check_id, paths)
 
-                    for idx in range(len(init_containers)):
-                        cont_path = cont_path.replace("containers", "initContainers")
-                        paths["obj_path"] = cont_path + str(idx)
-                        fix_template.set_template(template, check_id, paths)
+                    if init_containers:
+                        for idx in range(len(init_containers)):
+                            cont_path = cont_path.replace("containers", "initContainers")
+                            paths["obj_path"] = cont_path + str(idx)
+                            fix_template.set_template(template, check_id, paths)
 
                 else :
                     fix_template.set_template(template, check_id, paths)
