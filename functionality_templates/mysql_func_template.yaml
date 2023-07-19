@@ -152,13 +152,15 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   podManagementPolicy: ''
@@ -174,6 +176,7 @@ spec:
     metadata:
       annotations:
         checksum/configuration: 74f6d694934e49250ce5cfc5e93637df13431c704ef8367a3f69b565dd4aee71
+        container.apparmor.security.beta.kubernetes.io/mysql: runtime/default
       labels:
         app.kubernetes.io/name: mysql
         helm.sh/chart: mysql-9.7.1
@@ -196,6 +199,9 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers: null
       containers:
       - name: mysql
         image: docker.io/bitnami/mysql:8.0.32-debian-11-r21
@@ -203,7 +209,11 @@ spec:
         securityContext:
           runAsNonRoot: false
           runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
           allowPrivilegeEscalation: false
+          privileged: false
           readOnlyRootFilesystem: false
           runAsGroup: 25000
         env:
@@ -261,11 +271,11 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
+            cpu: 250m
             memory: 128Mi
-            cpu: 1000m
           requests:
             memory: 128Mi
-            cpu: 1000m
+            cpu: 250m
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
