@@ -131,7 +131,7 @@ def fix_issue(check: str, template: dict) -> str:
             obj_path = file["search_key"]
 
             no_path_checks = ["check_26", "check_36", "check_48", "check_49", "check_53", \
-                              "check_56", "check_65"]
+                              "check_56", "check_65", "check_13", "check_47"]
             if check_id in no_path_checks:
                 obj_path = ""
 
@@ -197,7 +197,8 @@ def fix_issue(check: str, template: dict) -> str:
 
                         # Find Service and add ClusterIP: None
                         service = get_resource_dict(template, service_path.split("/"))
-                        service["spec"]["clusterIP"] = "None"
+                        if service and "spec" in service and "clusterIP" in service["spec"]:
+                            service["spec"]["clusterIP"] = "None"
 
                     else:
                         print("TODO: create headless service for statefulset!")

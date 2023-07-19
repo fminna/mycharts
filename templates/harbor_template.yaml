@@ -445,24 +445,6 @@ spec:
     app: "harbor"
     component: core
 ---
-# Source: harbor/templates/database/database-svc.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: "release-name-harbor-database"
-  labels:
-    heritage: Helm
-    release: release-name
-    chart: harbor
-    app: "harbor"
-spec:
-  ports:
-    - port: 5432
-  selector:
-    release: release-name
-    app: "harbor"
-    component: database
----
 # Source: harbor/templates/jobservice/jobservice-svc.yaml
 apiVersion: v1
 kind: Service
@@ -483,42 +465,6 @@ spec:
     app: "harbor"
     component: jobservice
 ---
-# Source: harbor/templates/notary/notary-svc.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: release-name-harbor-notary-server
-  labels:
-    heritage: Helm
-    release: release-name
-    chart: harbor
-    app: "harbor"
-spec:
-  ports:
-  - port: 4443
-  selector:
-    release: release-name
-    app: "harbor"
-    component: notary-server
----
-# Source: harbor/templates/notary/notary-svc.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: release-name-harbor-notary-signer
-  labels:
-    heritage: Helm
-    release: release-name
-    chart: harbor
-    app: "harbor"
-spec:
-  ports:
-  - port: 7899
-  selector:
-    release: release-name
-    app: "harbor"
-    component: notary-signer
----
 # Source: harbor/templates/portal/service.yaml
 apiVersion: v1
 kind: Service
@@ -537,24 +483,6 @@ spec:
     release: release-name
     app: "harbor"
     component: portal
----
-# Source: harbor/templates/redis/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: release-name-harbor-redis
-  labels:
-    heritage: Helm
-    release: release-name
-    chart: harbor
-    app: "harbor"
-spec:
-  ports:
-    - port: 6379
-  selector:
-    release: release-name
-    app: "harbor"
-    component: redis
 ---
 # Source: harbor/templates/registry/registry-svc.yaml
 apiVersion: v1

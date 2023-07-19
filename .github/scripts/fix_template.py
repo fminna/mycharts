@@ -213,6 +213,9 @@ limit_range = False
 global network_policy
 network_policy = False
 
+global service_account_idx
+service_account_idx = 0
+
 
 def set_template(template: dict, check_id: str, check: dict) -> None:
     """Change the chart template for the Helm Chart.
@@ -680,10 +683,8 @@ def remove_host_path(obj: dict):
 
     if "volumes" in obj and obj["volumes"] is not None and obj["volumes"]:
         obj["volumes"] = [volume for volume in obj["volumes"] if "hostPath" not in volume]
-
-    # if volumes: null, remove it
-    if "volumes" in obj and obj["volumes"] is None or not obj["volumes"]:
-        del obj["volumes"]
+        if not obj["volumes"]:
+            del obj["volumes"]
 
 
 def set_limit_range(obj: dict) -> dict:
@@ -1572,8 +1573,10 @@ def set_service_account_name(obj: dict, value="SAtest"):
         elif "jobTemplate" in obj:
             obj = obj["jobTemplate"]["spec"]["template"]["spec"]
 
-    obj["serviceAccountName"] = value
+    global service_account_idx
+    obj["serviceAccountName"] = value + str(service_account_idx)
     obj["automountServiceAccountToken"] = False
+    service_account_idx += 1
 
 
 def set_k8s_ns(obj: dict, value="test-ns"):
