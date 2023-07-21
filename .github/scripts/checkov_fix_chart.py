@@ -37,20 +37,25 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     # List of all checks
     all_checks = []
 
-    print("Starting to fix chart's issues ...\n")
+    # print("Starting to fix chart's issues ...\n")
 
     for check in results["results"]["failed_checks"]:
-        print(f"{check['check_id']}: {check['check_name']}")
+        # print(f"{check['check_id']}: {check['check_name']}")
         check_id = fix_issue(check, template)
         all_checks.append(check_id)
 
-    print("\nAll issues fixed!\n")
+    # print("\nAll issues fixed!\n")
 
     # Print all found checks
     all_checks = [x for x in all_checks if x is not None]
     all_checks.sort()
-    print(f"Total number of checks: {len(all_checks)}")
-    print(", ".join(all_checks))
+    # print(f"Total number of checks: {len(all_checks)}")
+    # print(", ".join(all_checks))
+    # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
+    # occurrences of each check in all_checks, all in one line
+    print(len(all_checks), end=" ")
+    for i in range(0, 67):
+        print(f"{all_checks.count(f'check_{i}')}", end=" ")
 
     name = f"fixed_{chart_folder}_checkov_fixed"
     fix_template.save_yaml_template(template, name)
@@ -220,7 +225,11 @@ class LookupClass:
         "CKV_K8S_49": "check_54",
         "CKV_K8S_156": "check_54",
         "CKV_K8S_157": "check_54",
-        "CKV_K8S_158": "check_54"
+        "CKV_K8S_158": "check_54",
+        "CKV2_K8S_3": "check_54",
+        "CKV2_K8S_4": "check_54",
+        "CKV2_K8S_2": "check_54",
+        "CKV_K8S_27": "check_15"
     }
 
     @classmethod

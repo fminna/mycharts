@@ -1,0 +1,426 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5601
+    protocol: TCP
+    name: http
+    targetPort: 5601
+  selector:
+    app: kibana
+    release: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kibana
+      release: release-name
+  template:
+    metadata:
+      labels:
+        app: kibana
+        release: release-name
+    spec:
+      automountServiceAccountToken: true
+      securityContext:
+        fsGroup: 1000
+      volumes:
+      - name: kibana-tokens
+        emptyDir: {}
+      - name: elasticsearch-certs
+        secret:
+          secretName: elasticsearch-master-certs
+      initContainers: null
+      containers:
+      - name: kibana
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+        image: docker.elastic.co/kibana/kibana:8.5.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: https://elasticsearch-master:9200
+        - name: ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES
+          value: /usr/share/kibana/config/certs/ca.crt
+        - name: SERVER_HOST
+          value: 0.0.0.0
+        - name: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: release-name-kibana-es-token
+              key: token
+              optional: false
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=1800
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 3
+          timeoutSeconds: 5
+          exec:
+            command:
+            - bash
+            - -c
+            - "#!/usr/bin/env bash -e\n\n# Disable nss cache to avoid filling dentry\
+              \ cache when calling curl\n# This is required with Kibana Docker using\
+              \ nss < 3.52\nexport NSS_SDB_USE_CACHE=no\n\nhttp () {\n    local path=\"\
+              ${1}\"\n    set -- -XGET -s --fail -L\n\n    if [ -n \"${ELASTICSEARCH_USERNAME}\"\
+              \ ] && [ -n \"${ELASTICSEARCH_PASSWORD}\" ]; then\n      set -- \"$@\"\
+              \ -u \"${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}\"\n    fi\n\
+              \n    STATUS=$(curl --output /dev/null --write-out \"%{http_code}\"\
+              \ -k \"$@\" \"http://localhost:5601${path}\")\n    if [[ \"${STATUS}\"\
+              \ -eq 200 ]]; then\n      exit 0\n    fi\n\n    echo \"Error: Got HTTP\
+              \ code ${STATUS} but expected a 200\"\n    exit 1\n}\n\nhttp \"/app/kibana\"\
+              \n"
+        ports:
+        - containerPort: 5601
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts:
+        - name: elasticsearch-certs
+          mountPath: /usr/share/kibana/config/certs
+          readOnly: true
+        - name: kibana-tokens
+          mountPath: /usr/share/kibana/config/tokens
+          readOnly: true
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: post-delete-release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pre-install-release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-kibana-helm-scripts
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade,post-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+data:
+  manage-es-token.js: "const https = require('https');\nconst fs = require('fs');\n\
+    \n// Read environment variables\nfunction getEnvVar(name) {\n  if (!process.env[name])\
+    \ {\n    throw new Error(name + ' environment variable is missing')\n  }\n  return\
+    \ process.env[name]\n}\n\n// Elasticsearch API\nconst esPath = '_security/service/elastic/kibana/credential/token/release-name-kibana';\n\
+    const esUrl = 'https://elasticsearch-master:9200' + '/' + esPath\nconst esUsername\
+    \ = getEnvVar('ELASTICSEARCH_USERNAME');\nconst esPassword = getEnvVar('ELASTICSEARCH_PASSWORD');\n\
+    const esAuth = esUsername + ':' + esPassword;\nconst esCaFile = getEnvVar('ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES');\n\
+    const esCa = fs.readFileSync(esCaFile);\n\n// Kubernetes API\nconst k8sHostname\
+    \ = getEnvVar('KUBERNETES_SERVICE_HOST');\nconst k8sPort = getEnvVar('KUBERNETES_SERVICE_PORT_HTTPS');\n\
+    const k8sPostSecretPath = 'api/v1/namespaces/default/secrets';\nconst k8sDeleteSecretPath\
+    \ = 'api/v1/namespaces/default/secrets/release-name-kibana-es-token';\nconst k8sPostSecretUrl\
+    \ = `https://${k8sHostname}:${k8sPort}/${k8sPostSecretPath}`;\nconst k8sDeleteSecretUrl\
+    \ = `https://${k8sHostname}:${k8sPort}/${k8sDeleteSecretPath}`;\nconst k8sBearer\
+    \ = fs.readFileSync('/run/secrets/kubernetes.io/serviceaccount/token');\nconst\
+    \ k8sCa = fs.readFileSync('/run/secrets/kubernetes.io/serviceaccount/ca.crt');\n\
+    \n// Post Data\nconst esTokenDeleteOptions = {\n  method: 'DELETE',\n  auth: esAuth,\n\
+    \  ca: esCa,\n};\nconst esTokenCreateOptions = {\n  method: 'POST',\n  auth: esAuth,\n\
+    \  ca: esCa,\n};\nconst secretCreateOptions = {\n  method: 'POST',\n  ca: k8sCa,\n\
+    \  headers: {\n    'Authorization': 'Bearer ' + k8sBearer,\n    'Accept': 'application/json',\n\
+    \    'Content-Type': 'application/json',\n  }\n};\nconst secretDeleteOptions =\
+    \ {\n  method: 'DELETE',\n  ca: k8sCa,\n  headers: {\n    'Authorization': 'Bearer\
+    \ ' + k8sBearer,\n    'Accept': 'application/json',\n    'Content-Type': 'application/json',\n\
+    \  }\n};\n\n// With thanks to https://stackoverflow.com/questions/57332374/how-to-chain-http-request\n\
+    function requestPromise(url, httpsOptions, extraOptions = {}) {\n  return new\
+    \ Promise((resolve, reject) => {\n    const request = https.request(url, httpsOptions,\
+    \ response => {\n\n      console.log('statusCode:', response.statusCode);\n\n\
+    \      let isSuccess = undefined;\n\n      if (typeof(extraOptions.extraStatusCode)\
+    \ != \"undefined\" && extraOptions.extraStatusCode != null) {\n        isSuccess\
+    \ = response.statusCode >= 200 && response.statusCode < 300 || response.statusCode\
+    \ == extraOptions.extraStatusCode;\n      } else {\n        isSuccess = response.statusCode\
+    \ >= 200 && response.statusCode < 300;\n      }\n\n      let data = '';\n    \
+    \  response.on('data', chunk => data += chunk); // accumulate data\n      response.once('end',\
+    \ () => isSuccess ? resolve(data) : reject(data));  // resolve promise here\n\
+    \    });\n\n    request.once('error', err => {\n      // This won't log anything\
+    \ for e.g. an HTTP 404 or 500 response,\n      // since from HTTP's point-of-view\
+    \ we successfully received a\n      // response.\n      console.log(`${httpsOptions.method}\
+    \ ${httpsOptions.path} failed: `, err.message || err);\n      reject(err);  //\
+    \ if promise is not already resolved, then we can reject it here\n    });\n\n\
+    \    if (typeof(extraOptions.payload) != \"undefined\") {\n      request.write(extraOptions.payload);\n\
+    \    }\n    request.end();\n  });\n}\n\nfunction createEsToken() {\n  // Chaining\
+    \ requests\n  console.log('Cleaning previous token');\n  // 404 status code is\
+    \ accepted if there is no previous token to clean\n  return requestPromise(esUrl,\
+    \ esTokenDeleteOptions, {extraStatusCode: 404}).then(() => {\n    console.log('Creating\
+    \ new token');\n    return requestPromise(esUrl, esTokenCreateOptions).then(response\
+    \ => {\n      const body = JSON.parse(response);\n      const token = body.token.value\n\
+    \n      // Encode the token in base64\n      const base64Token = Buffer.from(token,\
+    \ 'utf8').toString('base64');\n\n      // Prepare the k8s secret\n      const\
+    \ secretData = JSON.stringify({\n        \"apiVersion\": \"v1\",\n        \"kind\"\
+    : \"Secret\",\n        \"metadata\": {\n          \"namespace\": \"default\",\n\
+    \          \"name\": \"release-name-kibana-es-token\",\n        },\n        \"\
+    type\": \"Opaque\",\n        \"data\": {\n          \"token\": base64Token,\n\
+    \        }\n      })\n\n      // Create the k8s secret\n      console.log('Creating\
+    \ K8S secret');\n      return requestPromise(k8sPostSecretUrl, secretCreateOptions,\
+    \ {payload: secretData})\n    });\n  });\n}\n\nfunction cleanEsToken() {\n  //\
+    \ Chaining requests\n  console.log('Cleaning token');\n  return requestPromise(esUrl,\
+    \ esTokenDeleteOptions).then(() => {\n    // Create the k8s secret\n    console.log('Delete\
+    \ K8S secret');\n    return requestPromise(k8sDeleteSecretUrl, secretDeleteOptions)\n\
+    \  });\n}\n\nconst command = process.argv[2];\nswitch (command) {\n  case 'create':\n\
+    \    console.log('Creating a new Elasticsearch token for Kibana')\n    createEsToken().catch(err\
+    \ => {\n      console.error(err);\n      process.exit(1);\n    });\n    break;\n\
+    \  case 'clean':\n    console.log('Cleaning the Kibana Elasticsearch token')\n\
+    \    cleanEsToken().catch(err => {\n      console.error(err);\n      process.exit(1);\n\
+    \    });\n    break;\n  default:\n    console.log('Unknown command');\n    process.exit(1);\n\
+    }\n"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: post-delete-release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  verbs:
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pre-install-release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  verbs:
+  - create
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: post-delete-release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+subjects:
+- kind: ServiceAccount
+  name: post-delete-release-name-kibana
+  namespace: default
+roleRef:
+  kind: Role
+  name: post-delete-release-name-kibana
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pre-install-release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded
+subjects:
+- kind: ServiceAccount
+  name: pre-install-release-name-kibana
+  namespace: default
+roleRef:
+  kind: Role
+  name: pre-install-release-name-kibana
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: post-delete-release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: clean-kibana-token
+        image: docker.elastic.co/kibana/kibana:8.5.1
+        imagePullPolicy: IfNotPresent
+        command:
+        - /usr/share/kibana/node/bin/node
+        args:
+        - /usr/share/kibana/helm-scripts/manage-es-token.js
+        - clean
+        env:
+        - name: ELASTICSEARCH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-master-credentials
+              key: username
+        - name: ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-master-credentials
+              key: password
+        - name: ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES
+          value: /usr/share/kibana/config/certs/ca.crt
+        volumeMounts:
+        - name: elasticsearch-certs
+          mountPath: /usr/share/kibana/config/certs
+          readOnly: true
+        - name: kibana-helm-scripts
+          mountPath: /usr/share/kibana/helm-scripts
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+      serviceAccountName: post-delete-release-name-kibana
+      volumes:
+      - name: elasticsearch-certs
+        secret:
+          secretName: elasticsearch-master-certs
+      - name: kibana-helm-scripts
+        configMap:
+          name: release-name-kibana-helm-scripts
+          defaultMode: 493
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pre-install-release-name-kibana
+  labels:
+    app: kibana
+    release: release-name
+    heritage: Helm
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded
+spec:
+  backoffLimit: 20
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: create-kibana-token
+        image: docker.elastic.co/kibana/kibana:8.5.1
+        imagePullPolicy: IfNotPresent
+        command:
+        - /usr/share/kibana/node/bin/node
+        args:
+        - /usr/share/kibana/helm-scripts/manage-es-token.js
+        - create
+        env:
+        - name: ELASTICSEARCH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-master-credentials
+              key: username
+        - name: ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-master-credentials
+              key: password
+        - name: ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES
+          value: /usr/share/kibana/config/certs/ca.crt
+        volumeMounts:
+        - name: elasticsearch-certs
+          mountPath: /usr/share/kibana/config/certs
+          readOnly: true
+        - name: kibana-helm-scripts
+          mountPath: /usr/share/kibana/helm-scripts
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+      serviceAccountName: pre-install-release-name-kibana
+      volumes:
+      - name: elasticsearch-certs
+        secret:
+          secretName: elasticsearch-master-certs
+      - name: kibana-helm-scripts
+        configMap:
+          name: release-name-kibana-helm-scripts
+          defaultMode: 493

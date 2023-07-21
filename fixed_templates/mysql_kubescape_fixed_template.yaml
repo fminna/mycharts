@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
   annotations: null
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 secrets:
 - name: release-name-mysql
 ---
@@ -201,11 +201,11 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
       initContainers: null
       containers:
       - name: mysql
@@ -217,9 +217,9 @@ spec:
           capabilities:
             drop:
             - ALL
+          runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -288,7 +288,6 @@ spec:
       - name: config
         configMap:
           name: release-name-mysql
-      automountServiceAccountToken: false
   volumeClaimTemplates:
   - metadata:
       name: data

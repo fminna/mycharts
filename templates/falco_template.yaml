@@ -1,0 +1,414 @@
+---
+# Source: falco/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-falco
+  namespace: default
+  labels:
+    helm.sh/chart: falco-3.1.4
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.34.1"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: falco/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-falco
+  namespace: default
+  labels:
+    helm.sh/chart: falco-3.1.4
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.34.1"
+    app.kubernetes.io/managed-by: Helm
+data:
+  falco.yaml: |-
+    buffered_outputs: false
+    file_output:
+      enabled: false
+      filename: ./events.txt
+      keep_alive: false
+    grpc:
+      bind_address: unix:///run/falco/falco.sock
+      enabled: false
+      threadiness: 0
+    grpc_output:
+      enabled: false
+    http_output:
+      enabled: false
+      url: ""
+      user_agent: falcosecurity/falco
+    json_include_output_property: true
+    json_include_tags_property: true
+    json_output: false
+    libs_logger:
+      enabled: false
+      severity: debug
+    load_plugins: []
+    log_level: info
+    log_stderr: true
+    log_syslog: true
+    metadata_download:
+      chunk_wait_us: 1000
+      max_mb: 100
+      watch_freq_sec: 1
+    modern_bpf:
+      cpus_for_each_syscall_buffer: 2
+    output_timeout: 2000
+    outputs:
+      max_burst: 1000
+      rate: 1
+    plugins:
+    - init_config: null
+      library_path: libk8saudit.so
+      name: k8saudit
+      open_params: http://:9765/k8s-audit
+    - library_path: libcloudtrail.so
+      name: cloudtrail
+    - init_config: ""
+      library_path: libjson.so
+      name: json
+    priority: debug
+    program_output:
+      enabled: false
+      keep_alive: false
+      program: 'jq ''{text: .output}'' | curl -d @- -X POST https://hooks.slack.com/services/XXX'
+    rules_file:
+    - /etc/falco/falco_rules.yaml
+    - /etc/falco/falco_rules.local.yaml
+    - /etc/falco/rules.d
+    stdout_output:
+      enabled: true
+    syscall_buf_size_preset: 4
+    syscall_event_drops:
+      actions:
+      - log
+      - alert
+      max_burst: 1
+      rate: 0.03333
+      simulate_drops: false
+      threshold: 0.1
+    syscall_event_timeouts:
+      max_consecutives: 1000
+    syslog_output:
+      enabled: true
+    time_format_iso_8601: false
+    watch_config_files: true
+    webserver:
+      enabled: true
+      k8s_healthz_endpoint: /healthz
+      listen_port: 8765
+      ssl_certificate: /etc/falco/falco.pem
+      ssl_enabled: false
+      threadiness: 0
+---
+# Source: falco/templates/falcoctl-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-falco-falcoctl
+  namespace: default
+  labels:
+    helm.sh/chart: falco-3.1.4
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.34.1"
+    app.kubernetes.io/managed-by: Helm
+data:
+  falcoctl.yaml: |-
+    artifact:
+      allowedTypes:
+      - rulesfile
+      follow:
+        every: 6h
+        falcoversions: http://localhost:8765/versions
+        pluginsDir: /plugins
+        refs:
+        - falco-rules:0
+        rulesfilesDir: /rulesfiles
+      install:
+        pluginsDir: /plugins
+        refs:
+        - falco-rules:0
+        resolveDeps: false
+        rulesfilesDir: /rulesfiles
+    indexes:
+    - name: falcosecurity
+      url: https://falcosecurity.github.io/falcoctl/index.yaml
+---
+# Source: falco/templates/clusterrole.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-falco
+  labels:
+    helm.sh/chart: falco-3.1.4
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.34.1"
+    app.kubernetes.io/managed-by: Helm
+rules:
+  - apiGroups:
+      - extensions
+      - ""
+    resources:
+      - nodes
+      - namespaces
+      - pods
+      - replicationcontrollers
+      - replicasets
+      - services
+      - daemonsets
+      - deployments
+      - events
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets
+      - deployments
+      - replicasets
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - watch
+  - nonResourceURLs:
+      - /healthz
+      - /healthz/*
+    verbs:
+      - get
+---
+# Source: falco/templates/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-falco
+  labels:
+    helm.sh/chart: falco-3.1.4
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.34.1"
+    app.kubernetes.io/managed-by: Helm
+subjects:
+  - kind: ServiceAccount
+    name: release-name-falco
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: release-name-falco
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: falco/templates/daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: release-name-falco
+  namespace: default
+  labels:
+    helm.sh/chart: falco-3.1.4
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.34.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: falco
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      name: release-name-falco
+      labels:
+        app.kubernetes.io/name: falco
+        app.kubernetes.io/instance: release-name
+      annotations:
+        checksum/config: a9f15f4e9c915dc68e01b438570bd6eac85dff4943dc07392e8c978210821c36
+        checksum/rules: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        checksum/certs: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    spec:
+      serviceAccountName: release-name-falco
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+      containers:
+        - name: falco
+          image: docker.io/falcosecurity/falco-no-driver:0.34.1
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          securityContext:
+            privileged: true
+          args:
+            - /usr/bin/falco        
+            - --cri
+            - /run/containerd/containerd.sock
+            - --cri
+            - /run/crio/crio.sock
+            - -K
+            - /var/run/secrets/kubernetes.io/serviceaccount/token
+            - -k
+            - https://$(KUBERNETES_SERVICE_HOST)
+            - --k8s-node
+            - "$(FALCO_K8S_NODE_NAME)"
+            - -pk
+          env:
+            - name: FALCO_K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          tty: false
+          livenessProbe:
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 15
+            httpGet:
+              path: /healthz
+              port: 8765
+          readinessProbe:
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 15
+            httpGet:
+              path: /healthz
+              port: 8765
+          volumeMounts:
+            - mountPath: /etc/falco
+              name: rulesfiles-install-dir
+            - mountPath: /root/.falco
+              name: root-falco-fs
+            - mountPath: /host/proc
+              name: proc-fs
+            - mountPath: /host/dev
+              name: dev-fs
+              readOnly: true
+            - name: sys-fs
+              mountPath: /sys/module/falco
+            - mountPath: /host/var/run/docker.sock
+              name: docker-socket
+            - mountPath: /host/run/containerd/containerd.sock
+              name: containerd-socket
+            - mountPath: /host/run/crio/crio.sock
+              name: crio-socket
+            - mountPath: /etc/falco/falco.yaml
+              name: falco-yaml
+              subPath: falco.yaml
+        - name: falcoctl-artifact-follow
+          image: docker.io/falcosecurity/falcoctl:0.4.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - artifact
+            - follow
+            - --verbose
+          securityContext:
+          volumeMounts:
+            - mountPath: /plugins
+              name: plugins-install-dir
+            - mountPath: /rulesfiles
+              name: rulesfiles-install-dir
+            - mountPath: /etc/falcoctl
+              name: falcoctl-config-volume
+          env:
+      initContainers:
+        - name: falco-driver-loader
+          image: docker.io/falcosecurity/falco-driver-loader:0.34.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /root/.falco
+              name: root-falco-fs
+            - mountPath: /host/proc
+              name: proc-fs
+              readOnly: true
+            - mountPath: /host/boot
+              name: boot-fs
+              readOnly: true
+            - mountPath: /host/lib/modules
+              name: lib-modules
+            - mountPath: /host/usr
+              name: usr-fs
+              readOnly: true
+            - mountPath: /host/etc
+              name: etc-fs
+              readOnly: true
+        - name: falcoctl-artifact-install
+          image: docker.io/falcosecurity/falcoctl:0.4.0
+          imagePullPolicy: IfNotPresent
+          args: 
+            - artifact
+            - install
+            - --verbose
+          volumeMounts:
+            - mountPath: /plugins
+              name: plugins-install-dir
+            - mountPath: /rulesfiles
+              name: rulesfiles-install-dir
+            - mountPath: /etc/falcoctl
+              name: falcoctl-config-volume
+      volumes:
+        - name: plugins-install-dir
+          emptyDir: {}
+        - name: rulesfiles-install-dir
+          emptyDir: {}
+        - name: root-falco-fs
+          emptyDir: {}  
+        - name: boot-fs
+          hostPath:
+            path: /boot
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+        - name: usr-fs
+          hostPath:
+            path: /usr
+        - name: etc-fs
+          hostPath:
+            path: /etc
+        - name: dev-fs
+          hostPath:
+            path: /dev
+        - name: sys-fs
+          hostPath:
+            path: /sys/module/falco
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+        - name: containerd-socket
+          hostPath:
+            path: /run/containerd/containerd.sock
+        - name: crio-socket
+          hostPath:
+            path: /run/crio/crio.sock
+        - name: proc-fs
+          hostPath:
+            path: /proc
+        - name: falcoctl-config-volume
+          configMap: 
+            name: release-name-falco-falcoctl
+            items:
+              - key: falcoctl.yaml
+                path: falcoctl.yaml
+        - name: falco-yaml
+          configMap:
+            name: release-name-falco
+            items:
+            - key: falco.yaml
+              path: falco.yaml
+        
+  updateStrategy:
+    type: RollingUpdate

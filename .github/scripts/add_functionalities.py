@@ -116,24 +116,38 @@ def iterate_functionalities(chart_folder: str, json_path: str, tool: str) -> Non
 
     name = f"fixed_templates/{chart_folder}_{tool}_fixed"
     template = fix_template.parse_yaml_template(name)
-    print("Starting to add chart's functionalities ...\n")
+    # print("Starting to add chart's functionalities ...\n")
 
     for pod in results["pods"]:
         for container in pod["containers"]:
-            add_functionality(container, template, chart_folder)
+            all_checks = add_functionality(container, template, chart_folder)
 
-    print("\nAll functionalities added!")
+    # print("\nAll functionalities added!")
+    all_checks = [x for x in all_checks if x is not None]
+    all_checks.sort()
+    # print(f"Total number of checks: {len(all_checks)}")
+    # print(", ".join(all_checks))
+
+    # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
+    # occurrences of each check in all_checks, all in one line
+    print(len(all_checks), end=" ")
+    for i in range(0, 67):
+        print(f"{all_checks.count(f'check_{i}')}", end=" ")
+
     name = f"functionality_templates/{chart_folder}_func"
     fix_template.save_yaml_template(template, name)
 
 
-def add_functionality(container: str, template: dict, chart_folder: str) -> None:
+def add_functionality(container: str, template: dict, chart_folder: str) -> list:
     """Adds the required functionalities to the object.
 
     Args:
         container (str): The K8s container to add functionalities to.
         template (dict): The parsed YAML template.
         chart_folder (str): The name of the Helm Chart to fix.
+
+    Returns:
+        list: The list of all checks.
     """
 
     # List of all checks
@@ -143,15 +157,14 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> None
     for check_id in container["functionalities"].keys():
 
         check = container["functionalities"][check_id]
+        # issue = f"{check_id}: {check['description']}"
+        # print(issue)
 
         # Capabilities
         if check_id == "check_34":
             # Check if any capability needs to be added --- "add" list not empty
             if check['add']:
-                issue = f"{check_id}: {check['description']}"
-                print(issue)
                 all_checks.append(check_id)
-
                 fix_template.set_template(template, check_id, check)
 
         # Low UID
@@ -162,10 +175,7 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> None
             if not uid:
                 uid = 1001
 
-            issue = f"{check_id}: {check['description']}"
-            print(issue)
             all_checks.append(check_id)
-
             check["value"] = uid
             fix_template.set_template(template, check_id, check)
 
@@ -179,8 +189,6 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> None
             # original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
             # gid = get_original_gid(original_template, check["resource_path"], check["obj_path"])
 
-            issue = f"{check_id}: {check['description']}"
-            print(issue)
             all_checks.append(check_id)
 
             # check["value"] = gid
@@ -188,51 +196,27 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> None
 
         # Memory request
         elif check_id == "check_1":
-            issue = f"{check_id}: {check['description']}"
-            print(issue)
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
 
         # Memory limit
         elif check_id == "check_2":
-            issue = f"{check_id}: {check['description']}"
-            print(issue)
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
 
         # CPU request
         elif check_id == "check_4":
-            issue = f"{check_id}: {check['description']}"
-            print(issue)
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
 
         # CPU limit
         elif check_id == "check_5":
-            issue = f"{check_id}: {check['description']}"
-            print(issue)
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
 
         # Non-default values
         elif not check['value']:
-            issue = f"{check_id}: {check['description']}"
-            print(issue)
             all_checks.append(check_id)
-
             fix_template.set_template(template, check_id, check)
 
-    # Print all found checks
-    all_checks = [str(x) for x in all_checks if x is not None]
-
-    # Convert all_checks to string
-    # Needed to convert multi-check elements (e.g., "check_1, check_2")
-    all_checks = ", ".join(all_checks)
-
-    # Convert all checks back to list
-    all_checks = all_checks.split(", ")
-    all_checks.sort()
-
-    # Print info
-    print(f"Total number of checks: {len(all_checks)}")
-    print(", ".join(all_checks))
+    return all_checks

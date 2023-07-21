@@ -20,6 +20,7 @@ import copy
 import json
 import re
 import fix_template
+import terrascan_fix_chart
 
 
 def iterate_checks(chart_folder: str, json_path: str) -> None:
@@ -39,10 +40,10 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     # List of all checks
     all_checks = []
 
-    print("Starting to fix chart's issues ...\n")
+    # print("Starting to fix chart's issues ...\n")
 
     for check in results["queries"]:
-        print(f"{check['query_id']}: {check['query_name']}")
+        # print(f"{check['query_id']}: {check['query_name']}")
 
         # if check["query_id"] == "487f4be7-3fd9-4506-a07a-eae252180c08":
         #     remove_password(chart_folder, check["files"])
@@ -52,13 +53,18 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         for _ in check["files"]:
             all_checks.append(check_id)
 
-    print("\nAll issues fixed!\n")
+    # print("\nAll issues fixed!\n")
 
     # Print all found checks
     all_checks = [x for x in all_checks if x is not None]
     all_checks.sort()
-    print(f"Total number of checks: {len(all_checks)}")
-    print(", ".join(all_checks))
+    # print(f"Total number of checks: {len(all_checks)}")
+    # print(", ".join(all_checks))
+    # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
+    # occurrences of each check in all_checks, all in one line
+    print(len(all_checks), end=" ")
+    for i in range(0, 67):
+        print(f"{all_checks.count(f'check_{i}')}", end=" ")
 
     name = f"fixed_{chart_folder}_kics_fixed"
     fix_template.save_yaml_template(template, name)
@@ -131,7 +137,7 @@ def fix_issue(check: str, template: dict) -> str:
             obj_path = file["search_key"]
 
             no_path_checks = ["check_26", "check_36", "check_48", "check_49", "check_53", \
-                              "check_56", "check_65", "check_13", "check_47"]
+                              "check_56", "check_65", "check_13", "check_47", "check_15"]
             if check_id in no_path_checks:
                 obj_path = ""
 
@@ -158,10 +164,10 @@ def fix_issue(check: str, template: dict) -> str:
                     if idx:
                         obj_path += "/" + idx
 
-            #     if "containers" in obj_path:
-            #         obj_path = f"spec/template/spec/containers/{str(idx)}"
-            #     elif "initContainers" in obj_path:
-            #         obj_path = f"spec/template/spec/initContainers/{str(idx)}"
+                # if "containers" in obj_path:
+                #     obj_path = f"spec/template/spec/containers/{str(idx)}"
+                # elif "initContainers" in obj_path:
+                #     obj_path = f"spec/template/spec/initContainers/{str(idx)}"
 
             if check_id == "check_52":
                 obj_path = obj_path.replace(".", "/")
@@ -219,21 +225,24 @@ def fix_issue(check: str, template: dict) -> str:
                     k8s_resource = k8s_resource["spec"]["template"]["spec"]
                 else:
                     k8s_resource = k8s_resource["spec"]
-
                 sa_resource_path += k8s_resource["serviceAccountName"]
+
                 service_account = get_resource_dict(template, sa_resource_path.split("/"))
-                service_account = copy.copy(service_account)
-                # Set new name
-                service_account["metadata"]["name"] = "test-SA" + str(jdx)
-                if "namespace" in service_account["metadata"] and \
-                        service_account["metadata"]["namespace"] == "default":
-                    service_account["metadata"]["namespace"] = "test-ns"
-                # Append new SA to the template
-                template.append(service_account)
-                # Add value to paths
-                paths["value"] = "test-SA" + str(jdx)
-                paths["obj_path"] = paths["obj_path"].replace("/serviceAccountName", "")
-                check_id = "check_37"
+                if service_account:
+                    service_account = copy.copy(service_account)
+                    # Set new name
+                    service_account["metadata"]["name"] = "test-SA" + str(jdx)
+                    if "namespace" in service_account["metadata"] and \
+                            service_account["metadata"]["namespace"] == "default":
+                        service_account["metadata"]["namespace"] = "test-ns"
+                    # Append new SA to the template
+                    template.append(service_account)
+                    # Add value to paths
+                    paths["value"] = "test-SA" + str(jdx)
+                    paths["obj_path"] = paths["obj_path"].replace("/serviceAccountName", "")
+                    check_id = "check_37"
+                else:
+                    continue
 
             checks_remove_last = ["check_10", "check_11", "check_12"]
             if check_id in checks_remove_last:
@@ -241,9 +250,13 @@ def fix_issue(check: str, template: dict) -> str:
                 paths["obj_path"] = "/".join(paths["obj_path"].split("/")[:-1])
 
             if check["query_id"] == "268ca686-7fb7-4ae9-b129-955a2a89064e":
-                return check_id
+                cont_path, containers, _ = terrascan_fix_chart.get_container_path(template, resource_path.split("/"))
+                for idx in range(len(containers)):
+                    paths["obj_path"] = cont_path + str(idx)
+                    fix_template.set_template(template, check_id, paths)
 
-            fix_template.set_template(template, check_id, paths)
+            else:
+                fix_template.set_template(template, check_id, paths)
 
         # After iterating all files, return check_id
         return check_id
@@ -402,6 +415,9 @@ class LookupClass:
         "192fe40b-b1c3-448a-aba2-6cc19a300fe3": "check_63",
         "249328b8-5f0f-409f-b1dd-029f07882e11": "check_65",
         "b23e9b98-0cb6-4fc9-b257-1f3270442678": "check_60",
+        "c589f42c-7924-4871-aee2-1cede9bc7cbc": "check_54",
+        "85ab1c5b-014e-4352-b5f8-d7dea3bb4fd3": "",
+        "a6f34658-fdfb-4154-9536-56d516f65828": "check_15",
     }
 
     @classmethod

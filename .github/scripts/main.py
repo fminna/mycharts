@@ -52,32 +52,6 @@ parser.add_argument('--count-checks', action='store_true', help='Count final che
 args = parser.parse_args()
 
 
-def check_for_failures(json_path: str, json_field: str) -> bool :
-    """Parses a JSON file and checks whether there are any failed tests.
-    
-    Args:
-        json_path (str): The path to the JSON file to parse.
-        json_field (str): The field to check for failures. Format: key1/key2/...
-        
-    Returns:
-        bool: True if there are any failed tests, False otherwise.
-    """
-
-    # Load the JSON file
-    with open(json_path, 'r', encoding="utf-8") as file:
-        results = json.load(file)
-
-    # Get the "failed" count from the summary
-    keys = json_field.split("/")
-    failed_count = results
-
-    for key in keys:
-        failed_count = failed_count[key]
-
-    # Check if there are any failed tests
-    return failed_count > 0
-
-
 def main():
     """ The main function.
     """
@@ -104,19 +78,13 @@ def main():
 
         # Check if there are any failed tests
         if tool == "checkov":
-            if check_for_failures(result_path, "summary/failed"):
-                # Iterate the failed checks
-                checkov_fix_chart.iterate_checks(chart_folder, result_path)
+            checkov_fix_chart.iterate_checks(chart_folder, result_path)
 
         elif tool == "datree":
-            if check_for_failures(result_path, "policySummary/totalRulesFailed"):
-                # Iterate the failed checks
-                datree_fix_chart.iterate_checks(chart_folder, result_path)
+            datree_fix_chart.iterate_checks(chart_folder, result_path)
 
         elif tool == "kics":
-            if check_for_failures(result_path, "total_counter"):
-                # Iterate the failed checks
-                kics_fix_chart.iterate_checks(chart_folder, result_path)
+            kics_fix_chart.iterate_checks(chart_folder, result_path)
 
         elif tool == "kubelinter":
             # check if result["Summary"]["ChecksStatus"] == "Failed"

@@ -26,8 +26,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 type: Opaque
 data:
-  mariadb-root-password: "aXR4T2V6dUZRTQ=="
-  mariadb-password: "T1Y1eVRzSWpVeA=="
+  mariadb-root-password: "NDZCdmlTSXhsMw=="
+  mariadb-password: "cUVMeEhSckh6eg=="
 ---
 # Source: wordpress/templates/secrets.yaml
 apiVersion: v1
@@ -42,7 +42,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 type: Opaque
 data:
-  wordpress-password: "eVlhSlVhbmhSSg=="
+  wordpress-password: "ZmZxWldEZ3paZA=="
 ---
 # Source: wordpress/charts/mariadb/templates/primary/configmap.yaml
 apiVersion: v1
@@ -187,16 +187,11 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
     spec:
-      
-      # yamllint disable rule:indentation
       hostAliases:
         - hostnames:
           - status.localhost
           ip: 127.0.0.1
-      # yamllint enable rule:indentation
       affinity:
-        podAffinity:
-          
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -206,8 +201,6 @@ spec:
                     app.kubernetes.io/instance: release-name
                 topologyKey: kubernetes.io/hostname
               weight: 1
-        nodeAffinity:
-          
       securityContext:
         fsGroup: 1001
         seccompProfile:
@@ -352,11 +345,9 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: primary
     spec:
-      
       serviceAccountName: release-name-mariadb
       affinity:
         podAffinity:
-          
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -367,8 +358,6 @@ spec:
                     app.kubernetes.io/component: primary
                 topologyKey: kubernetes.io/hostname
               weight: 1
-        nodeAffinity:
-          
       securityContext:
         fsGroup: 1001
       containers:

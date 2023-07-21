@@ -1,0 +1,233 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: release-name-pgadmin4
+  namespace: default
+  labels:
+    app.kubernetes.io/name: pgadmin4
+    helm.sh/chart: pgadmin4-1.15.2
+    app.kubernetes.io/version: '7.0'
+    app.kubernetes.io/managed-by: Helm
+spec:
+  policyTypes:
+  - Ingress
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: pgadmin4
+      app.kubernetes.io/instance: release-name
+  ingress:
+  - ports:
+    - port: 80
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-pgadmin4
+  namespace: default
+  labels:
+    app.kubernetes.io/name: pgadmin4
+    helm.sh/chart: pgadmin4-1.15.2
+    app.kubernetes.io/version: '7.0'
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  password: U3VwZXJTZWNyZXQ=
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: release-name-pgadmin4
+  namespace: default
+  labels:
+    app.kubernetes.io/name: pgadmin4
+    helm.sh/chart: pgadmin4-1.15.2
+    app.kubernetes.io/version: '7.0'
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-pgadmin4
+  namespace: default
+  labels:
+    app.kubernetes.io/name: pgadmin4
+    helm.sh/chart: pgadmin4-1.15.2
+    app.kubernetes.io/version: '7.0'
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: pgadmin4
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-pgadmin4
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: pgadmin4
+    helm.sh/chart: pgadmin4-1.15.2
+    app.kubernetes.io/version: '7.0'
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pgadmin4
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pgadmin4
+        app.kubernetes.io/instance: release-name
+      annotations:
+        checksum/secret: 59aee739a7f5c89c5555f4fc7799b9b33cb01e37e7046a22f01ddebcafd69467
+    spec:
+      containers:
+      - name: pgadmin4
+        image: docker.io/dpage/pgadmin4:7.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            port: http
+            path: /misc/ping
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 15
+        readinessProbe:
+          httpGet:
+            port: http
+            path: /misc/ping
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 15
+        env:
+        - name: PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION
+          value: 'False'
+        - name: PGADMIN_DEFAULT_EMAIL
+          value: chart@domain.com
+        volumeMounts:
+        - name: pgadmin-data
+          mountPath: /var/lib/pgadmin
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
+        securityContext:
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+      volumes:
+      - name: pgadmin-data
+        persistentVolumeClaim:
+          claimName: release-name-pgadmin4
+      - name: secret-volume
+        secret:
+          secretName: my-secret
+      securityContext:
+        fsGroup: 5050
+        runAsGroup: 5050
+        runAsUser: 5050
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: release-name-pgadmin4-test-connection
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: pgadmin4
+    helm.sh/chart: pgadmin4-1.15.2
+    app.kubernetes.io/version: '7.0'
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: hook-succeeded
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  securityContext:
+    runAsNonRoot: true
+    fsGroup: 5051
+    runAsGroup: 5051
+    runAsUser: 5051
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+  - name: wget
+    image: docker.io/busybox:latest
+    imagePullPolicy: IfNotPresent
+    env:
+    - name: PGADMIN_HOST
+      value: release-name-pgadmin4
+    - name: PGADMIN_PORT
+      value: '80'
+    command:
+    - /bin/sh
+    - -ec
+    - 'response=$(wget -qSO - http://${PGADMIN_HOST}:${PGADMIN_PORT} 2>&1)
+
+      check=$(echo $response | grep -c ''200 OK''); echo $check; if [[ $check -gt
+      0 ]]; then echo "Response OK"; else exit 1; fi
+
+      '
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 250m
+      limits:
+        memory: 128Mi
+        cpu: 250m
+    securityContext:
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+  restartPolicy: Never
+  automountServiceAccountToken: false

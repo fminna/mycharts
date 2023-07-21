@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-cert-manager-cainjector
-  namespace: default
+  namespace: test-ns
   labels:
     app: cainjector
     app.kubernetes.io/name: cainjector
@@ -15,10 +15,10 @@ metadata:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-cert-manager
-  namespace: default
+  namespace: test-ns
   labels:
     app: cert-manager
     app.kubernetes.io/name: cert-manager
@@ -30,10 +30,10 @@ metadata:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-cert-manager-webhook
-  namespace: default
+  namespace: test-ns
   labels:
     app: webhook
     app.kubernetes.io/name: webhook
@@ -47,7 +47,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-cert-manager-webhook
-  namespace: default
+  namespace: test-ns
   labels:
     app: webhook
     app.kubernetes.io/name: webhook
@@ -77,16 +77,6 @@ rules:
   - certificates
   verbs:
   - get
-  - list
-  - watch
-- apiGroups:
-  - ''
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
 - apiGroups:
   - ''
   resources:
@@ -103,30 +93,18 @@ rules:
   - mutatingwebhookconfigurations
   verbs:
   - get
-  - list
-  - watch
-  - update
-  - patch
 - apiGroups:
   - apiregistration.k8s.io
   resources:
   - apiservices
   verbs:
   - get
-  - list
-  - watch
-  - update
-  - patch
 - apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
   verbs:
   - get
-  - list
-  - watch
-  - update
-  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -952,7 +930,6 @@ rules:
   - leases
   verbs:
   - create
-automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -984,13 +961,12 @@ rules:
   - leases
   verbs:
   - create
-automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-cert-manager-webhook:dynamic-serving
-  namespace: default
+  namespace: test-ns
   labels:
     app: webhook
     app.kubernetes.io/name: webhook
@@ -1067,7 +1043,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-cert-manager-webhook:dynamic-serving
-  namespace: default
+  namespace: test-ns
   labels:
     app: webhook
     app.kubernetes.io/name: webhook
@@ -1085,13 +1061,12 @@ subjects:
   kind: ServiceAccount
   name: release-name-cert-manager-webhook
   namespace: default
-automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: release-name-cert-manager
-  namespace: default
+  namespace: test-ns
   labels:
     app: cert-manager
     app.kubernetes.io/name: cert-manager
@@ -1116,7 +1091,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-cert-manager-webhook
-  namespace: default
+  namespace: test-ns
   labels:
     app: webhook
     app.kubernetes.io/name: webhook
@@ -1173,10 +1148,11 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       containers:
       - name: cert-manager-cainjector
         image: quay.io/jetstack/cert-manager-cainjector:v1.12.1
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         args:
         - --v=2
         - --leader-election-namespace=kube-system
@@ -1190,15 +1166,8 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
           runAsUser: 1001
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -1207,12 +1176,19 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
         resources:
-          limits:
-            memory: 1024Mi
-            cpu: 1000m
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       nodeSelector:
         kubernetes.io/os: linux
       automountServiceAccountToken: false
@@ -1257,10 +1233,11 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       containers:
       - name: cert-manager-controller
         image: quay.io/jetstack/cert-manager-controller:v1.12.1
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         args:
         - --v=2
         - --cluster-resource-namespace=$(POD_NAMESPACE)
@@ -1279,19 +1256,13 @@ spec:
           capabilities:
             drop:
             - ALL
+          runAsUser: 25000
           readOnlyRootFilesystem: true
         env:
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         livenessProbe:
           exec:
             command:
@@ -1300,9 +1271,19 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
         resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       nodeSelector:
         kubernetes.io/os: linux
       automountServiceAccountToken: false
@@ -1343,10 +1324,11 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       containers:
       - name: cert-manager-webhook
         image: quay.io/jetstack/cert-manager-webhook:v1.12.1
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         args:
         - --v=2
         - --secure-port=10250
@@ -1387,6 +1369,7 @@ spec:
           capabilities:
             drop:
             - ALL
+          runAsUser: 25000
           readOnlyRootFilesystem: true
         env:
         - name: POD_NAMESPACE
@@ -1394,6 +1377,9 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
@@ -1491,10 +1477,10 @@ webhooks:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-cert-manager-startupapicheck
-  namespace: default
+  namespace: test-ns
   annotations:
     helm.sh/hook: post-install
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
@@ -1512,7 +1498,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-cert-manager-startupapicheck:create-cert
-  namespace: default
+  namespace: test-ns
   labels:
     app: startupapicheck
     app.kubernetes.io/name: startupapicheck
@@ -1532,13 +1518,12 @@ rules:
   - certificates
   verbs:
   - create
-automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-cert-manager-startupapicheck:create-cert
-  namespace: default
+  namespace: test-ns
   labels:
     app: startupapicheck
     app.kubernetes.io/name: startupapicheck
@@ -1596,10 +1581,11 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       containers:
       - name: cert-manager-startupapicheck
         image: quay.io/jetstack/cert-manager-ctl:v1.12.1
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         args:
         - check
         - api
@@ -1609,22 +1595,12 @@ spec:
           capabilities:
             drop:
             - ALL
+          runAsUser: 25000
           readOnlyRootFilesystem: true
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m

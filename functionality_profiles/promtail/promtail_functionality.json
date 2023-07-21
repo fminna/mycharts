@@ -1,0 +1,119 @@
+{
+  "helmchart_name": "mycharts/promtail",
+  "release_name": "promtail",
+  "temp_name": "promtail",
+  "loc_helm_chart": "/home/clinton/functionality_oracle/artifacts/helm_charts/mycharts_promtail.yml",
+  "tool": "self",
+  "pods": [
+    {
+      "pod_name": "promtail",
+      "type_pod": "DaemonSet",
+      "containers": [
+        {
+          "cont_name": "promtail",
+          "functionalities": {
+            "check_34": { "add": [], "drop": [] },
+            "check_1": {
+              "description": "Ensure each container has a configured memory request",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": "1Gi"
+            },
+            "check_2": {
+              "description": "Ensure each container has a configured memory limit",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": "1Gi"
+            },
+            "check_4": {
+              "description": "Ensure each container has a configured CPU request",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": "1000m"
+            },
+            "check_5": {
+              "description": "Ensure each container has a configured CPU limit",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": "1000m"
+            },
+            "check_3": {
+              "description": "Container Requests Not Equal To It's Limits",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": true
+            },
+            "check_6": {
+              "description": "Container CPU Requests Not Equal To It's Limits",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": true
+            },
+            "check_10": {
+              "description": "Prevent containers from sharing the host's PID namespace",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "",
+              "value": true
+            },
+            "check_11": {
+              "description": "Prevent containers from sharing the host's IPC namespace",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "",
+              "value": true
+            },
+            "check_12": {
+              "description": "Prevent containers from sharing the host's network namespace",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "",
+              "value": true
+            },
+            "check_13": {
+              "description": "Prevent containers from accessing host files by using high UIDs",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": false,
+              "failed_check": "test_case_1"
+            },
+            "check_14": {
+              "description": "Prevent containers from accessing host files by using high GIDs",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": true
+            },
+            "check_15": {
+              "description": "Prevent containers from mounting Docker socket",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "",
+              "value": true
+            },
+            "check_21": {
+              "description": "Container should not be privileged",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": true
+            },
+            "check_22": {
+              "description": "Containers should not run with allowPrivilegeEscalation",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": true
+            },
+            "check_27": {
+              "description": "Use read-only filesystem for containers where possible",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": true
+            },
+            "check_28": {
+              "description": "Containers should not run as root",
+              "resource_path": "DaemonSet/default/release-name-promtail",
+              "obj_path": "spec/template/spec/containers/0",
+              "value": false,
+              "failed_check": "test_case_1"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

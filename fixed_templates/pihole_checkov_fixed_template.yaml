@@ -1,0 +1,400 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-pihole-password
+  labels:
+    app: pihole
+    chart: pihole-2.14.0
+    heritage: Helm
+    release: release-name
+  namespace: test-ns
+type: Opaque
+data:
+  password: YWRtaW4=
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-pihole-custom-dnsmasq
+  labels:
+    app: pihole
+    chart: pihole-2.14.0
+    release: release-name
+    heritage: Helm
+  namespace: test-ns
+data:
+  02-custom.conf: 'addn-hosts=/etc/addn-hosts
+
+    '
+  addn-hosts: ''
+  05-pihole-custom-cname.conf: ''
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-pihole-dhcp
+  labels:
+    app: pihole
+    chart: pihole-2.14.0
+    release: release-name
+    heritage: Helm
+  namespace: test-ns
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  ports:
+  - port: 67
+    targetPort: client-udp
+    protocol: UDP
+    name: client-udp
+  selector:
+    app: pihole
+    release: release-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-pihole-dns-tcp
+  labels:
+    app: pihole
+    chart: pihole-2.14.0
+    release: release-name
+    heritage: Helm
+  namespace: test-ns
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  ports:
+  - port: 53
+    targetPort: dns
+    protocol: TCP
+    name: dns
+  selector:
+    app: pihole
+    release: release-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-pihole-dns-udp
+  labels:
+    app: pihole
+    chart: pihole-2.14.0
+    release: release-name
+    heritage: Helm
+  namespace: test-ns
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  ports:
+  - port: 53
+    targetPort: dns-udp
+    protocol: UDP
+    name: dns-udp
+  selector:
+    app: pihole
+    release: release-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-pihole-web
+  labels:
+    app: pihole
+    chart: pihole-2.14.0
+    release: release-name
+    heritage: Helm
+  namespace: test-ns
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  - port: 443
+    targetPort: https
+    protocol: TCP
+    name: https
+  selector:
+    app: pihole
+    release: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-pihole
+  labels:
+    app: pihole
+    chart: pihole-2.14.0
+    release: release-name
+    heritage: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  namespace: test-ns
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: pihole
+      release: release-name
+  template:
+    metadata:
+      annotations:
+        checksum.config.adlists: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546
+        checksum.config.blacklist: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546
+        checksum.config.regex: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546
+        checksum.config.whitelist: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546
+        checksum.config.dnsmasqConfig: d7c6cce648da84da2ddb40143f2ada49af634d5c7bafaebdfd12c6372924409
+        checksum.config.staticDhcpConfig: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546
+      labels:
+        app: pihole
+        release: release-name
+    spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 127.0.0.1
+        - 8.8.8.8
+      hostname: null
+      hostNetwork: false
+      containers:
+      - name: pihole
+        env:
+        - name: WEB_PORT
+          value: '80'
+        - name: VIRTUAL_HOST
+          value: pi.hole
+        - name: PIHOLE_DNS_
+          value: 8.8.8.8;8.8.4.4
+        image: pihole/pihole:2023.01
+        imagePullPolicy: Always
+        securityContext:
+          privileged: false
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          readOnlyRootFilesystem: true
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 53
+          name: dns
+          protocol: TCP
+        - containerPort: 53
+          name: dns-udp
+          protocol: UDP
+        - containerPort: 443
+          name: https
+          protocol: TCP
+        - containerPort: 67
+          name: client-udp
+          protocol: UDP
+        livenessProbe:
+          httpGet:
+            path: /admin/index.php
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 60
+          failureThreshold: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /admin/index.php
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 60
+          failureThreshold: 3
+          timeoutSeconds: 5
+        volumeMounts:
+        - mountPath: /etc/pihole
+          name: config
+        - mountPath: /etc/dnsmasq.d/02-custom.conf
+          name: custom-dnsmasq
+          subPath: 02-custom.conf
+        - mountPath: /etc/addn-hosts
+          name: custom-dnsmasq
+          subPath: addn-hosts
+        - mountPath: /etc/dnsmasq.d/05-pihole-custom-cname.conf
+          name: custom-dnsmasq
+          subPath: 05-pihole-custom-cname.conf
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
+      volumes:
+      - name: config
+        emptyDir: {}
+      - configMap:
+          defaultMode: 420
+          name: release-name-pihole-custom-dnsmasq
+        name: custom-dnsmasq
+      - name: secret-volume
+        secret:
+          secretName: my-secret
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsUser: 25000
+        runAsNonRoot: true
+        runAsGroup: 25000
+      automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: release-name-smoke-test
+  annotations:
+    helm.sh/hook: test
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  namespace: test-ns
+spec:
+  containers:
+  - name: hook1-container
+    image: docker.io/curlimages/curl:8.1.2
+    imagePullPolicy: Always
+    command:
+    - sh
+    - -c
+    - curl http://release-name-pihole-web:80/
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
+      runAsUser: 25000
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsGroup: 25000
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 250m
+      limits:
+        memory: 128Mi
+        cpu: 250m
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 0
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    runAsUser: 25000
+    runAsNonRoot: true
+    runAsGroup: 25000
+  automountServiceAccountToken: false
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978

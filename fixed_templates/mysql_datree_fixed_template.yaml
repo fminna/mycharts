@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
   annotations: null
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 secrets:
 - name: release-name-mysql
 ---
@@ -159,6 +159,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   podManagementPolicy: ''
@@ -196,6 +198,8 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: mysql
         image: docker.io/bitnami/mysql:8.0.32-debian-11-r21
@@ -203,19 +207,16 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 25000
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: release-name-mysql
-              key: mysql-root-password
         - name: MYSQL_DATABASE
           value: my_database
-        envFrom: null
         ports:
         - name: mysql
           containerPort: 3306
@@ -266,13 +267,22 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
-        - name: config
-          mountPath: /opt/bitnami/mysql/conf/my.cnf
-          subPath: my.cnf
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: config
         configMap:
           name: release-name-mysql
+      - name: secret-volume
+        secret:
+          secretName: my-secret
+      - name: secret-volume
+        secret:
+          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: data

@@ -169,7 +169,7 @@ spec:
       app.kubernetes.io/name: mysql
       app.kubernetes.io/instance: release-name
       app.kubernetes.io/component: primary
-  serviceName: release-name-mysql
+  serviceName: release-name-mysql-headless
   updateStrategy:
     type: RollingUpdate
   template:

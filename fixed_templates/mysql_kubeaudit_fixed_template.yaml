@@ -213,7 +213,6 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
-          privileged: false
           readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
@@ -269,9 +268,7 @@ spec:
               \ ]]; then\n    password_aux=$(cat \"$MYSQL_ROOT_PASSWORD_FILE\")\n\
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
-          limits:
-            cpu: 250m
-            memory: 128Mi
+          limits: {}
           requests: {}
         volumeMounts:
         - name: data

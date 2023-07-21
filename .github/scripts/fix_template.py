@@ -15,7 +15,7 @@
 """ This script implements the fixes (adding/removing lines) into a Helm Chart YAML template
 """
 
-from typing import Callable, Optional
+from typing import Callable
 import yaml
 import requests
 
@@ -265,7 +265,8 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                                       "check_45", "check_54", "check_56", \
                                       "check_36", "check_12", "check_35", \
                                       "check_37", "check_47", "check_63", \
-                                      "check_64", "check_65", "check_67"]
+                                      "check_64", "check_65", "check_67", \
+                                      "check_13"]
                     if check_id in no_path_checks:
                         process_func(obj)
                         break
@@ -433,7 +434,6 @@ def set_capabilities(obj: dict, add="", drop=""):
         obj["securityContext"]["capabilities"]= {
                 "add": add
         }
-
 
     # insecure_caps = ["ALL", "All", "all", "BPF", "MAC_ADMIN", "MAC_OVERRIDE", "NET_ADMIN",
     #                 "NET_RAW", "SETPCAP", "PERFMON", "SYS_ADMIN", "SYS_BOOT", "SYS_MODULE", 
@@ -821,7 +821,7 @@ def set_resource_quota(obj: dict) -> dict:
 
 def set_uid(obj: dict, uid=25000):
     """Set the uid for a K8s object.
-    
+
     Args:
         obj (dict): K8s object to modify.
     """
@@ -849,7 +849,7 @@ def set_uid(obj: dict, uid=25000):
     else:
         obj["securityContext"]["runAsUser"] = uid
 
-    if "containers" in obj:
+    if "containers" in obj and obj["containers"] is not None and obj["containers"]:
         # Set runAsUser for each container
         for container in obj["containers"]:
             if "securityContext" not in container or \
@@ -864,8 +864,43 @@ def set_uid(obj: dict, uid=25000):
                 container["securityContext"]["runAsUser"] = uid
             else:
                 container["securityContext"]["runAsUser"] = uid
-    else:
-        obj["securityContext"]["runAsUser"] = uid
+
+    if "initContainers" in obj and obj["initContainers"] is not None and obj["initContainers"]:
+        # Set runAsUser for each container
+        for container in obj["initContainers"]:
+            if "securityContext" not in container or \
+                container["securityContext"] is None or \
+                    not container["securityContext"]:
+                container["securityContext"] = {
+                    "runAsUser": uid
+                }
+            elif "runAsUser" not in container["securityContext"] or \
+                container["securityContext"]["runAsUser"] is None or \
+                    not container["securityContext"]["runAsUser"]:
+                container["securityContext"]["runAsUser"] = uid
+            else:
+                container["securityContext"]["runAsUser"] = uid
+
+
+def remove_docker_socket(obj: dict):
+    """Remove docker socket from K8s object.
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    if "spec" in obj:
+        obj = obj["spec"]
+        if "template" in obj:
+            obj = obj["template"]["spec"]
+        elif "jobTemplate" in obj:
+            obj = obj["jobTemplate"]["spec"]["template"]["spec"]
+
+    for volume in obj["volumes"]:
+        if "hostPath" in volume and volume["hostPath"] is not None:
+            if "path" in volume["hostPath"] and volume["hostPath"]["path"] is not None:
+                if "docker.sock" in volume["hostPath"]["path"]:
+                    obj["volumes"].remove(volume)
 
 
 def set_root(obj: dict, value=True, uid=25000, gid=25000):
@@ -1457,7 +1492,7 @@ def set_cluster_roles(obj: dict):
     if "rules" not in obj or obj["rules"] is None or not obj["rules"]:
         obj["rules"] = [{
             "apiGroups": [
-                ""
+                "v1"
             ],
             "resources": [
                 "pods"
@@ -1468,8 +1503,9 @@ def set_cluster_roles(obj: dict):
         }]
 
     else:
-        for rule in obj["rules"]:
-            # Sanitize apiGroups
+        delete_idx = []
+        for idx, rule in enumerate(obj["rules"]):
+
             if "apiGroups" in rule:
                 if rule["apiGroups"] is None:
                     rule["apiGroups"] = ["v1"]
@@ -1486,42 +1522,32 @@ def set_cluster_roles(obj: dict):
                     rule["resources"] = ["pods"]
 
                 if "pods/exec" in rule["resources"]:
-                    obj["rules"].remove(rule)
-                    continue
+                    delete_idx.append(idx)
 
                 if "secrets" in rule["resources"]:
-                    obj["rules"].remove(rule)
-                    continue
+                    delete_idx.append(idx)
 
                 if "events" in rule["resources"]:
-                    obj["rules"].remove(rule)
-                    continue
+                    delete_idx.append(idx)
 
             if "nonResourceURLs" in rule:
-                obj["rules"].remove(rule)
-                continue
-
-                # if rule["nonResourceURLs"] is None:
-                #     rule["nonResourceURLs"] = ["pods"]
-
-                # elif rule["nonResourceURLs"] == ["*"]:
-                #     rule["nonResourceURLs"] = ["pods"]
+                delete_idx.append(idx)
 
             if "verbs" in rule:
-
                 if rule["verbs"] == ["*"]:
                     rule["verbs"] = ["get"]
-
                 else:
                     unsafe_verbs = ["create", "update", "patch", "escalate", "approve", \
                                     "list", "watch", "delete", "impersonate"]
                     rule["verbs"] = [verb for verb in rule["verbs"] if verb not in unsafe_verbs]
-
                 if rule["verbs"] is None:
                     rule["verbs"] = ["get"]
-
                 elif rule["verbs"] == [""] or rule["verbs"] == []:
                     rule["verbs"] = ["get"]
+
+        delete_idx = list(set(delete_idx))
+        for idx in sorted(delete_idx, reverse=True):
+            obj["rules"].pop(idx)
 
 
 def set_deadline_seconds(obj: dict, value=100):
@@ -1707,6 +1733,27 @@ def assign_service(obj: dict):
     return
 
 
+def remove_ssh_port(obj: dict):
+    """Remove the SSH port from each K8s Service object.
+    
+    Policy: Do not expose SSH ports
+    
+    Args:
+        obj (dict): K8s object to modify.
+    """
+
+    delete_idx = []
+
+    for idx, port in enumerate(obj["ports"]):
+        if "containerPort" in port and port["containerPort"] is not None:
+            if port["containerPort"] == 22:
+                delete_idx.append(idx)
+
+    delete_idx = list(set(delete_idx))
+    for idx in sorted(delete_idx, reverse=True):
+        obj["ports"].pop(idx)
+
+
 def set_pdb_max_unavailable(obj: dict, value=1):
     """Set maxUnavailable for a K8s PodDisruptionBudget.
     
@@ -1873,7 +1920,7 @@ def set_net_policy(name="test-network-policy") -> dict:
     return net_policy1, net_policy2
 
 
-def todo():
+def todo(arg1="", arg2="", arg3=""):
     """TODO"""
 
 
@@ -1897,7 +1944,7 @@ class FuncLookupClass:
     "check_12": set_net_ns,
     "check_13": set_uid,
     "check_14": set_root,
-    "check_15": todo, # mounting Docker socket
+    "check_15": remove_docker_socket, 
     "check_16": todo,
     "check_17": todo,
     "check_18": todo,
@@ -1948,6 +1995,7 @@ class FuncLookupClass:
     "check_65": remove_cluster_admin, 
     "check_66": set_ingress_host,
     "check_67": set_pdb_max_unavailable,
+    "check_68": remove_ssh_port,
     }
 
     @classmethod

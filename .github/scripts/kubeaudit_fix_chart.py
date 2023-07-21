@@ -29,59 +29,65 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
         json_path (str): The path to the JSON file to parse.
     """
 
-    # Convert result to a valid JSON
-    with open(json_path, 'r', encoding="utf-8") as file:
-        data = file.read()
+    try:
+        # Convert result to a valid JSON
+        with open(json_path, 'r', encoding="utf-8") as file:
+            data = file.read()
 
-        # If data does not begin with '{"checks": [', then it is not a valid JSON
-        if not data.startswith('{"checks": ['):
-            # Add '{"checks": [' at the beginning of data
-            data = '{"checks": [' + data
-            # Substitue all '}' with '},' except the last one
-            data = data.replace('}', '},', data.count('}') - 1)
-            # Add ']}' at the end of data
-            data = data + ']}'
+            # If data does not begin with '{"checks": [', then it is not a valid JSON
+            if not data.startswith('{"checks": ['):
+                # Add '{"checks": [' at the beginning of data
+                data = '{"checks": [' + data
+                # Substitue all '}' with '},' except the last one
+                data = data.replace('}', '},', data.count('}') - 1)
+                # Add ']}' at the end of data
+                data = data + ']}'
 
-            # Save data to a new JSON file
-            with open(json_path, 'w', encoding="utf-8") as file:
-                file.write(data)
+                # Save data to a new JSON file
+                with open(json_path, 'w', encoding="utf-8") as file:
+                    file.write(data)
 
-    # Load the JSON file
-    with open(json_path, 'r', encoding="utf-8") as file:
-        results = json.load(file)
+        # Load the JSON file
+        with open(json_path, 'r', encoding="utf-8") as file:
+            results = json.load(file)
 
-    template = fix_template.parse_yaml_template(chart_folder)
+        template = fix_template.parse_yaml_template(chart_folder)
 
-    # List of all checks
-    all_checks = []
+        # List of all checks
+        all_checks = []
 
-    print("Starting to fix chart's issues ...\n")
+        # print("Starting to fix chart's issues ...\n")
 
-    for check in results["checks"]:
-        # print(f"{check['AuditResultName']}: {check['msg']}")
-        print(f"{check['AuditResultName']}")
-        check_id = fix_issue(check, template)
-        all_checks.append(check_id)
+        for check in results["checks"]:
+            # print(f"{check['AuditResultName']}: {check['msg']}")
+            # print(f"{check['AuditResultName']}")
+            check_id = fix_issue(check, template)
+            all_checks.append(check_id)
 
-    print("\nAll issues fixed!\n")
+        # print("\nAll issues fixed!\n")
 
-    # Print all found checks
-    all_checks = [str(x) for x in all_checks if x is not None]
+        # Print all found checks
+        all_checks = [str(x) for x in all_checks if x is not None]
+        all_checks = ", ".join(all_checks)
+        all_checks = all_checks.split(", ")
+        all_checks.sort()
 
-    # Convert all_checks to string
-    # Needed to convert multi-check elements (e.g., "check_1, check_2")
-    all_checks = ", ".join(all_checks)
+        # Print info
+        # print(f"Total number of checks: {len(all_checks)}")
+        # print(", ".join(all_checks))
+        # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
+        # occurrences of each check in all_checks, all in one line
+        print(len(all_checks), end=" ")
+        for i in range(0, 67):
+            print(f"{all_checks.count(f'check_{i}')}", end=" ")
 
-    # Convert all checks back to list
-    all_checks = all_checks.split(", ")
-    all_checks.sort()
+        name = f"fixed_{chart_folder}_kubeaudit_fixed"
+        fix_template.save_yaml_template(template, name)
 
-    # Print info
-    print(f"Total number of checks: {len(all_checks)}")
-    print(", ".join(all_checks))
-
-    name = f"fixed_{chart_folder}_kubeaudit_fixed"
-    fix_template.save_yaml_template(template, name)
+    except FileNotFoundError:
+        print("0", end=" ")
+        for i in range(0, 67):
+            print("0", end=" ")
 
 
 def get_cont_name(template: dict, resource_path: str, obj_path: str) -> str:

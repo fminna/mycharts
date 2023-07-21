@@ -37,24 +37,29 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     # List of all checks
     all_checks = []
 
-    print("Starting to fix chart's issues ...\n")
+    # print("Starting to fix chart's issues ...\n")
 
     for run in results["runs"]:
         for check in run["results"]:
-            print(f"{check['ruleId']}: {check['message']['text']}")
+            # print(f"{check['ruleId']}: {check['message']['text']}")
             check_id = fix_issue(check, template)
 
             for logical_location in check["locations"]:
                 for _ in logical_location["logicalLocations"]:
                     all_checks.append(check_id)
 
-    print("\nAll issues fixed!\n")
+    # print("\nAll issues fixed!\n")
 
     # Print all found checks
     all_checks = [x for x in all_checks if x is not None]
     all_checks.sort()
-    print(f"Total number of checks: {len(all_checks)}")
-    print(", ".join(all_checks))
+    # print(f"Total number of checks: {len(all_checks)}")
+    # print(", ".join(all_checks))
+    # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
+    # occurrences of each check in all_checks, all in one line
+    print(len(all_checks), end=" ")
+    for i in range(0, 67):
+        print(f"{all_checks.count(f'check_{i}')}", end=" ")
 
     name = f"fixed_{chart_folder}_terrascan_fixed"
     fix_template.save_yaml_template(template, name)
@@ -214,6 +219,7 @@ class LookupClass:
         "AC_K8S_0076": "check_47",
         "AC_K8S_0081": "check_55",
         "AC_K8S_0082": "check_10",
+        "AC_K8S_0088": "check_15",
         "AC_K8S_0021": "", # AlwaysPullImages plugin is not set https://docs.bridgecrew.io/docs/ensure-that-the-admission-control-plugin-alwayspullimages-is-set
         "AC_K8S_0002": "", # TLS disabled can affect the confidentiality of the data in transit
     }

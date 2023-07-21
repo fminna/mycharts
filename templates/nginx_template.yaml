@@ -52,13 +52,10 @@ spec:
         app.kubernetes.io/managed-by: Helm
       annotations:
     spec:
-      
       automountServiceAccountToken: false
       shareProcessNamespace: false
       serviceAccountName: default
       affinity:
-        podAffinity:
-          
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -68,8 +65,6 @@ spec:
                     app.kubernetes.io/instance: release-name
                 topologyKey: kubernetes.io/hostname
               weight: 1
-        nodeAffinity:
-          
       hostNetwork: false
       hostIPC: false
       initContainers:
