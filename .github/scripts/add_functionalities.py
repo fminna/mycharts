@@ -130,7 +130,6 @@ def iterate_functionalities(chart_folder: str, json_path: str, tool: str) -> Non
 
     # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
     # occurrences of each check in all_checks, all in one line
-    print(len(all_checks), end=" ")
     for i in range(0, 67):
         print(f"{all_checks.count(f'check_{i}')}", end=" ")
 
@@ -215,7 +214,7 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> list
             fix_template.set_template(template, check_id, check)
 
         # Non-default values
-        elif not check['value']:
+        elif check['value'] is False:
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
 

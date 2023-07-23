@@ -155,7 +155,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-cert-manager-cainjector",
               "obj_path": "",
@@ -328,7 +328,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/cert-manager-webhook",
               "obj_path": "",

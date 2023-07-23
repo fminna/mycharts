@@ -173,17 +173,17 @@ spec:
         resources:
           limits:
             cpu: 1000m
-            memory: 1024Mi
+            memory: 512Mi
           requests:
             cpu: 1000m
-            memory: 1024Mi
+            memory: 512Mi
         securityContext:
           privileged: true
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         args:
         - /usr/bin/falco
         - --cri
@@ -253,11 +253,11 @@ spec:
         - follow
         - --verbose
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /plugins
           name: plugins-install-dir
@@ -271,13 +271,6 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -292,17 +285,24 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       initContainers:
       - name: falco-driver-loader
         image: docker.io/falcosecurity/falco-driver-loader:0.34.1
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /root/.falco
           name: root-falco-fs
@@ -320,13 +320,6 @@ spec:
         - mountPath: /host/etc
           name: etc-fs
           readOnly: true
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -341,6 +334,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       - name: falcoctl-artifact-install
         image: docker.io/falcosecurity/falcoctl:0.4.0
         imagePullPolicy: IfNotPresent
@@ -355,13 +355,12 @@ spec:
           name: rulesfiles-install-dir
         - mountPath: /etc/falcoctl
           name: falcoctl-config-volume
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         livenessProbe:
           exec:
             command:
@@ -369,12 +368,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -382,6 +375,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       volumes:
       - name: plugins-install-dir
         emptyDir: {}

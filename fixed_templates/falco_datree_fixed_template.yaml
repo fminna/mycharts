@@ -157,8 +157,8 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         args:
         - /usr/bin/falco
         - --cri
@@ -242,10 +242,10 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
       initContainers:
@@ -271,7 +271,6 @@ spec:
         - mountPath: /host/etc
           name: etc-fs
           readOnly: true
-        env: null
       - name: falcoctl-artifact-install
         image: docker.io/falcosecurity/falcoctl:0.4.0
         imagePullPolicy: IfNotPresent
@@ -279,7 +278,6 @@ spec:
         - artifact
         - install
         - --verbose
-        securityContext: null
         volumeMounts:
         - mountPath: /plugins
           name: plugins-install-dir
@@ -287,7 +285,6 @@ spec:
           name: rulesfiles-install-dir
         - mountPath: /etc/falcoctl
           name: falcoctl-config-volume
-        env: null
       volumes:
       - name: plugins-install-dir
         emptyDir: {}

@@ -50,6 +50,8 @@ def count_checks(result_path: str, tool: str) -> list:
             data = data.replace('}', '},', data.count('}') - 1)
             # Add ']}' at the end of data
             data = data + ']}'
+            if not data:
+                exit(0)
 
             # Save data to a new JSON file
             with open(result_path, 'w', encoding="utf-8") as file:
@@ -58,6 +60,11 @@ def count_checks(result_path: str, tool: str) -> list:
     # Parse JSON result file
     with open(result_path, 'r', encoding="utf-8") as file:
         results = json.load(file)
+
+
+    print("PORCODIOOOOO")
+    print(result_path)
+
 
     # List of all checks
     all_checks = []
@@ -229,7 +236,6 @@ def count_checks(result_path: str, tool: str) -> list:
 
     # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
     # occurrences of each check in all_checks, all in one line
-    print(len(all_checks), end=" ")
     for i in range(0, 67):
         print(f"{all_checks.count(f'check_{i}')}", end=" ")
 

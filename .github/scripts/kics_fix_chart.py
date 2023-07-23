@@ -62,7 +62,6 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     # print(", ".join(all_checks))
     # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
     # occurrences of each check in all_checks, all in one line
-    print(len(all_checks), end=" ")
     for i in range(0, 67):
         print(f"{all_checks.count(f'check_{i}')}", end=" ")
 
@@ -115,9 +114,7 @@ def find_resource_idx(template: dict, resource_path: str, obj_path: str, obj_nam
 
 
 def fix_issue(check: str, template: dict) -> str:
-    """Fixes a check based on the checkov check ID.
-
-    Source: https://www.checkov.io/5.Policy%20Index/kubernetes.html
+    """Fixes a check based on the KICS check ID.
 
     Args:
         check (dict): The dictionary representing a check to fix.
@@ -130,140 +127,147 @@ def fix_issue(check: str, template: dict) -> str:
 
     # Check if the function exists and call it
     if check_id is not None:
-        for jdx, file in enumerate(check["files"]):
-
-            resource_path = file["resource_type"] + "/" + \
-                            file["resource_name"]
-            obj_path = file["search_key"]
-
-            no_path_checks = ["check_26", "check_36", "check_48", "check_49", "check_53", \
-                              "check_56", "check_65", "check_13", "check_47", "check_15"]
-            if check_id in no_path_checks:
-                obj_path = ""
-
-            elif check_id == "check_32":
-                pattern = r"\{\{([^}]*)\}\}"
-                matches = re.findall(pattern, file["expected_value"])
-                obj_path = matches[-1]
-
-            else:
-                obj_path = obj_path.split("}}.")[1]
-
-                obj_name = ""
-                if ".name=" in obj_path:
-                    obj_name = obj_path.split(".name=")[1]
-                    obj_name = obj_name.replace("{{", "")
-                    obj_name = obj_name.replace("}}", "")
-                    if "." in obj_name:
-                        obj_name = obj_name.split(".")[0]
-
-                    obj_path = obj_path.split(".name=")[0]
-                    obj_path = obj_path.replace(".", "/")
-
-                    idx = find_resource_idx(template, resource_path, obj_path, obj_name)
-                    if idx:
-                        obj_path += "/" + idx
-
-                # if "containers" in obj_path:
-                #     obj_path = f"spec/template/spec/containers/{str(idx)}"
-                # elif "initContainers" in obj_path:
-                #     obj_path = f"spec/template/spec/initContainers/{str(idx)}"
-
-            if check_id == "check_52":
-                obj_path = obj_path.replace(".", "/")
-                obj_path = obj_path.replace("volumeClaimTemplates", "volumeClaimTemplates/0")
-                # Delete the last part of obj_path after requests
-                obj_path = "/".join(obj_path.split("/")[:-2])
-
-            paths = {
-                "resource_path": resource_path,
-                "obj_path": obj_path
-            }
-
-            if "." in obj_path:
-                paths["obj_path"] = obj_path.replace(".", "/")
-
-            if check_id == "check_53":
-                service_name = get_headless_service_name(template)
-
-                if not service_name:
-                    # Get StatefulSet object
-                    stateful_set = get_resource_dict(template, resource_path.split("/"))
-
-                    if "serviceName" in stateful_set["spec"]:
-                        service_name = stateful_set["spec"]["serviceName"]
-
-                        # Build Service service_path
-                        service_path = "Service/"
-                        if "namespace" in stateful_set["metadata"]:
-                            service_path += f"{stateful_set['metadata']['namespace']}/"
-                        else:
-                            service_path += "default/"
-                        service_path += service_name
-
-                        # Find Service and add ClusterIP: None
-                        service = get_resource_dict(template, service_path.split("/"))
-                        if service and "spec" in service and "clusterIP" in service["spec"]:
-                            service["spec"]["clusterIP"] = "None"
-
-                    else:
-                        print("TODO: create headless service for statefulset!")
-
-                paths["value"] = service_name
-
-            elif check_id == "check_62":
-                if jdx == 0:
-                    continue
-                # Get the shared Service Account
-                k8s_resource = get_resource_dict(template, resource_path.split("/"))
-                sa_resource_path = "ServiceAccount/"
-                if "namespace" in k8s_resource["metadata"]:
-                    sa_resource_path += k8s_resource["metadata"]["namespace"] + "/"
-                else:
-                    sa_resource_path += "default/"
-                if "template" in k8s_resource["spec"]:
-                    k8s_resource = k8s_resource["spec"]["template"]["spec"]
-                else:
-                    k8s_resource = k8s_resource["spec"]
-                sa_resource_path += k8s_resource["serviceAccountName"]
-
-                service_account = get_resource_dict(template, sa_resource_path.split("/"))
-                if service_account:
-                    service_account = copy.copy(service_account)
-                    # Set new name
-                    service_account["metadata"]["name"] = "test-SA" + str(jdx)
-                    if "namespace" in service_account["metadata"] and \
-                            service_account["metadata"]["namespace"] == "default":
-                        service_account["metadata"]["namespace"] = "test-ns"
-                    # Append new SA to the template
-                    template.append(service_account)
-                    # Add value to paths
-                    paths["value"] = "test-SA" + str(jdx)
-                    paths["obj_path"] = paths["obj_path"].replace("/serviceAccountName", "")
-                    check_id = "check_37"
-                else:
-                    continue
-
-            checks_remove_last = ["check_10", "check_11", "check_12"]
-            if check_id in checks_remove_last:
-                # Remove last part of paths["obj_path"] after the last "/"
-                paths["obj_path"] = "/".join(paths["obj_path"].split("/")[:-1])
-
-            if check["query_id"] == "268ca686-7fb7-4ae9-b129-955a2a89064e":
-                cont_path, containers, _ = terrascan_fix_chart.get_container_path(template, resource_path.split("/"))
-                for idx in range(len(containers)):
-                    paths["obj_path"] = cont_path + str(idx)
-                    fix_template.set_template(template, check_id, paths)
-
-            else:
-                fix_template.set_template(template, check_id, paths)
-
-        # After iterating all files, return check_id
+        kics_fix_issue(check, template, check_id)
         return check_id
-
     else:
         print("No fix found for check ID: " + check["query_id"])
         return None
+
+
+def kics_fix_issue(check: str, template: dict, check_id: str) -> str:
+    """Fixes a check based on the KICS check ID.
+
+    Args:
+        check (dict): The dictionary representing a check to fix.
+        template (dict): The parsed YAML template.
+        check_id (str): The ID of the check to fix.
+    """
+
+    for jdx, file in enumerate(check["files"]):
+
+        resource_path = file["resource_type"] + "/" + \
+                        file["resource_name"]
+        obj_path = file["search_key"]
+
+        no_path_checks = ["check_26", "check_36", "check_48", "check_49", "check_53", \
+                            "check_56", "check_65", "check_13", "check_47", "check_15"]
+        if check_id in no_path_checks:
+            obj_path = ""
+
+        elif check_id == "check_32":
+            pattern = r"\{\{([^}]*)\}\}"
+            matches = re.findall(pattern, file["expected_value"])
+            obj_path = matches[-1]
+
+        else:
+            obj_path = obj_path.split("}}.")[1]
+
+            obj_name = ""
+            if ".name=" in obj_path:
+                obj_name = obj_path.split(".name=")[1]
+                obj_name = obj_name.replace("{{", "")
+                obj_name = obj_name.replace("}}", "")
+                if "." in obj_name:
+                    obj_name = obj_name.split(".")[0]
+
+                obj_path = obj_path.split(".name=")[0]
+                obj_path = obj_path.replace(".", "/")
+
+                idx = find_resource_idx(template, resource_path, obj_path, obj_name)
+                if idx:
+                    obj_path += "/" + idx
+
+            # if "containers" in obj_path:
+            #     obj_path = f"spec/template/spec/containers/{str(idx)}"
+            # elif "initContainers" in obj_path:
+            #     obj_path = f"spec/template/spec/initContainers/{str(idx)}"
+
+        if check_id == "check_52":
+            obj_path = obj_path.replace(".", "/")
+            obj_path = obj_path.replace("volumeClaimTemplates", "volumeClaimTemplates/0")
+            # Delete the last part of obj_path after requests
+            obj_path = "/".join(obj_path.split("/")[:-2])
+
+        paths = {
+            "resource_path": resource_path,
+            "obj_path": obj_path
+        }
+
+        if "." in obj_path:
+            paths["obj_path"] = obj_path.replace(".", "/")
+
+        if check_id == "check_53":
+            service_name = get_headless_service_name(template)
+            if not service_name:
+                # Get StatefulSet object
+                stateful_set = get_resource_dict(template, resource_path.split("/"))
+
+                if "serviceName" in stateful_set["spec"]:
+                    service_name = stateful_set["spec"]["serviceName"]
+
+                    # Build Service service_path
+                    service_path = "Service/"
+                    if "namespace" in stateful_set["metadata"]:
+                        service_path += f"{stateful_set['metadata']['namespace']}/"
+                    else:
+                        service_path += "default/"
+                    service_path += service_name
+
+                    # Find Service and add ClusterIP: None
+                    service = get_resource_dict(template, service_path.split("/"))
+                    if service and "spec" in service and "clusterIP" in service["spec"]:
+                        service["spec"]["clusterIP"] = "None"
+                else:
+                    print("TODO: create headless service for statefulset!")
+
+            paths["value"] = service_name
+
+        elif check_id == "check_62":
+            if jdx == 0:
+                continue
+            # Get the shared Service Account
+            k8s_resource = get_resource_dict(template, resource_path.split("/"))
+            sa_resource_path = "ServiceAccount/"
+            if "namespace" in k8s_resource["metadata"]:
+                sa_resource_path += k8s_resource["metadata"]["namespace"] + "/"
+            else:
+                sa_resource_path += "default/"
+            if "template" in k8s_resource["spec"]:
+                k8s_resource = k8s_resource["spec"]["template"]["spec"]
+            else:
+                k8s_resource = k8s_resource["spec"]
+            sa_resource_path += k8s_resource["serviceAccountName"]
+
+            service_account = get_resource_dict(template, sa_resource_path.split("/"))
+            if service_account:
+                service_account = copy.copy(service_account)
+                # Set new name
+                service_account["metadata"]["name"] = "test-SA" + str(jdx)
+                if "namespace" in service_account["metadata"] and \
+                        service_account["metadata"]["namespace"] == "default":
+                    service_account["metadata"]["namespace"] = "test-ns"
+                # Append new SA to the template
+                template.append(service_account)
+                # Add value to paths
+                paths["value"] = "test-SA" + str(jdx)
+                paths["obj_path"] = paths["obj_path"].replace("/serviceAccountName", "")
+                check_id = "check_37"
+            else:
+                continue
+
+        checks_remove_last = ["check_10", "check_11", "check_12"]
+        if check_id in checks_remove_last:
+            # Remove last part of paths["obj_path"] after the last "/"
+            paths["obj_path"] = "/".join(paths["obj_path"].split("/")[:-1])
+
+        if check["query_id"] == "268ca686-7fb7-4ae9-b129-955a2a89064e":
+            cont_path, containers, _ = terrascan_fix_chart.get_container_path(template, resource_path.split("/"))
+            for idx in range(len(containers)):
+                paths["obj_path"] = cont_path + str(idx)
+                fix_template.set_template(template, check_id, paths)
+
+        else:
+            fix_template.set_template(template, check_id, paths)
 
 
 def get_resource_dict(template: dict, resource_path: str) -> dict:

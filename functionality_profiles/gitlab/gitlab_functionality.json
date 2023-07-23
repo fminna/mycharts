@@ -156,7 +156,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-webservice-default",
               "obj_path": "",
@@ -327,7 +327,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-gitlab-runner",
               "obj_path": "",
@@ -500,7 +500,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-gitlab-exporter",
               "obj_path": "",
@@ -673,7 +673,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-gitlab-shell",
               "obj_path": "",
@@ -844,7 +844,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-kas",
               "obj_path": "",
@@ -1017,7 +1017,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-sidekiq-all-in-1-v2",
               "obj_path": "",
@@ -1188,7 +1188,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-registry",
               "obj_path": "",
@@ -1361,7 +1361,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-toolbox",
               "obj_path": "",

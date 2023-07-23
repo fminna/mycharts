@@ -154,7 +154,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "DaemonSet/default/release-name-prometheus-node-exporter",
               "obj_path": "",
@@ -326,7 +326,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/kube-prometheus-stack-grafana",
               "obj_path": "",
@@ -498,7 +498,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/kube-prometheus-stack-kube-state-metrics",
               "obj_path": "",
@@ -670,7 +670,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/kube-prometheus-stack-operator",
               "obj_path": "",

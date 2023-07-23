@@ -1,685 +1,946 @@
 {
-  "version": "2.1.0",
-  "$schema": "https://json.schemastore.org/sarif-2.1.0-rtm.5.json",
-  "runs": [
-    {
-      "tool": {
-        "driver": {
-          "informationUri": "https://github.com/tenable/terrascan",
-          "name": "terrascan",
-          "rules": [
+    "check_type": "kubernetes",
+    "results": {
+        "failed_checks": [
             {
-              "id": "AC_K8S_0097",
-              "name": "CpuRequestsCheck",
-              "shortDescription": {
-                "text": "CPU Request Not Set in config file."
-              },
-              "properties": {
-                "category": "Security Best Practices",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_21",
+                "bc_check_id": "BC_K8S_20",
+                "check_name": "The default namespace should not be used",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    3,
+                    14
+                ],
+                "resource": "ServiceAccount.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.DefaultNamespace",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-20.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0051",
-              "name": "secretsAsEnvVariables",
-              "shortDescription": {
-                "text": "Prefer using secrets as files over secrets as environment variables"
-              },
-              "properties": {
-                "category": "Infrastructure Security",
-                "severity": "HIGH"
-              }
+                "check_id": "CKV_K8S_21",
+                "bc_check_id": "BC_K8S_20",
+                "check_name": "The default namespace should not be used",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    16,
+                    107
+                ],
+                "resource": "ConfigMap.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.DefaultNamespace",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-20.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0088",
-              "name": "dontConnectDockerSock",
-              "shortDescription": {
-                "text": "Restrict Mounting Docker Socket in a Container"
-              },
-              "properties": {
-                "category": "Infrastructure Security",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_21",
+                "bc_check_id": "BC_K8S_20",
+                "check_name": "The default namespace should not be used",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    109,
+                    141
+                ],
+                "resource": "ConfigMap.default.release-name-falco-falcoctl",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.DefaultNamespace",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-20.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0070",
-              "name": "nolivenessProbe",
-              "shortDescription": {
-                "text": "No liveness probe will ensure there is no recovery in case of unexpected errors"
-              },
-              "properties": {
-                "category": "Security Best Practices",
-                "severity": "LOW"
-              }
+                "check_id": "CKV_K8S_37",
+                "bc_check_id": "BC_K8S_34",
+                "check_name": "Minimize the admission of containers with capabilities assigned",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[0]/securityContext/capabilities/drop"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.MinimizeCapabilities",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-34.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0081",
-              "name": "allowedVolumes",
-              "shortDescription": {
-                "text": "Some volume types mount the host file system paths to the pod or container, thus increasing the chance of escaping the container to access the host"
-              },
-              "properties": {
-                "category": "Identity and Access Management",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_31",
+                "bc_check_id": "BC_K8S_29",
+                "check_name": "Ensure that the seccomp profile is set to docker/default or runtime/default",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.Seccomp",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-29.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0085",
-              "name": "privilegeEscalationCheck",
-              "shortDescription": {
-                "text": "Containers Should Not Run with AllowPrivilegeEscalation"
-              },
-              "properties": {
-                "category": "Compliance Validation",
-                "severity": "HIGH"
-              }
+                "check_id": "CKV_K8S_8",
+                "bc_check_id": "BC_K8S_7",
+                "check_name": "Liveness Probe Should be Configured",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[1]/livenessProbe"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.LivenessProbe",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-7.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0086",
-              "name": "otherNamespace",
-              "shortDescription": {
-                "text": "Default Namespace Should Not be Used"
-              },
-              "properties": {
-                "category": "Security Best Practices",
-                "severity": "HIGH"
-              }
+                "check_id": "CKV_K8S_12",
+                "bc_check_id": "BC_K8S_11",
+                "check_name": "Memory requests should be set",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[1]/resources/requests/memory"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.MemoryRequests",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-11.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0069",
-              "name": "imageWithoutDigest",
-              "shortDescription": {
-                "text": "Image without digest affects the integrity principle of image security"
-              },
-              "properties": {
-                "category": "Infrastructure Security",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_20",
+                "bc_check_id": "BC_K8S_19",
+                "check_name": "Containers should not run with allowPrivilegeEscalation",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[0]/securityContext/allowPrivilegeEscalation"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.AllowPrivilegeEscalation",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-19.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0076",
-              "name": "allowedHostPath",
-              "shortDescription": {
-                "text": "Allowing hostPaths to mount to Pod arise the probability of getting access to the node's filesystem"
-              },
-              "properties": {
-                "category": "Identity and Access Management",
-                "severity": "HIGH"
-              }
+                "check_id": "CKV_K8S_15",
+                "bc_check_id": "BC_K8S_14",
+                "check_name": "Image Pull Policy should be Always",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[0]/image",
+                        "spec/template/spec/containers/[0]/imagePullPolicy"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.ImagePullPolicyAlways",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-14.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0087",
-              "name": "runAsNonRootCheck",
-              "shortDescription": {
-                "text": "Minimize Admission of Root Containers"
-              },
-              "properties": {
-                "category": "Identity and Access Management",
-                "severity": "HIGH"
-              }
+                "check_id": "CKV_K8S_27",
+                "bc_check_id": "BC_K8S_26",
+                "check_name": "Do not expose the docker daemon socket to containers",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.DockerSocketVolume",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-26.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0072",
-              "name": "noReadinessProbe",
-              "shortDescription": {
-                "text": "No readiness probe will affect automatic recovery in case of unexpected errors"
-              },
-              "properties": {
-                "category": "Security Best Practices",
-                "severity": "LOW"
-              }
+                "check_id": "CKV_K8S_13",
+                "bc_check_id": "BC_K8S_12",
+                "check_name": "Memory limits should be set",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[1]/resources/limits/memory"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.MemoryLimits",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-12.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0064",
-              "name": "securityContextUsed",
-              "shortDescription": {
-                "text": "Apply Security Context to Your Pods and Containers"
-              },
-              "properties": {
-                "category": "Infrastructure Security",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_40",
+                "bc_check_id": "BC_K8S_37",
+                "check_name": "Containers should run as a high UID to avoid host conflict",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.RootContainersHighUID",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-37.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0099",
-              "name": "MemoryRequestsCheck",
-              "shortDescription": {
-                "text": "Memory Request Not Set in config file."
-              },
-              "properties": {
-                "category": "Security Best Practices",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_10",
+                "bc_check_id": "BC_K8S_9",
+                "check_name": "CPU requests should be set",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[1]/resources/requests/cpu"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.CPURequests",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-9.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0078",
-              "name": "readOnlyFileSystem",
-              "shortDescription": {
-                "text": "Container images with readOnlyRootFileSystem set as false mounts the container root file system with write permissions"
-              },
-              "properties": {
-                "category": "Identity and Access Management",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_16",
+                "bc_check_id": "BC_K8S_15",
+                "check_name": "Container should not be privileged",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[0]/securityContext/privileged"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.PrivilegedContainers",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-15.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0098",
-              "name": "CpulimitsCheck",
-              "shortDescription": {
-                "text": "CPU Limits Not Set in config file."
-              },
-              "properties": {
-                "category": "Security Best Practices",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_22",
+                "bc_check_id": "BC_K8S_21",
+                "check_name": "Use read-only filesystem for containers where possible",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[0]/securityContext/readOnlyRootFilesystem"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.ReadOnlyFilesystem",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-21.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0080",
-              "name": "secCompProfile",
-              "shortDescription": {
-                "text": "Default seccomp profile not enabled will make the container to make non-essential system calls"
-              },
-              "properties": {
-                "category": "Identity and Access Management",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_9",
+                "bc_check_id": "BC_K8S_8",
+                "check_name": "Readiness Probe Should be Configured",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[1]/readinessProbe"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.ReadinessProbe",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-8.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0073",
-              "name": "appArmorProfile",
-              "shortDescription": {
-                "text": "AppArmor profile not set to default or custom profile will make the container vulnerable to kernel level threats"
-              },
-              "properties": {
-                "category": "Identity and Access Management",
-                "severity": "MEDIUM"
-              }
+                "check_id": "CKV_K8S_28",
+                "bc_check_id": "BC_K8S_27",
+                "check_name": "Minimize the admission of containers with the NET_RAW capability",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[0]/securityContext/capabilities/drop"
+                    ]
+                },
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.DropCapabilities",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-27.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             },
             {
-              "id": "AC_K8S_0100",
-              "name": "MemorylimitsCheck",
-              "shortDescription": {
-                "text": "Memory Limits Not Set in config file."
-              },
-              "properties": {
-                "category": "Security Best Practices",
-                "severity": "MEDIUM"
-              }
-            }
-          ],
-          "version": "1.18.1"
-        }
-      },
-      "results": [
-        {
-          "ruleId": "AC_K8S_0097",
-          "ruleIndex": 0,
-          "level": "warning",
-          "message": {
-            "text": "CPU Request Not Set in config file."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
+                "check_id": "CKV_K8S_29",
+                "bc_check_id": "BC_K8S_43",
+                "check_name": "Apply security context to your pods and containers",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
                 },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0051",
-          "ruleIndex": 1,
-          "level": "error",
-          "message": {
-            "text": "Prefer using secrets as files over secrets as environment variables"
-          },
-          "locations": [
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.PodSecurityContext",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/ensure-securitycontext-is-applied-to-pods-and-containers.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
+            },
             {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
+                "check_id": "CKV_K8S_30",
+                "bc_check_id": "BC_K8S_28",
+                "check_name": "Apply security context to your containers",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[1]/securityContext"
+                    ]
                 },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0088",
-          "ruleIndex": 2,
-          "level": "warning",
-          "message": {
-            "text": "Restrict Mounting Docker Socket in a Container"
-          },
-          "locations": [
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.ContainerSecurityContext",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-28.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
+            },
             {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
+                "check_id": "CKV_K8S_38",
+                "bc_check_id": "BC_K8S_35",
+                "check_name": "Ensure that Service Account Tokens are only mounted where necessary",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
                 },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0070",
-          "ruleIndex": 3,
-          "level": "note",
-          "message": {
-            "text": "No liveness probe will ensure there is no recovery in case of unexpected errors"
-          },
-          "locations": [
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.ServiceAccountTokens",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-35.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
+            },
             {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
+                "check_id": "CKV_K8S_21",
+                "bc_check_id": "BC_K8S_20",
+                "check_name": "The default namespace should not be used",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
                 },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0081",
-          "ruleIndex": 4,
-          "level": "warning",
-          "message": {
-            "text": "Some volume types mount the host file system paths to the pod or container, thus increasing the chance of escaping the container to access the host"
-          },
-          "locations": [
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.DefaultNamespace",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-20.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
+            },
             {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
+                "check_id": "CKV_K8S_23",
+                "bc_check_id": "BC_K8S_22",
+                "check_name": "Minimize the admission of root containers",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": []
                 },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0085",
-          "ruleIndex": 5,
-          "level": "error",
-          "message": {
-            "text": "Containers Should Not Run with AllowPrivilegeEscalation"
-          },
-          "locations": [
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.RootContainers",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-22.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
+            },
             {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
+                "check_id": "CKV_K8S_43",
+                "bc_check_id": "BC_K8S_39",
+                "check_name": "Image should use digest",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[0]/image"
+                    ]
                 },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0086",
-          "ruleIndex": 6,
-          "level": "error",
-          "message": {
-            "text": "Default Namespace Should Not be Used"
-          },
-          "locations": [
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.ImageDigest",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-39.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
+            },
             {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
+                "check_id": "CKV_K8S_11",
+                "bc_check_id": "BC_K8S_10",
+                "check_name": "CPU limits should be set",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "spec/template/spec/containers/[1]/resources/limits/cpu"
+                    ]
                 },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0069",
-          "ruleIndex": 7,
-          "level": "warning",
-          "message": {
-            "text": "Image without digest affects the integrity principle of image security"
-          },
-          "locations": [
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "DaemonSet.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.kubernetes.checks.resource.k8s.CPULimits",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": "https://docs.paloaltonetworks.com/content/techdocs/en_US/prisma/prisma-cloud/prisma-cloud-code-security-policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-10.html",
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
+            },
             {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
+                "check_id": "CKV2_K8S_6",
+                "bc_check_id": null,
+                "check_name": "Minimize the admission of pods which lack an associated NetworkPolicy",
+                "check_result": {
+                    "result": "FAILED",
+                    "evaluated_keys": [
+                        "resource_type"
+                    ]
                 },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
+                "code_block": null,
+                "file_path": "/templates/falco_template.yaml",
+                "file_abs_path": "/Applications/Utilities/repos/mycharts/templates/falco_template.yaml",
+                "repo_file_path": "/templates/falco_template.yaml",
+                "file_line_range": [
+                    210,
+                    414
+                ],
+                "resource": "Pod.default.release-name-falco",
+                "evaluations": {},
+                "check_class": "checkov.common.graph.checks_infra.base_check",
+                "fixed_definition": null,
+                "entity_tags": null,
+                "caller_file_path": null,
+                "caller_file_line_range": null,
+                "resource_address": null,
+                "severity": null,
+                "bc_category": null,
+                "benchmarks": null,
+                "description": null,
+                "short_description": null,
+                "vulnerability_details": null,
+                "connected_node": null,
+                "guideline": null,
+                "details": [],
+                "check_len": null,
+                "definition_context_file_path": null
             }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0076",
-          "ruleIndex": 8,
-          "level": "error",
-          "message": {
-            "text": "Allowing hostPaths to mount to Pod arise the probability of getting access to the node's filesystem"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0087",
-          "ruleIndex": 9,
-          "level": "error",
-          "message": {
-            "text": "Minimize Admission of Root Containers"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0072",
-          "ruleIndex": 10,
-          "level": "note",
-          "message": {
-            "text": "No readiness probe will affect automatic recovery in case of unexpected errors"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0064",
-          "ruleIndex": 11,
-          "level": "warning",
-          "message": {
-            "text": "Apply Security Context to Your Pods and Containers"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0099",
-          "ruleIndex": 12,
-          "level": "warning",
-          "message": {
-            "text": "Memory Request Not Set in config file."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0078",
-          "ruleIndex": 13,
-          "level": "warning",
-          "message": {
-            "text": "Container images with readOnlyRootFileSystem set as false mounts the container root file system with write permissions"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0098",
-          "ruleIndex": 14,
-          "level": "warning",
-          "message": {
-            "text": "CPU Limits Not Set in config file."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0080",
-          "ruleIndex": 15,
-          "level": "warning",
-          "message": {
-            "text": "Default seccomp profile not enabled will make the container to make non-essential system calls"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0073",
-          "ruleIndex": 16,
-          "level": "warning",
-          "message": {
-            "text": "AppArmor profile not set to default or custom profile will make the container vulnerable to kernel level threats"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ruleId": "AC_K8S_0100",
-          "ruleIndex": 17,
-          "level": "warning",
-          "message": {
-            "text": "Memory Limits Not Set in config file."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///Applications/Utilities/repos/mycharts/templates/falco_template.yaml"
-                },
-                "region": {
-                  "startLine": 189
-                }
-              },
-              "logicalLocations": [
-                {
-                  "name": "release-name-falco",
-                  "kind": "kubernetes_daemonset"
-                }
-              ]
-            }
-          ]
-        }
-      ]
+        ]
+    },
+    "summary": {
+        "passed": 78,
+        "failed": 25,
+        "skipped": 0,
+        "parsing_errors": 0,
+        "resource_count": 7,
+        "checkov_version": "2.3.93"
     }
-  ]
 }

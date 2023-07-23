@@ -155,7 +155,7 @@
               "obj_path": "",
               "value": true
             },
-            "check_48": {
+            "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-kubernetes-dashboard",
               "obj_path": "",

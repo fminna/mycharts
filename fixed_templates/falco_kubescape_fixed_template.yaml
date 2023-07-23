@@ -159,6 +159,8 @@ spec:
         checksum/certs: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         container.apparmor.security.beta.kubernetes.io/falco: runtime/default
         container.apparmor.security.beta.kubernetes.io/falcoctl-artifact-follow: runtime/default
+        container.apparmor.security.beta.kubernetes.io/falco-driver-loader: runtime/default
+        container.apparmor.security.beta.kubernetes.io/falcoctl-artifact-install: runtime/default
     spec:
       serviceAccountName: release-name-falco
       tolerations:
@@ -179,14 +181,14 @@ spec:
             memory: 512Mi
         securityContext:
           privileged: false
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
         args:
         - /usr/bin/falco
         - --cri
@@ -249,10 +251,10 @@ spec:
         - follow
         - --verbose
         securityContext:
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000

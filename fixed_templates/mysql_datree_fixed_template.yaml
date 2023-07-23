@@ -198,6 +198,7 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -208,10 +209,10 @@ spec:
           runAsNonRoot: true
           runAsUser: 25000
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

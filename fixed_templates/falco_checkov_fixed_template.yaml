@@ -293,9 +293,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         volumeMounts:
         - mountPath: /root/.falco
@@ -314,7 +314,6 @@ spec:
         - mountPath: /host/etc
           name: etc-fs
           readOnly: true
-        env: null
         livenessProbe:
           exec:
             command:
@@ -343,16 +342,6 @@ spec:
         - artifact
         - install
         - --verbose
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          privileged: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
         volumeMounts:
         - mountPath: /plugins
           name: plugins-install-dir
@@ -360,7 +349,16 @@ spec:
           name: rulesfiles-install-dir
         - mountPath: /etc/falcoctl
           name: falcoctl-config-volume
-        env: null
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsGroup: 25000
         livenessProbe:
           exec:
             command:

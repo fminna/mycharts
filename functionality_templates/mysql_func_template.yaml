@@ -2,14 +2,14 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
   annotations: null
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 secrets:
 - name: release-name-mysql
 ---
@@ -17,7 +17,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -32,7 +32,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -102,7 +102,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql-headless
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -126,7 +126,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -152,7 +152,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -169,7 +169,7 @@ spec:
       app.kubernetes.io/name: mysql
       app.kubernetes.io/instance: release-name
       app.kubernetes.io/component: primary
-  serviceName: release-name-mysql
+  serviceName: release-name-mysql-headless
   updateStrategy:
     type: RollingUpdate
   template:
@@ -199,33 +199,28 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8.0.32-debian-11-r21
-        imagePullPolicy: IfNotPresent
+        image: docker.io/bitnami/mysql:8@sha256:eb11df7b201aa831c1f1a0c4a07a630b40fcbfacdb7eb6fda8c41277c00c7849
+        imagePullPolicy: Always
         securityContext:
           runAsNonRoot: false
-          runAsUser: 1001
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
           runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: release-name-mysql
-              key: mysql-root-password
         - name: MYSQL_DATABASE
           value: my_database
-        envFrom: null
         ports:
         - name: mysql
           containerPort: 3306
@@ -270,21 +265,27 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
         - name: config
           mountPath: /opt/bitnami/mysql/conf/my.cnf
           subPath: my.cnf
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: config
         configMap:
           name: release-name-mysql
+      - name: secret-volume
+        secret:
+          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -296,6 +297,64 @@ spec:
     spec:
       accessModes:
       - ReadWriteOnce
-      resources:
-        requests:
-          storage: 8Gi
+      resources: {}
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: test-ns
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: default
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: default
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
