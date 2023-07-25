@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-nginx-ingress
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: nginx-ingress-0.17.1
     app.kubernetes.io/name: nginx-ingress
@@ -14,7 +14,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-nginx-ingress
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: nginx-ingress-0.17.1
     app.kubernetes.io/name: nginx-ingress
@@ -27,7 +27,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-nginx-ingress-leader-election
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: nginx-ingress-0.17.1
     app.kubernetes.io/name: nginx-ingress
@@ -180,7 +180,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-nginx-ingress-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: nginx-ingress-0.17.1
     app.kubernetes.io/name: nginx-ingress
@@ -214,6 +214,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 3.1.1
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -229,20 +231,21 @@ spec:
         prometheus.io/scrape: 'true'
         prometheus.io/port: '9113'
         prometheus.io/scheme: http
+        container.apparmor.security.beta.kubernetes.io/nginx-ingress: runtime/default
     spec:
       serviceAccountName: release-name-nginx-ingress
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
+        runAsUser: 101
       terminationGracePeriodSeconds: 30
       hostNetwork: false
       dnsPolicy: ClusterFirst
       containers:
       - image: nginx/nginx-ingress:3.1.1
         name: nginx-ingress
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - name: http
           containerPort: 80
@@ -263,25 +266,32 @@ spec:
             cpu: 100m
             memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 100m
+            memory: 128Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
           runAsUser: 101
           runAsNonRoot: false
           capabilities:
+            drop:
+            - CHOWN
+            - DAC_OVERRIDE
+            - FOWNER
+            - FSETID
+            - KILL
+            - SETGID
+            - SETUID
+            - SETPCAP
+            - SETFCAP
+            - NET_RAW
+            - SYS_CHROOT
+            - MKNOD
+            - AUDIT_WRITE
             add:
             - NET_BIND_SERVICE
-        env:
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
+          runAsGroup: 25000
+        env: []
         args:
         - -nginx-plus=false
         - -nginx-reload-timeout=60000
@@ -318,6 +328,10 @@ spec:
         - -ready-status=true
         - -ready-status-port=8081
         - -enable-latency-metrics=false
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -325,6 +339,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: my-secret
 ---
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
@@ -338,47 +356,3 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 spec:
   controller: nginx.org/ingress-controller
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

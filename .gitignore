@@ -14,4 +14,7 @@
 
 test_files/
 
-generate_results.sh
+output_final
+output_fix
+output_func
+results_*

@@ -193,7 +193,10 @@ spec:
     matchLabels:
       service: postgresql-headless
       app.kubernetes.io/name: postgresql
+      helm.sh/chart: postgresql-10.15.0
       app.kubernetes.io/instance: release-name
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/component: primary
       role: primary
   template:
     metadata:
@@ -495,9 +498,6 @@ spec:
       - name : tmp-dir
         emptyDir:
           {}
----
-# Source: sonarqube/templates/secret.yaml
----
 ---
 # Source: sonarqube/templates/tests/sonarqube-test.yaml
 apiVersion: v1

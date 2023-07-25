@@ -10,8 +10,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: release-name-ingress-nginx
-  namespace: test-ns
-automountServiceAccountToken: true
+  namespace: default
+automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -25,7 +25,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: release-name-ingress-nginx-controller
-  namespace: test-ns
+  namespace: default
 data:
   allow-snippet-annotations: 'true'
 ---
@@ -144,7 +144,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: release-name-ingress-nginx
-  namespace: test-ns
+  namespace: default
 rules:
 - apiGroups:
   - ''
@@ -236,7 +236,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: release-name-ingress-nginx
-  namespace: test-ns
+  namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -258,7 +258,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: release-name-ingress-nginx-controller-admission
-  namespace: test-ns
+  namespace: default
 spec:
   type: ClusterIP
   ports:
@@ -284,7 +284,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: release-name-ingress-nginx-controller
-  namespace: test-ns
+  namespace: default
 spec:
   type: LoadBalancer
   ipFamilyPolicy: SingleStack
@@ -340,12 +340,14 @@ spec:
         app.kubernetes.io/part-of: ingress-nginx
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: controller
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/controller: runtime/default
     spec:
       dnsPolicy: ClusterFirst
       containers:
       - name: controller
         image: registry.k8s.io/ingress-nginx/controller:v1.8.0@sha256:744ae2afd433a395eeb13dc03d3313facba92e96ad71d9feaafc85925493fee3
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
             exec:
@@ -363,23 +365,28 @@ spec:
         - --validating-webhook-key=/usr/local/certificates/key
         securityContext:
           capabilities:
+            drop:
+            - DAC_OVERRIDE
+            - FOWNER
+            - FSETID
+            - KILL
+            - SETGID
+            - SETUID
+            - SETPCAP
+            - SETFCAP
+            - NET_RAW
+            - SYS_CHROOT
+            - MKNOD
+            - AUDIT_WRITE
             add:
             - CHOWN
             - NET_BIND_SERVICE
           runAsUser: 101
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
           runAsNonRoot: false
           runAsGroup: 25000
+          readOnlyRootFilesystem: false
         env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
         - name: LD_PRELOAD
           value: /usr/local/lib/libmimalloc.so
         livenessProbe:
@@ -416,6 +423,9 @@ spec:
         - name: webhook-cert
           mountPath: /usr/local/certificates/
           readOnly: true
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         resources:
           requests:
             cpu: 100m
@@ -431,14 +441,17 @@ spec:
       - name: webhook-cert
         secret:
           secretName: release-name-ingress-nginx-admission
+      - name: secret-volume
+        secret:
+          secretName: my-secret
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
+        runAsUser: 101
         runAsNonRoot: true
         runAsGroup: 25000
-      automountServiceAccountToken: false
-      hostPID: false
+      hostPID: true
+      automountServiceAccountToken: true
 ---
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
@@ -495,7 +508,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-ingress-nginx-admission
-  namespace: test-ns
+  namespace: default
   annotations:
     helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
@@ -530,6 +543,7 @@ rules:
   - validatingwebhookconfigurations
   verbs:
   - get
+  - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -559,7 +573,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-ingress-nginx-admission
-  namespace: test-ns
+  namespace: default
   annotations:
     helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
@@ -584,7 +598,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-ingress-nginx-admission
-  namespace: test-ns
+  namespace: default
   annotations:
     helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
@@ -600,6 +614,10 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: release-name-ingress-nginx-admission
+subjects:
+- kind: ServiceAccount
+  name: release-name-ingress-nginx-admission
+  namespace: default
 ---
 apiVersion: batch/v1
 kind: Job
@@ -630,35 +648,50 @@ spec:
         app.kubernetes.io/part-of: ingress-nginx
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: admission-webhook
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/create: runtime/default
     spec:
       containers:
       - name: create
         image: registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230407@sha256:543c40fd093964bc9ab509d3e791f9989963021f1e9e4c9c7b6700b02bfb227b
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - create
         - --host=release-name-ingress-nginx-controller-admission,release-name-ingress-nginx-controller-admission.$(POD_NAMESPACE).svc
         - --namespace=$(POD_NAMESPACE)
         - --secret-name=release-name-ingress-nginx-admission
-        env:
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+        env: []
         securityContext:
           allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
+          runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
           readOnlyRootFilesystem: true
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       restartPolicy: OnFailure
       serviceAccountName: release-name-ingress-nginx-admission
       nodeSelector:
@@ -666,10 +699,13 @@ spec:
       securityContext:
         fsGroup: 2000
         runAsNonRoot: true
-        runAsUser: 25000
+        runAsUser: 2000
         seccompProfile:
           type: RuntimeDefault
-      automountServiceAccountToken: false
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: my-secret
 ---
 apiVersion: batch/v1
 kind: Job
@@ -700,11 +736,13 @@ spec:
         app.kubernetes.io/part-of: ingress-nginx
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: admission-webhook
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/patch: runtime/default
     spec:
       containers:
       - name: patch
         image: registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230407@sha256:543c40fd093964bc9ab509d3e791f9989963021f1e9e4c9c7b6700b02bfb227b
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - patch
         - --webhook-name=release-name-ingress-nginx-admission
@@ -712,25 +750,38 @@ spec:
         - --patch-mutating=false
         - --secret-name=release-name-ingress-nginx-admission
         - --patch-failure-policy=Fail
-        env:
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+        env: []
         securityContext:
           allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
+          runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
           readOnlyRootFilesystem: true
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       restartPolicy: OnFailure
       serviceAccountName: release-name-ingress-nginx-admission
       nodeSelector:
@@ -738,139 +789,10 @@ spec:
       securityContext:
         fsGroup: 2000
         runAsNonRoot: true
-        runAsUser: 25000
+        runAsUser: 2000
         seccompProfile:
           type: RuntimeDefault
-      automountServiceAccountToken: false
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: my-secret

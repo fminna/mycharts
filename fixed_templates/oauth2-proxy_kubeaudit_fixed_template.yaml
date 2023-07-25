@@ -1,0 +1,201 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: oauth2-proxy
+    helm.sh/chart: oauth2-proxy-6.13.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: authentication-proxy
+    app.kubernetes.io/part-of: oauth2-proxy
+    app.kubernetes.io/name: oauth2-proxy
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 7.4.0
+  name: release-name-oauth2-proxy
+  namespace: default
+automountServiceAccountToken: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app: oauth2-proxy
+    helm.sh/chart: oauth2-proxy-6.13.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: authentication-proxy
+    app.kubernetes.io/part-of: oauth2-proxy
+    app.kubernetes.io/name: oauth2-proxy
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 7.4.0
+  name: release-name-oauth2-proxy
+  namespace: default
+type: Opaque
+data:
+  cookie-secret: WFhYWFhYWFhYWFhYWFhYWA==
+  client-secret: WFhYWFhYWFg=
+  client-id: WFhYWFhYWA==
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: oauth2-proxy
+    helm.sh/chart: oauth2-proxy-6.13.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: authentication-proxy
+    app.kubernetes.io/part-of: oauth2-proxy
+    app.kubernetes.io/name: oauth2-proxy
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 7.4.0
+  name: release-name-oauth2-proxy
+  namespace: default
+data:
+  oauth2_proxy.cfg: 'email_domains = [ "*" ]
+
+    upstreams = [ "file:///dev/null" ]'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: oauth2-proxy
+    helm.sh/chart: oauth2-proxy-6.13.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: authentication-proxy
+    app.kubernetes.io/part-of: oauth2-proxy
+    app.kubernetes.io/name: oauth2-proxy
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 7.4.0
+  name: release-name-oauth2-proxy
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    appProtocol: http
+    name: http
+  - port: 44180
+    protocol: TCP
+    appProtocol: http
+    targetPort: metrics
+    name: metrics
+  selector:
+    app.kubernetes.io/name: oauth2-proxy
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: oauth2-proxy
+    helm.sh/chart: oauth2-proxy-6.13.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: authentication-proxy
+    app.kubernetes.io/part-of: oauth2-proxy
+    app.kubernetes.io/name: oauth2-proxy
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 7.4.0
+  name: release-name-oauth2-proxy
+  namespace: default
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: oauth2-proxy
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      annotations:
+        checksum/config: 6fa25f75017cca9578f99d7fc5aba3eadfb9620f721006449822b053daefd5ef
+        checksum/config-emails: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/secret: 99361aeb07258f9bf9b1c0196e1f291ce132f7267022e825adf852079645d5ba
+        checksum/google-secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        checksum/redis-secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        container.apparmor.security.beta.kubernetes.io/oauth2-proxy: runtime/default
+      labels:
+        app: oauth2-proxy
+        helm.sh/chart: oauth2-proxy-6.13.1
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: authentication-proxy
+        app.kubernetes.io/part-of: oauth2-proxy
+        app.kubernetes.io/name: oauth2-proxy
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: 7.4.0
+    spec:
+      serviceAccountName: release-name-oauth2-proxy
+      automountServiceAccountToken: true
+      containers:
+      - name: oauth2-proxy
+        image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - --http-address=0.0.0.0:4180
+        - --https-address=0.0.0.0:4443
+        - --metrics-address=0.0.0.0:44180
+        - --config=/etc/oauth2_proxy/oauth2_proxy.cfg
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: release-name-oauth2-proxy
+              key: client-id
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: release-name-oauth2-proxy
+              key: client-secret
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: release-name-oauth2-proxy
+              key: cookie-secret
+        ports:
+        - containerPort: 4180
+          name: http
+          protocol: TCP
+        - containerPort: 44180
+          protocol: TCP
+          name: metrics
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 0
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 0
+          timeoutSeconds: 5
+          successThreshold: 1
+          periodSeconds: 10
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/oauth2_proxy/oauth2_proxy.cfg
+          name: configmain
+          subPath: oauth2_proxy.cfg
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: release-name-oauth2-proxy
+        name: configmain
+      tolerations: []
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault

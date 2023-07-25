@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-falco
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: falco-3.1.4
     app.kubernetes.io/name: falco
@@ -14,7 +14,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-falco
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: falco-3.1.4
     app.kubernetes.io/name: falco
@@ -48,7 +48,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-falco-falcoctl
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: falco-3.1.4
     app.kubernetes.io/name: falco
@@ -155,6 +155,10 @@ spec:
         checksum/config: a9f15f4e9c915dc68e01b438570bd6eac85dff4943dc07392e8c978210821c36
         checksum/rules: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         checksum/certs: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        container.apparmor.security.beta.kubernetes.io/falco: runtime/default
+        container.apparmor.security.beta.kubernetes.io/falcoctl-artifact-follow: runtime/default
+        container.apparmor.security.beta.kubernetes.io/falco-driver-loader: runtime/default
+        container.apparmor.security.beta.kubernetes.io/falcoctl-artifact-install: runtime/default
     spec:
       serviceAccountName: release-name-falco
       tolerations:
@@ -165,24 +169,21 @@ spec:
       containers:
       - name: falco
         image: docker.io/falcosecurity/falco-no-driver:0.34.1
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         resources:
           limits:
-            cpu: 1000m
+            cpu: 100m
             memory: 1024Mi
           requests:
-            cpu: 1000m
+            cpu: 100m
             memory: 1024Mi
         securityContext:
-          privileged: false
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
+          privileged: true
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
+          runAsNonRoot: false
+          runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: true
         args:
         - /usr/bin/falco
         - --cri
@@ -196,11 +197,7 @@ spec:
         - --k8s-node
         - $(FALCO_K8S_NODE_NAME)
         - -pk
-        env:
-        - name: FALCO_K8S_NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
+        env: []
         tty: false
         livenessProbe:
           exec:
@@ -219,50 +216,62 @@ spec:
         volumeMounts:
         - mountPath: /etc/falco
           name: rulesfiles-install-dir
+          readOnly: true
         - mountPath: /root/.falco
           name: root-falco-fs
+          readOnly: true
         - mountPath: /host/proc
           name: proc-fs
+          readOnly: true
         - mountPath: /host/dev
           name: dev-fs
           readOnly: true
         - name: sys-fs
           mountPath: /sys/module/falco
+          readOnly: true
         - mountPath: /host/var/run/docker.sock
           name: docker-socket
+          readOnly: true
         - mountPath: /host/run/containerd/containerd.sock
           name: containerd-socket
+          readOnly: true
         - mountPath: /host/run/crio/crio.sock
           name: crio-socket
+          readOnly: true
         - mountPath: /etc/falco/falco.yaml
           name: falco-yaml
           subPath: falco.yaml
+          readOnly: true
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       - name: falcoctl-artifact-follow
         image: docker.io/falcosecurity/falcoctl:0.4.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - artifact
         - follow
         - --verbose
         securityContext:
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          privileged: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
         volumeMounts:
         - mountPath: /plugins
           name: plugins-install-dir
+          readOnly: true
         - mountPath: /rulesfiles
           name: rulesfiles-install-dir
+          readOnly: true
         - mountPath: /etc/falcoctl
           name: falcoctl-config-volume
-        env: null
-        livenessProbe:
+          readOnly: true
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        readinessProbe:
           exec:
             command:
             - ls
@@ -270,13 +279,13 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
-        readinessProbe:
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
           exec:
             command:
             - ls
@@ -286,17 +295,14 @@ spec:
       initContainers:
       - name: falco-driver-loader
         image: docker.io/falcosecurity/falco-driver-loader:0.34.1
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         securityContext:
-          privileged: false
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
+          privileged: true
           readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
         volumeMounts:
         - mountPath: /root/.falco
           name: root-falco-fs
@@ -314,7 +320,7 @@ spec:
         - mountPath: /host/etc
           name: etc-fs
           readOnly: true
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -322,13 +328,13 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
-        readinessProbe:
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
           exec:
             command:
             - ls
@@ -337,7 +343,7 @@ spec:
           periodSeconds: 10
       - name: falcoctl-artifact-install
         image: docker.io/falcosecurity/falcoctl:0.4.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - artifact
         - install
@@ -349,31 +355,27 @@ spec:
           name: rulesfiles-install-dir
         - mountPath: /etc/falcoctl
           name: falcoctl-config-volume
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          privileged: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsGroup: 25000
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
-        readinessProbe:
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
           exec:
             command:
             - ls
@@ -387,33 +389,6 @@ spec:
         emptyDir: {}
       - name: root-falco-fs
         emptyDir: {}
-      - name: boot-fs
-        hostPath:
-          path: /boot
-      - name: lib-modules
-        hostPath:
-          path: /lib/modules
-      - name: usr-fs
-        hostPath:
-          path: /usr
-      - name: etc-fs
-        hostPath:
-          path: /etc
-      - name: dev-fs
-        hostPath:
-          path: /dev
-      - name: sys-fs
-        hostPath:
-          path: /sys/module/falco
-      - name: containerd-socket
-        hostPath:
-          path: /run/containerd/containerd.sock
-      - name: crio-socket
-        hostPath:
-          path: /run/crio/crio.sock
-      - name: proc-fs
-        hostPath:
-          path: /proc
       - name: falcoctl-config-volume
         configMap:
           name: release-name-falco-falcoctl
@@ -426,56 +401,14 @@ spec:
           items:
           - key: falco.yaml
             path: falco.yaml
+      - name: secret-volume
+        secret:
+          secretName: my-secret
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
         runAsNonRoot: true
+        runAsUser: 25000
         runAsGroup: 25000
-      automountServiceAccountToken: false
   updateStrategy:
     type: RollingUpdate
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

@@ -44,7 +44,7 @@
               "description": "Ensure each container has a configured memory limit",
               "resource_path": "StatefulSet/default/release-name-jenkins",
               "obj_path": "spec/template/spec/containers/0",
-              "value": false,
+              "value": "1024Mi",
               "failed_check": "test_case_1"
             },
             "check_4": {
@@ -57,7 +57,7 @@
               "description": "Ensure each container has a configured CPU limit",
               "resource_path": "StatefulSet/default/release-name-jenkins",
               "obj_path": "spec/template/spec/containers/0",
-              "value": false,
+              "value": "1000m",
               "failed_check": "test_case_1"
             },
             "check_3": {

@@ -123,11 +123,11 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
@@ -147,13 +147,12 @@ apiVersion: v1
 kind: Deployment
 metadata:
   name: release-name-pgadmin4-test-connection
-  namespace: test-ns
+  namespace: default
   labels:
-    app.kubernetes.io/name: MyApp
+    app.kubernetes.io/name: pgadmin4
     helm.sh/chart: pgadmin4-1.15.2
     app.kubernetes.io/version: '7.0'
     app.kubernetes.io/managed-by: Helm
-    app: MyApp
   annotations:
     helm.sh/hook: test
     helm.sh/hook-delete-policy: hook-succeeded
@@ -184,24 +183,7 @@ spec:
     resources: {}
     securityContext:
       readOnlyRootFilesystem: true
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
   restartPolicy: Never
-  metadata:
-    labels:
-      app: MyApp
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

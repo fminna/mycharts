@@ -1,0 +1,260 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-kubeview
+  namespace: test-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: release-name-kubeview
+rules:
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs:
+  - get
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - replicasets
+  - daemonsets
+  - statefulsets
+  verbs:
+  - get
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-kubeview
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-kubeview
+subjects:
+- kind: ServiceAccount
+  name: release-name-kubeview
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-kubeview
+  labels:
+    app.kubernetes.io/name: kubeview
+    helm.sh/chart: kubeview-0.1.31
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.1.31
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    networking.gke.io/load-balancer-type: Internal
+  namespace: test-ns
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: kubeview
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-kubeview
+  labels:
+    app.kubernetes.io/name: kubeview
+    helm.sh/chart: kubeview-0.1.31
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.1.31
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  namespace: test-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubeview
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kubeview
+        app.kubernetes.io/instance: release-name
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/kubeview: runtime/default
+    spec:
+      containers:
+      - name: kubeview
+        image: ghcr.io/benc-uk/kubeview:0.1.31
+        imagePullPolicy: Always
+        env:
+        - name: IN_CLUSTER
+          value: 'true'
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
+      securityContext:
+        runAsUser: 25000
+        seccompProfile:
+          type: RuntimeDefault
+      automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: release-name-kubeview-test-connection
+  labels:
+    app.kubernetes.io/name: kubeview
+    helm.sh/chart: kubeview-0.1.31
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: 0.1.31
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    helm.sh/hook: test-success
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/wget: runtime/default
+  namespace: test-ns
+spec:
+  containers:
+  - name: wget
+    image: busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+    command:
+    - wget
+    args:
+    - release-name-kubeview:80
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsUser: 25000
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+    resources:
+      limits:
+        cpu: 250m
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+  restartPolicy: Never
+  securityContext:
+    runAsUser: 25000
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: true
+    runAsGroup: 25000
+  serviceAccountName: SAtest0
+  automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: test-ns
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: default
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: default
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high

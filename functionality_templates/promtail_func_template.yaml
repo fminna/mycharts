@@ -131,7 +131,7 @@ spec:
       enableServiceLinks: true
       securityContext:
         runAsGroup: 0
-        runAsUser: 25000
+        runAsUser: 1001
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -166,9 +166,9 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
+          runAsUser: 1001
           runAsNonRoot: false
-          runAsUser: 25000
           runAsGroup: 25000
         readinessProbe:
           failureThreshold: 5
@@ -180,10 +180,10 @@ spec:
           successThreshold: 1
           timeoutSeconds: 1
         resources:
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
         livenessProbe:

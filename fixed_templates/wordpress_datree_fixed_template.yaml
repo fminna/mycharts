@@ -220,6 +220,7 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       serviceAccountName: default
       containers:
       - name: wordpress
@@ -383,6 +384,7 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       containers:
       - name: mariadb
         image: docker.io/bitnami/mariadb:10.11.3-debian-11-r5

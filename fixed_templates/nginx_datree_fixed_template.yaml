@@ -99,16 +99,16 @@ spec:
             memory: 128Mi
           requests:
             memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         securityContext:
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       volumes:
       - name: secret-volume
         secret:

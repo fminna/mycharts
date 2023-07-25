@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 metadata:
   name: release-name-redis
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: redis
     helm.sh/chart: redis-17.11.3
@@ -14,7 +14,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-redis
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: redis
     helm.sh/chart: redis-17.11.3
@@ -28,7 +28,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-redis-configuration
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: redis
     helm.sh/chart: redis-17.11.3
@@ -69,7 +69,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-redis-health
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: redis
     helm.sh/chart: redis-17.11.3
@@ -128,7 +128,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-redis-scripts
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: redis
     helm.sh/chart: redis-17.11.3
@@ -169,7 +169,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-redis-headless
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: redis
     helm.sh/chart: redis-17.11.3
@@ -191,7 +191,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-redis-master
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: redis
     helm.sh/chart: redis-17.11.3
@@ -216,7 +216,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-redis-replicas
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: redis
     helm.sh/chart: redis-17.11.3
@@ -273,12 +273,13 @@ spec:
         checksum/health: 95a49434bdd1144e7de35e352bc8ae0052beeef68c90647bece9831ee472dc29
         checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
         checksum/secret: 4d843dbc55b577c8529cb4a32b3ce894c77415c44a22bd10766078e4dd11b043
+        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
     spec:
       securityContext:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
+        runAsUser: 1001
       serviceAccountName: release-name-redis
       affinity:
         podAntiAffinity:
@@ -295,16 +296,13 @@ spec:
       containers:
       - name: redis
         image: docker.io/bitnami/redis:6-alpine3.18@sha256:f9fd65500e22bff9ebcd214268f3f03b80a45cffa91d24d7313b242d6750bebc
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: false
           runAsGroup: 25000
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
         command:
         - /bin/bash
         args:
@@ -351,8 +349,8 @@ spec:
             memory: 128Mi
             cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: start-scripts
           mountPath: /opt/bitnami/scripts/start-scripts
@@ -388,7 +386,6 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
-      automountServiceAccountToken: false
   volumeClaimTemplates:
   - metadata:
       name: redis-data
@@ -439,12 +436,12 @@ spec:
         checksum/health: 95a49434bdd1144e7de35e352bc8ae0052beeef68c90647bece9831ee472dc29
         checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
         checksum/secret: 8d4067e74965347a3a26439056e4a77d4c1000c4bb14e9380730e294eb8d2e54
+        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
     spec:
       securityContext:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
       serviceAccountName: release-name-redis
       automountServiceAccountToken: false
       affinity:
@@ -463,14 +460,13 @@ spec:
       containers:
       - name: redis
         image: docker.io/bitnami/redis:6-alpine3.18@sha256:f9fd65500e22bff9ebcd214268f3f03b80a45cffa91d24d7313b242d6750bebc
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         securityContext:
-          runAsUser: 25000
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
+          runAsUser: 1001
+          runAsNonRoot: true
+          runAsGroup: 25000
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         command:
         - /bin/bash
         args:
@@ -529,8 +525,8 @@ spec:
             memory: 128Mi
             cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: start-scripts
           mountPath: /opt/bitnami/scripts/start-scripts
@@ -575,91 +571,3 @@ spec:
       resources:
         requests:
           storage: 8Gi
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

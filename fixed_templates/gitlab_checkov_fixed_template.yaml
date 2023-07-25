@@ -10046,15 +10046,6 @@ rules:
   verbs:
   - get
 - apiGroups:
-  - ''
-  resources:
-  - events
-  verbs:
-  - get
-  - create
-  - update
-  - patch
-- apiGroups:
   - admissionregistration.k8s.io
   resources:
   - validatingwebhookconfigurations
@@ -12322,9 +12313,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       - name: configure
@@ -12363,9 +12354,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       containers:
@@ -12519,9 +12510,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       - name: configure
@@ -12552,9 +12543,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       securityContext:
@@ -12917,9 +12908,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       - name: configure
@@ -12950,9 +12941,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       - name: dependencies
@@ -13001,9 +12992,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       containers:
@@ -13245,9 +13236,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         livenessProbe:
           exec:
@@ -13292,9 +13283,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         livenessProbe:
           exec:
@@ -13569,9 +13560,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       - name: configure
@@ -13613,9 +13604,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       - name: dependencies
@@ -13661,9 +13652,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       containers:
@@ -14036,9 +14027,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
         readinessProbe:
@@ -14120,7 +14111,7 @@ spec:
       app: nginx-ingress
       release: release-name
       component: controller
-  replicas: 2
+  replicas: 1
   revisionHistoryLimit: 10
   minReadySeconds: 0
   template:
@@ -14404,7 +14395,6 @@ spec:
       initContainers:
       - name: certificates
         image: registry.gitlab.com/gitlab-org/build/cng/certificates:v16.0.3
-        env: null
         volumeMounts:
         - name: etc-ssl-certs
           mountPath: /etc/ssl/certs
@@ -14424,9 +14414,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       - name: configure
@@ -14452,9 +14442,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       containers:
@@ -14703,7 +14693,6 @@ spec:
       initContainers:
       - name: certificates
         image: registry.gitlab.com/gitlab-org/build/cng/certificates:v16.0.3
-        env: null
         volumeMounts:
         - name: etc-ssl-certs
           mountPath: /etc/ssl/certs
@@ -14723,9 +14712,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       - name: configure
@@ -14733,7 +14722,6 @@ spec:
         - sh
         - /config/configure
         image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
-        env: null
         volumeMounts:
         - name: gitaly-config
           mountPath: /config
@@ -14756,9 +14744,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       securityContext:
@@ -15443,9 +15431,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       - name: configure
@@ -15476,9 +15464,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         imagePullPolicy: Always
       restartPolicy: OnFailure
@@ -15674,7 +15662,7 @@ metadata:
 spec:
   controller: k8s.io/ingress-nginx
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Ingress
 metadata:
   name: release-name-kas
@@ -15709,7 +15697,7 @@ spec:
     - kas.example.com
     secretName: release-name-kas-tls
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Ingress
 metadata:
   name: release-name-webservice-default
@@ -15743,7 +15731,7 @@ spec:
     - gitlab.example.com
     secretName: release-name-gitlab-tls
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Ingress
 metadata:
   name: release-name-minio
@@ -15776,7 +15764,7 @@ spec:
     - minio.example.com
     secretName: release-name-minio-tls
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Ingress
 metadata:
   name: release-name-registry

@@ -4147,40 +4147,6 @@ spec:
     port: 9600
     targetPort: recov-backend
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/name: longhorn
-    helm.sh/chart: longhorn-1.4.2
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: v1.4.2
-  name: longhorn-engine-manager
-  namespace: default
-spec:
-  clusterIP: None
-  selector:
-    longhorn.io/component: instance-manager
-    longhorn.io/instance-manager-type: engine
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/name: longhorn
-    helm.sh/chart: longhorn-1.4.2
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: v1.4.2
-  name: longhorn-replica-manager
-  namespace: default
-spec:
-  clusterIP: None
-  selector:
-    longhorn.io/component: instance-manager
-    longhorn.io/instance-manager-type: replica
----
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -4223,13 +4189,13 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         command:
         - longhorn-manager
@@ -4378,6 +4344,12 @@ spec:
           value: longhornio/csi-snapshotter:v5.0.1
         - name: CSI_LIVENESS_PROBE_IMAGE
           value: longhornio/livenessprobe:v2.8.0
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi
@@ -4385,12 +4357,6 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        securityContext:
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
         livenessProbe:
           exec:
             command:
@@ -4460,10 +4426,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         command:
         - longhorn-manager
@@ -4503,11 +4469,11 @@ spec:
           periodSeconds: 10
       serviceAccountName: longhorn-service-account
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4569,6 +4535,12 @@ spec:
           value: http://longhorn-backend:9500
         - name: LONGHORN_UI_PORT
           value: '8000'
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi
@@ -4576,12 +4548,6 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        securityContext:
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
         livenessProbe:
           exec:
             command:
@@ -4657,10 +4623,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         command:
         - longhorn-manager
@@ -4694,11 +4660,11 @@ spec:
           periodSeconds: 10
       serviceAccountName: longhorn-service-account
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4751,17 +4717,17 @@ spec:
           != "200" ]; do echo waiting; sleep 2; done
         imagePullPolicy: IfNotPresent
         securityContext:
-          runAsUser: 2000
+          runAsUser: 25000
       containers:
       - name: longhorn-admission-webhook
         image: longhornio/longhorn-manager:v1.4.2
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         command:
         - longhorn-manager
@@ -4799,11 +4765,11 @@ spec:
           periodSeconds: 10
       serviceAccountName: longhorn-service-account
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: batch/v1
 kind: Job
@@ -4839,13 +4805,13 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         command:
         - longhorn-manager
@@ -4916,13 +4882,13 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         command:
         - longhorn-manager

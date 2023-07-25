@@ -40,31 +40,6 @@ data:
 kind: Service
 apiVersion: v1
 metadata:
-  name: elasticsearch-master
-  labels:
-    heritage: Helm
-    release: release-name
-    chart: elasticsearch
-    app: elasticsearch-master
-  annotations: {}
-spec:
-  type: ClusterIP
-  selector:
-    release: release-name
-    chart: elasticsearch
-    app: elasticsearch-master
-  publishNotReadyAddresses: false
-  ports:
-  - name: http
-    protocol: TCP
-    port: 9200
-  - name: transport
-    protocol: TCP
-    port: 9300
----
-kind: Service
-apiVersion: v1
-metadata:
   name: elasticsearch-master-headless
   labels:
     heritage: Helm
@@ -125,7 +100,7 @@ spec:
     spec:
       securityContext:
         fsGroup: 1000
-        runAsUser: 1000
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
       automountServiceAccountToken: true
@@ -151,7 +126,7 @@ spec:
       initContainers:
       - name: configure-sysctl
         securityContext:
-          runAsUser: 0
+          runAsUser: 25000
           privileged: true
         image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
         imagePullPolicy: IfNotPresent
@@ -307,13 +282,20 @@ spec:
       readOnly: true
       mountPath: /etc/secret-volume
     resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
       limits:
         memory: 128Mi
         cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
     livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readinessProbe:
       exec:
         command:
         - ls
@@ -326,13 +308,6 @@ spec:
       capabilities:
         drop:
         - ALL
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
   restartPolicy: Never
   volumes:
   - name: elasticsearch-certs

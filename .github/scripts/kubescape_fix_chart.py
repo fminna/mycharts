@@ -77,7 +77,6 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
 
                     # print(f"{control['controlID']}: {control['name']}")
                     check_id = fix_issue(control, resource_path, template)
-
                     for rule in control["rules"]:
                         if "paths" in rule:
                             for _ in rule["paths"]:
@@ -278,6 +277,8 @@ class LookupClass:
         "C-0073": "check_64", 
         "C-0031": "check_54", 
         "C-0065": "check_54",
+        "C-0063": "check_54",
+        "C-0035": "",
         "C-0026": "", # Kubernetes CronJob
         "C-0012": "", # Applications credentials in configuration file
         "C-0036": "", # Malicious admission controller

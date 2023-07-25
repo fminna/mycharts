@@ -4171,40 +4171,6 @@ spec:
     port: 9600
     targetPort: recov-backend
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/name: longhorn
-    helm.sh/chart: longhorn-1.4.2
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: v1.4.2
-  name: longhorn-engine-manager
-  namespace: default
-spec:
-  clusterIP: None
-  selector:
-    longhorn.io/component: instance-manager
-    longhorn.io/instance-manager-type: engine
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/name: longhorn
-    helm.sh/chart: longhorn-1.4.2
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: v1.4.2
-  name: longhorn-replica-manager
-  namespace: default
-spec:
-  clusterIP: None
-  selector:
-    longhorn.io/component: instance-manager
-    longhorn.io/instance-manager-type: replica
----
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:

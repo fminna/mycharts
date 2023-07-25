@@ -366,11 +366,11 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
       containers:
       - name: memcached
         image: docker.io/bitnami/memcached:1.6.19-debian-11-r7
@@ -378,12 +378,12 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
-          readOnlyRootFilesystem: true
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -475,11 +475,11 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
       hostNetwork: false
       hostIPC: false
       containers:
@@ -488,13 +488,13 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -774,14 +774,14 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
         volumeMounts:
         - name: temp
           mountPath: /tmp
@@ -825,16 +825,33 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     helm.sh/hook: test-success
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/wget: runtime/default
 spec:
   containers:
   - name: wget
     image: busybox:latest
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
     command:
     - wget
     args:
     - release-name-gitea-http:3000
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

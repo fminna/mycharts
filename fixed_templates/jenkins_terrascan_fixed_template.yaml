@@ -315,11 +315,11 @@ spec:
         - /var/jenkins_config/apply_config.sh
         resources:
           limits:
-            cpu: 50m
-            memory: 256Mi
+            cpu: 2000m
+            memory: 4096Mi
           requests:
-            cpu: 50m
-            memory: 256Mi
+            cpu: 2000m
+            memory: 4096Mi
         volumeMounts:
         - mountPath: /var/jenkins_home
           name: jenkins-home
@@ -331,14 +331,14 @@ spec:
           name: plugin-dir
         - mountPath: /tmp
           name: tmp-volume
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -396,11 +396,11 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            cpu: 50m
-            memory: 256Mi
+            cpu: 2000m
+            memory: 4096Mi
           requests:
-            cpu: 50m
-            memory: 256Mi
+            cpu: 2000m
+            memory: 4096Mi
         volumeMounts:
         - mountPath: /var/jenkins_home
           name: jenkins-home
@@ -446,10 +446,10 @@ spec:
         - name: REQ_RETRY_CONNECT
           value: '10'
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         volumeMounts:
@@ -460,14 +460,14 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -523,9 +523,9 @@ metadata:
   namespace: test-ns
   annotations:
     helm.sh/hook: test-success
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
     container.apparmor.security.beta.kubernetes.io/release-name-ui-test: runtime/default
     container.apparmor.security.beta.kubernetes.io/test-framework: runtime/default
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   initContainers:
   - name: test-framework
@@ -544,27 +544,27 @@ spec:
     volumeMounts:
     - mountPath: /tools
       name: tools
-    securityContext:
-      readOnlyRootFilesystem: true
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      allowPrivilegeEscalation: false
     resources:
-      limits:
-        memory: 128Mi
-        cpu: 250m
       requests:
         memory: 128Mi
         cpu: 250m
-    livenessProbe:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+    readinessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    readinessProbe:
+    livenessProbe:
       exec:
         command:
         - ls
@@ -584,27 +584,27 @@ spec:
       readOnly: true
     - mountPath: /tools
       name: tools
-    securityContext:
-      readOnlyRootFilesystem: true
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      allowPrivilegeEscalation: false
     resources:
-      limits:
-        memory: 128Mi
-        cpu: 250m
       requests:
         memory: 128Mi
         cpu: 250m
-    livenessProbe:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+    readinessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    readinessProbe:
+    livenessProbe:
       exec:
         command:
         - ls
@@ -619,8 +619,8 @@ spec:
     emptyDir: {}
   restartPolicy: Never
   securityContext:
-    seccompProfile:
-      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
+    seccompProfile:
+      type: RuntimeDefault

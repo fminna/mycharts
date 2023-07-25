@@ -17,7 +17,7 @@ output=$2
 
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_fix
+    echo -e "" >> output_fix.txt
 fi
 
 # Set up environment variables
@@ -42,7 +42,7 @@ python .github/scripts/main.py --check
 # If output is provided, append output of --check to output_file
 if [ "$output" = "output" ]
 then
-    python .github/scripts/main.py --check >> output_fix
+    python .github/scripts/main.py --check >> output_fix.txt
 fi
 
 # Step 3 - Debug
@@ -65,8 +65,8 @@ export second_tool="checkov"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final
-    python .github/scripts/main.py --count-checks >> output_final
+    echo -e "" >> output_final.txt
+    python .github/scripts/main.py --count-checks >> output_final.txt
 fi
 
 # Datree
@@ -76,8 +76,8 @@ export second_tool="datree"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final
-    python .github/scripts/main.py --count-checks >> output_final
+    echo -e "" >> output_final.txt
+    python .github/scripts/main.py --count-checks >> output_final.txt
 fi
 
 # KICS
@@ -88,8 +88,8 @@ export second_tool="kics"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final
-    python .github/scripts/main.py --count-checks >> output_final
+    echo -e "" >> output_final.txt
+    python .github/scripts/main.py --count-checks >> output_final.txt
 fi
 
 # Kubelinter
@@ -99,8 +99,8 @@ export second_tool="kubelinter"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final
-    python .github/scripts/main.py --count-checks >> output_final
+    echo -e "" >> output_final.txt
+    python .github/scripts/main.py --count-checks >> output_final.txt
 fi
 
 # Kubeaudit
@@ -110,8 +110,8 @@ export second_tool="kubeaudit"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final
-    python .github/scripts/main.py --count-checks >> output_final
+    echo -e "" >> output_final.txt
+    python .github/scripts/main.py --count-checks >> output_final.txt
 fi
 
 # Kubescape
@@ -121,8 +121,8 @@ export second_tool="kubescape"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final
-    python .github/scripts/main.py --count-checks >> output_final
+    echo -e "" >> output_final.txt
+    python .github/scripts/main.py --count-checks >> output_final.txt
 fi
 
 # Terrascan
@@ -132,8 +132,8 @@ export second_tool="terrascan"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final
-    python .github/scripts/main.py --count-checks >> output_final
+    echo -e "" >> output_final.txt
+    python .github/scripts/main.py --count-checks >> output_final.txt
 fi
 
 # Delete result files

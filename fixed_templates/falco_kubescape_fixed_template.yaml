@@ -159,8 +159,6 @@ spec:
         checksum/certs: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         container.apparmor.security.beta.kubernetes.io/falco: runtime/default
         container.apparmor.security.beta.kubernetes.io/falcoctl-artifact-follow: runtime/default
-        container.apparmor.security.beta.kubernetes.io/falco-driver-loader: runtime/default
-        container.apparmor.security.beta.kubernetes.io/falcoctl-artifact-install: runtime/default
     spec:
       serviceAccountName: release-name-falco
       tolerations:
@@ -182,13 +180,13 @@ spec:
         securityContext:
           privileged: false
           allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         args:
         - /usr/bin/falco
         - --cri
@@ -252,13 +250,13 @@ spec:
         - --verbose
         securityContext:
           allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
         - mountPath: /plugins
           name: plugins-install-dir
@@ -267,13 +265,6 @@ spec:
         - mountPath: /etc/falcoctl
           name: falcoctl-config-volume
         env: null
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           limits:
             memory: 128Mi
@@ -282,6 +273,13 @@ spec:
             memory: 128Mi
             cpu: 250m
         readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
           exec:
             command:
             - ls

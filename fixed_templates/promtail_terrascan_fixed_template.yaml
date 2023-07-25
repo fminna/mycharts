@@ -167,8 +167,8 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
           runAsUser: 25000
+          runAsNonRoot: true
           runAsGroup: 25000
         readinessProbe:
           failureThreshold: 5
@@ -180,10 +180,10 @@ spec:
           successThreshold: 1
           timeoutSeconds: 1
         resources:
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
         livenessProbe:

@@ -373,8 +373,8 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -474,10 +474,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -635,11 +635,11 @@ spec:
         - name: data
           mountPath: /data
         securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi
@@ -671,11 +671,11 @@ spec:
         - name: inline-config-sources
           mountPath: /env-to-ini-mounts/inlines/
         securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi
@@ -690,10 +690,10 @@ spec:
         imagePullPolicy: Always
         securityContext:
           runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         env:
         - name: GITEA_APP_INI
           value: /data/gitea/conf/app.ini
@@ -772,11 +772,11 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         volumeMounts:
         - name: temp
           mountPath: /tmp
@@ -831,26 +831,6 @@ spec:
     - wget
     args:
     - release-name-gitea-http:3000
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     resources:
       limits:
         memory: 128Mi
@@ -858,6 +838,26 @@ spec:
       requests:
         memory: 128Mi
         cpu: 250m
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
   securityContext:
     seccompProfile:

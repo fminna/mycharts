@@ -347,17 +347,11 @@ spec:
           mountPath: /etc/secret-volume
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
-        securityContext:
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
+            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -365,6 +359,12 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           exec:
             command:
@@ -385,11 +385,11 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: batch/v1
 kind: Job
@@ -431,17 +431,11 @@ spec:
           mountPath: /etc/secret-volume
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
-        securityContext:
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
+            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -449,6 +443,12 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           exec:
             command:
@@ -469,8 +469,8 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault

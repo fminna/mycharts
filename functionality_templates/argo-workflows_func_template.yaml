@@ -1493,6 +1493,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: argo-workflows
     app.kubernetes.io/version: v3.4.8
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -1509,8 +1511,6 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: argo-workflows
         app.kubernetes.io/version: v3.4.8
-      annotations:
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
     spec:
       serviceAccountName: release-name-argo-workflows-workflow-controller
       containers:
@@ -1535,9 +1535,10 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
           runAsUser: 1001
+          runAsGroup: 25000
         env:
         - name: ARGO_NAMESPACE
           valueFrom:
@@ -1551,11 +1552,11 @@ spec:
               fieldPath: metadata.name
         resources:
           limits:
-            memory: 1024Mi
-            cpu: 1000m
+            memory: 128Mi
+            cpu: 250m
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            memory: 128Mi
+            cpu: 250m
         ports:
         - name: metrics
           containerPort: 9090
@@ -1580,8 +1581,9 @@ spec:
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
+        runAsUser: 1001
         runAsNonRoot: true
+        runAsGroup: 25000
       automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
@@ -1597,6 +1599,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: argo-workflows
     app.kubernetes.io/version: v3.4.8
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -1613,8 +1617,6 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: argo-workflows
         app.kubernetes.io/version: v3.4.8
-      annotations:
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
     spec:
       serviceAccountName: release-name-argo-workflows-server
       containers:
@@ -1663,6 +1665,9 @@ spec:
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: tmp
           mountPath: /tmp
@@ -1683,6 +1688,7 @@ spec:
           type: RuntimeDefault
         runAsUser: 25000
         runAsNonRoot: true
+        runAsGroup: 25000
       automountServiceAccountToken: false
 ---
 apiVersion: networking.k8s.io/v1

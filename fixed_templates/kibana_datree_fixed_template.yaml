@@ -46,6 +46,7 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       volumes:
       - name: kibana-tokens
         emptyDir: {}
@@ -63,8 +64,8 @@ spec:
             - ALL
           runAsNonRoot: true
           runAsUser: 25000
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         image: docker.elastic.co/kibana/kibana:8.5.1
         imagePullPolicy: IfNotPresent
         env:
@@ -348,21 +349,14 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -370,6 +364,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -377,7 +378,7 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-      serviceAccount: post-delete-release-name-kibana
+      serviceAccountName: post-delete-release-name-kibana
       volumes:
       - name: elasticsearch-certs
         secret:
@@ -441,21 +442,14 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -463,6 +457,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -470,7 +471,7 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-      serviceAccount: pre-install-release-name-kibana
+      serviceAccountName: pre-install-release-name-kibana
       volumes:
       - name: elasticsearch-certs
         secret:

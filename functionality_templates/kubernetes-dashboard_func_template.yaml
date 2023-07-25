@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations: null
   name: release-name-kubernetes-dashboard
-automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Secret
@@ -123,14 +122,19 @@ rules:
   - kubernetes-dashboard-key-holder
   - kubernetes-dashboard-certs
   - kubernetes-dashboard-csrf
-  verbs: []
+  verbs:
+  - get
+  - update
+  - delete
 - apiGroups:
   - ''
   resources:
   - configmaps
   resourceNames:
   - kubernetes-dashboard-settings
-  verbs: []
+  verbs:
+  - get
+  - update
 - apiGroups:
   - ''
   resources:
@@ -150,7 +154,8 @@ rules:
   - 'https:heapster:'
   - dashboard-metrics-scraper
   - http:dashboard-metrics-scraper
-  verbs: []
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -200,7 +205,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: release-name-kubernetes-dashboard
-  annotations: null
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
   labels:
     app.kubernetes.io/name: kubernetes-dashboard
     helm.sh/chart: kubernetes-dashboard-6.0.8
@@ -209,7 +215,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: kubernetes-dashboard
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     rollingUpdate:
       maxSurge: 0
@@ -222,7 +228,8 @@ spec:
       app.kubernetes.io/component: kubernetes-dashboard
   template:
     metadata:
-      annotations: null
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/kubernetes-dashboard: runtime/default
       labels:
         app.kubernetes.io/name: kubernetes-dashboard
         helm.sh/chart: kubernetes-dashboard-6.0.8
@@ -235,6 +242,7 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 1001
       serviceAccountName: release-name-kubernetes-dashboard
       containers:
       - name: kubernetes-dashboard
@@ -262,19 +270,20 @@ spec:
           timeoutSeconds: 30
         resources:
           limits:
-            cpu: 100m
+            cpu: 2
             memory: 200Mi
           requests:
-            cpu: 100m
+            cpu: 2
             memory: 200Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
           runAsGroup: 2001
           runAsUser: 1001
+          runAsNonRoot: false
         readinessProbe:
           exec:
             command:
@@ -288,4 +297,4 @@ spec:
           secretName: release-name-kubernetes-dashboard-certs
       - name: tmp-volume
         emptyDir: {}
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true

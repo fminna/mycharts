@@ -1,0 +1,198 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-minio
+  namespace: default
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: false
+secrets:
+- name: release-name-minio
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-minio
+  namespace: default
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  root-user: YWRtaW4=
+  root-password: SDNGN1FEWjVROQ==
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: release-name-minio
+  namespace: default
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-minio
+  namespace: default
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - name: minio-api
+    port: 9000
+    targetPort: minio-api
+    nodePort: null
+  - name: minio-console
+    port: 9001
+    targetPort: minio-console
+    nodePort: null
+  selector:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-minio
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/instance: release-name
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio
+        helm.sh/chart: minio-12.6.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+      annotations:
+        checksum/credentials-secret: a16639e50b0b2e3440d87b2d32bb780d5e341560d916cbdf7f110090c205ed5b
+    spec:
+      serviceAccountName: release-name-minio
+      affinity:
+        podAffinity: null
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: minio
+                  app.kubernetes.io/instance: release-name
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+        nodeAffinity: null
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+        runAsUser: 25000
+      containers:
+      - name: minio
+        image: docker.io/bitnami/minio:2023.5.18-debian-11-r2
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        env:
+        - name: BITNAMI_DEBUG
+          value: 'false'
+        - name: MINIO_SCHEME
+          value: http
+        - name: MINIO_FORCE_NEW_KEYS
+          value: 'no'
+        - name: MINIO_BROWSER
+          value: 'on'
+        - name: MINIO_PROMETHEUS_AUTH_TYPE
+          value: public
+        - name: MINIO_CONSOLE_PORT_NUMBER
+          value: '9001'
+        ports:
+        - name: minio-api
+          containerPort: 9000
+          protocol: TCP
+        - name: minio-console
+          containerPort: 9001
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: minio-api
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+        readinessProbe:
+          tcpSocket:
+            port: minio-api
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 5
+        resources:
+          limits:
+            memory: 128Mi
+          requests:
+            memory: 128Mi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: release-name-minio
+      - name: secret-volume
+        secret:
+          secretName: my-secret
+      - name: secret-volume
+        secret:
+          secretName: my-secret
+      - name: secret-volume
+        secret:
+          secretName: my-secret

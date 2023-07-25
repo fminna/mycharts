@@ -71,7 +71,7 @@ spec:
     spec:
       containers:
       - name: nextcloud
-        image: nextcloud:fpm-alpine@sha256:958235be4a9a393d57e374d12c2eb054d38c7df64c3882d7c003a45181c67154
+        image: nextcloud:27.0-fpm@sha256:ec6a912bf5100c8cf2d9cbc2c318fb37c34cf25048126fd9ceaac69164067b26
         imagePullPolicy: Always
         env:
         - name: SQLITE_DATABASE
@@ -108,13 +108,6 @@ spec:
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 3
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         volumeMounts:
         - name: nextcloud-main
           mountPath: /var/www/
@@ -149,6 +142,13 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       volumes:
       - name: nextcloud-main
         emptyDir: {}

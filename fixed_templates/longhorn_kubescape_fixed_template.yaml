@@ -4196,13 +4196,13 @@ spec:
         securityContext:
           privileged: false
           readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          capabilities:
+            drop:
+            - ALL
         command:
         - longhorn-manager
         - -d
@@ -4354,6 +4354,15 @@ spec:
           value: longhornio/csi-snapshotter:v5.0.1
         - name: CSI_LIVENESS_PROBE_IMAGE
           value: longhornio/livenessprobe:v2.8.0
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          capabilities:
+            drop:
+            - ALL
         resources:
           limits:
             memory: 128Mi
@@ -4361,23 +4370,14 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        securityContext:
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -4387,10 +4387,10 @@ spec:
       serviceAccountName: longhorn-service-account
       securityContext:
         runAsUser: 25000
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4442,12 +4442,12 @@ spec:
         securityContext:
           runAsUser: 2000
           readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          capabilities:
+            drop:
+            - ALL
         command:
         - longhorn-manager
         - recovery-backend
@@ -4486,11 +4486,11 @@ spec:
           periodSeconds: 10
       serviceAccountName: longhorn-service-account
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4554,6 +4554,15 @@ spec:
           value: http://longhorn-backend:9500
         - name: LONGHORN_UI_PORT
           value: '8000'
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          capabilities:
+            drop:
+            - ALL
         resources:
           limits:
             memory: 128Mi
@@ -4561,23 +4570,14 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        securityContext:
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -4645,12 +4645,12 @@ spec:
         securityContext:
           runAsUser: 2000
           readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          capabilities:
+            drop:
+            - ALL
         command:
         - longhorn-manager
         - conversion-webhook
@@ -4683,11 +4683,11 @@ spec:
           periodSeconds: 10
       serviceAccountName: longhorn-service-account
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4751,12 +4751,12 @@ spec:
         securityContext:
           runAsUser: 2000
           readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          capabilities:
+            drop:
+            - ALL
         command:
         - longhorn-manager
         - admission-webhook
@@ -4793,11 +4793,11 @@ spec:
           periodSeconds: 10
       serviceAccountName: longhorn-service-account
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: batch/v1
 kind: Job
@@ -4838,13 +4838,13 @@ spec:
         securityContext:
           privileged: false
           readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          capabilities:
+            drop:
+            - ALL
         command:
         - longhorn-manager
         - post-upgrade
@@ -4860,14 +4860,14 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -4919,13 +4919,13 @@ spec:
         securityContext:
           privileged: false
           readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          capabilities:
+            drop:
+            - ALL
         command:
         - longhorn-manager
         - uninstall
@@ -4942,14 +4942,14 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls

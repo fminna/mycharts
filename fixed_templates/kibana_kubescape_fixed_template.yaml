@@ -63,9 +63,9 @@ spec:
             - ALL
           runAsNonRoot: true
           runAsUser: 1000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         image: docker.elastic.co/kibana/kibana:8.5.1
         imagePullPolicy: IfNotPresent
         env:
@@ -376,13 +376,15 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -390,15 +392,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          capabilities:
-            drop:
-            - ALL
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       serviceAccountName: post-delete-release-name-kibana
       volumes:
       - name: elasticsearch-certs
@@ -472,13 +472,15 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -486,15 +488,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          capabilities:
-            drop:
-            - ALL
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       serviceAccountName: pre-install-release-name-kibana
       volumes:
       - name: elasticsearch-certs

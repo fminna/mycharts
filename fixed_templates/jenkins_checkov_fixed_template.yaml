@@ -305,7 +305,7 @@ spec:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsGroup: 1000
-          runAsUser: 1000
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL
@@ -549,9 +549,9 @@ spec:
         drop:
         - ALL
       allowPrivilegeEscalation: false
+      runAsUser: 25000
       readOnlyRootFilesystem: true
       runAsNonRoot: true
-      runAsUser: 25000
       runAsGroup: 25000
     livenessProbe:
       exec:

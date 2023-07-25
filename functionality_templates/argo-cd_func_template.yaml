@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 metadata:
   name: argocd-application-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-application-controller
@@ -14,10 +14,10 @@ metadata:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 metadata:
   name: argocd-applicationset-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-applicationset-controller
@@ -28,10 +28,10 @@ metadata:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 metadata:
   name: argocd-notifications-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-notifications-controller
@@ -42,10 +42,10 @@ metadata:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 metadata:
   name: release-name-argocd-repo-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-repo-server
@@ -56,10 +56,10 @@ metadata:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 metadata:
   name: argocd-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-server
@@ -70,10 +70,10 @@ metadata:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 metadata:
   name: argocd-dex-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-dex-server
@@ -86,7 +86,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: argocd-notifications-secret
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-notifications-controller
@@ -101,7 +101,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: argocd-secret
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-secret
@@ -115,7 +115,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-cm
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-cm
@@ -135,7 +135,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-cmd-params-cm
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-cmd-params-cm
@@ -178,7 +178,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-gpg-keys-cm
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-gpg-keys-cm
@@ -190,7 +190,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-notifications-controller
@@ -207,7 +207,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-rbac-cm
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-rbac-cm
@@ -224,7 +224,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-ssh-known-hosts-cm
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-ssh-known-hosts-cm
@@ -266,7 +266,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-tls-certs-cm
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-tls-certs-cm
@@ -16540,11 +16540,15 @@ metadata:
     app.kubernetes.io/part-of: argocd
 rules:
 - apiGroups:
-  - v1
+  - '*'
   resources:
-  - pods
+  - '*'
   verbs:
-  - get
+  - '*'
+- nonResourceURLs:
+  - '*'
+  verbs:
+  - '*'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -16559,11 +16563,15 @@ metadata:
     app.kubernetes.io/part-of: argocd
 rules:
 - apiGroups:
-  - v1
+  - '*'
   resources:
-  - pods
+  - '*'
   verbs:
-  - get
+  - '*'
+- nonResourceURLs:
+  - '*'
+  verbs:
+  - '*'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -16578,13 +16586,21 @@ metadata:
     app.kubernetes.io/part-of: argocd
 rules:
 - apiGroups:
-  - v1
+  - '*'
   resources:
-  - pods
+  - '*'
   verbs:
+  - delete
   - get
+  - patch
 - apiGroups:
-  - v1
+  - ''
+  resources:
+  - events
+  verbs:
+  - list
+- apiGroups:
+  - ''
   resources:
   - pods
   - pods/log
@@ -16596,6 +16612,9 @@ rules:
   - applications
   verbs:
   - get
+  - list
+  - update
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -16661,7 +16680,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-argocd-application-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-application-controller
@@ -16704,7 +16723,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-argocd-applicationset-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-applicationset-controller
@@ -16797,7 +16816,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-argocd-notifications-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-notifications-controller
@@ -16846,7 +16865,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-argocd-repo-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-repo-server
@@ -16860,7 +16879,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-argocd-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-server
@@ -16908,7 +16927,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-argocd-dex-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-dex-server
@@ -16931,7 +16950,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-argocd-application-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-application-controller
@@ -16952,7 +16971,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-argocd-applicationset-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-applicationset-controller
@@ -16973,7 +16992,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-argocd-notifications-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-notifications-controller
@@ -16994,7 +17013,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-argocd-repo-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-repo-server
@@ -17015,7 +17034,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-argocd-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-server
@@ -17036,7 +17055,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-argocd-dex-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-dex-server
@@ -17048,12 +17067,16 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: release-name-argocd-dex-server
+subjects:
+- kind: ServiceAccount
+  name: argocd-dex-server
+  namespace: default
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: release-name-argocd-applicationset-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-applicationset-controller
@@ -17082,7 +17105,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: argocd
   name: release-name-argocd-repo-server
-  namespace: test-ns
+  namespace: default
 spec:
   ports:
   - name: https-repo-server
@@ -17097,7 +17120,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-argocd-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-server
@@ -17124,7 +17147,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-argocd-dex-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-dex-server
@@ -17150,7 +17173,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-argocd-redis
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-cd-5.36.0
     app.kubernetes.io/name: argocd-redis
@@ -17197,82 +17220,20 @@ spec:
         app.kubernetes.io/component: applicationset-controller
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: argocd
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/applicationset-controller: runtime/default
     spec:
       serviceAccountName: argocd-applicationset-controller
       containers:
       - name: applicationset-controller
         image: quay.io/argoproj/argocd:v2.7.4
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - /usr/local/bin/argocd-applicationset-controller
         - --metrics-addr=:8080
         - --probe-addr=:8081
         - --webhook-addr=:7000
-        env:
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: ARGOCD_APPLICATIONSET_CONTROLLER_ENABLE_LEADER_ELECTION
-          valueFrom:
-            configMapKeyRef:
-              key: applicationsetcontroller.enable.leader.election
-              name: argocd-cmd-params-cm
-              optional: true
-        - name: ARGOCD_APPLICATIONSET_CONTROLLER_NAMESPACE
-          valueFrom:
-            configMapKeyRef:
-              key: applicationsetcontroller.namespace
-              name: argocd-cmd-params-cm
-              optional: true
-        - name: ARGOCD_APPLICATIONSET_CONTROLLER_REPO_SERVER
-          valueFrom:
-            configMapKeyRef:
-              key: repo.server
-              name: argocd-cmd-params-cm
-              optional: true
-        - name: ARGOCD_APPLICATIONSET_CONTROLLER_POLICY
-          valueFrom:
-            configMapKeyRef:
-              key: applicationsetcontroller.policy
-              name: argocd-cmd-params-cm
-              optional: true
-        - name: ARGOCD_APPLICATIONSET_CONTROLLER_DEBUG
-          valueFrom:
-            configMapKeyRef:
-              key: applicationsetcontroller.debug
-              name: argocd-cmd-params-cm
-              optional: true
-        - name: ARGOCD_APPLICATIONSET_CONTROLLER_LOGFORMAT
-          valueFrom:
-            configMapKeyRef:
-              key: applicationsetcontroller.log.format
-              name: argocd-cmd-params-cm
-              optional: true
-        - name: ARGOCD_APPLICATIONSET_CONTROLLER_LOGLEVEL
-          valueFrom:
-            configMapKeyRef:
-              key: applicationsetcontroller.log.level
-              name: argocd-cmd-params-cm
-              optional: true
-        - name: ARGOCD_APPLICATIONSET_CONTROLLER_DRY_RUN
-          valueFrom:
-            configMapKeyRef:
-              key: applicationsetcontroller.dryrun
-              name: argocd-cmd-params-cm
-              optional: true
-        - name: ARGOCD_GIT_MODULES_ENABLED
-          valueFrom:
-            configMapKeyRef:
-              key: applicationsetcontroller.enable.git.submodule
-              name: argocd-cmd-params-cm
-              optional: true
-        - name: ARGOCD_APPLICATIONSET_CONTROLLER_ENABLE_PROGRESSIVE_SYNCS
-          valueFrom:
-            configMapKeyRef:
-              key: applicationsetcontroller.enable.progressive.syncs
-              name: argocd-cmd-params-cm
-              optional: true
+        env: []
         ports:
         - name: metrics
           containerPort: 8080
@@ -17284,10 +17245,10 @@ spec:
           containerPort: 7000
           protocol: TCP
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17295,11 +17256,12 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
           seccompProfile:
             type: RuntimeDefault
           runAsUser: 1001
+          runAsGroup: 25000
         volumeMounts:
         - mountPath: /app/config/ssh
           name: ssh-known-hosts
@@ -17311,14 +17273,17 @@ spec:
           name: gpg-keyring
         - mountPath: /tmp
           name: tmp
-        livenessProbe:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -17348,14 +17313,17 @@ spec:
         emptyDir: {}
       - name: tmp
         emptyDir: {}
+      - name: secret-volume
+        secret:
+          secretName: my-secret
       dnsPolicy: ClusterFirst
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -17389,12 +17357,14 @@ spec:
         app.kubernetes.io/component: notifications-controller
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: argocd
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/notifications-controller: runtime/default
     spec:
       serviceAccountName: argocd-notifications-controller
       containers:
       - name: notifications-controller
         image: quay.io/argoproj/argocd:v2.7.4
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - /usr/local/bin/argocd-notifications
         - --metrics-port=9001
@@ -17407,10 +17377,10 @@ spec:
           containerPort: 9001
           protocol: TCP
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17422,21 +17392,20 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-          runAsUser: 25000
         workingDir: /app
         volumeMounts:
         - name: tls-certs
           mountPath: /app/config/tls
         - name: argocd-repo-server-tls
           mountPath: /app/config/reposerver/tls
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -17469,12 +17438,11 @@ spec:
             path: ca.crt
       dnsPolicy: ClusterFirst
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -17501,6 +17469,8 @@ spec:
     metadata:
       annotations:
         checksum/cmd-params: fbf2ceebf82a78cb82832b4324cac176d20f4684e7f6b45366dc108233085bd6
+        container.apparmor.security.beta.kubernetes.io/repo-server: runtime/default
+        container.apparmor.security.beta.kubernetes.io/copyutil: runtime/default
       labels:
         helm.sh/chart: argo-cd-5.36.0
         app.kubernetes.io/name: argocd-repo-server
@@ -17513,7 +17483,7 @@ spec:
       containers:
       - name: repo-server
         image: quay.io/argoproj/argocd:v2.7.4
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - /usr/local/bin/argocd-repo-server
         - --port=8081
@@ -17542,9 +17512,6 @@ spec:
           name: plugins
         - mountPath: /tmp
           name: tmp
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
@@ -17582,7 +17549,6 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-          runAsUser: 25000
         resources:
           requests:
             memory: 128Mi
@@ -17597,7 +17563,7 @@ spec:
         - /usr/local/bin/argocd
         - /var/run/argocd/argocd-cmp-server
         image: quay.io/argoproj/argocd:v2.7.4
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: copyutil
         securityContext:
           allowPrivilegeEscalation: false
@@ -17661,17 +17627,13 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
-      - name: secret-volume
-        secret:
-          secretName: my-secret
       dnsPolicy: ClusterFirst
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -17698,6 +17660,7 @@ spec:
     metadata:
       annotations:
         checksum/cmd-params: fbf2ceebf82a78cb82832b4324cac176d20f4684e7f6b45366dc108233085bd6
+        container.apparmor.security.beta.kubernetes.io/server: runtime/default
       labels:
         helm.sh/chart: argo-cd-5.36.0
         app.kubernetes.io/name: argocd-server
@@ -17710,7 +17673,7 @@ spec:
       containers:
       - name: server
         image: quay.io/argoproj/argocd:v2.7.4
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - /usr/local/bin/argocd-server
         - --port=8080
@@ -17760,10 +17723,10 @@ spec:
           successThreshold: 1
           failureThreshold: 3
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17775,7 +17738,6 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-          runAsUser: 25000
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -17825,12 +17787,11 @@ spec:
           secretName: my-secret
       dnsPolicy: ClusterFirst
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -17857,6 +17818,8 @@ spec:
     metadata:
       annotations:
         checksum/cmd-params: fbf2ceebf82a78cb82832b4324cac176d20f4684e7f6b45366dc108233085bd6
+        container.apparmor.security.beta.kubernetes.io/dex-server: runtime/default
+        container.apparmor.security.beta.kubernetes.io/copyutil: runtime/default
       labels:
         helm.sh/chart: argo-cd-5.36.0
         app.kubernetes.io/name: argocd-dex-server
@@ -17869,20 +17832,14 @@ spec:
       containers:
       - name: dex-server
         image: ghcr.io/dexidp/dex:v2.36.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
         - /shared/argocd-dex
         - --logformat=text
         - --loglevel=info
         args:
         - rundex
-        env:
-        - name: ARGOCD_DEX_SERVER_DISABLE_TLS
-          valueFrom:
-            configMapKeyRef:
-              name: argocd-cmd-params-cm
-              key: dexserver.disable.tls
-              optional: true
+        env: []
         ports:
         - name: http
           containerPort: 5556
@@ -17894,10 +17851,10 @@ spec:
           containerPort: 5558
           protocol: TCP
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17909,7 +17866,6 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-          runAsUser: 25000
         volumeMounts:
         - name: static-files
           mountPath: /shared
@@ -17917,14 +17873,17 @@ spec:
           mountPath: /tmp
         - name: argocd-dex-server-tls
           mountPath: /tls
-        livenessProbe:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -17934,7 +17893,7 @@ spec:
       initContainers:
       - name: copyutil
         image: quay.io/argoproj/argocd:v2.7.4
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
         - /bin/cp
         - -n
@@ -17946,10 +17905,10 @@ spec:
         - mountPath: /tmp
           name: dexconfig
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17961,14 +17920,14 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -18000,14 +17959,16 @@ spec:
             path: tls.key
           - key: ca.crt
             path: ca.crt
+      - name: secret-volume
+        secret:
+          secretName: my-secret
       dnsPolicy: ClusterFirst
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -18021,6 +17982,8 @@ metadata:
     app.kubernetes.io/component: redis
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: argocd
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   revisionHistoryLimit: 3
@@ -18036,6 +17999,8 @@ spec:
         app.kubernetes.io/component: redis
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: argocd
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
     spec:
       securityContext:
         runAsNonRoot: true
@@ -18046,7 +18011,7 @@ spec:
       containers:
       - name: redis
         image: public.ecr.aws/docker/library/redis:6-alpine3.18@sha256:f9fd65500e22bff9ebcd214268f3f03b80a45cffa91d24d7313b242d6750bebc
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - --save
         - ''
@@ -18057,10 +18022,10 @@ spec:
           containerPort: 6379
           protocol: TCP
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -18068,16 +18033,18 @@ spec:
           capabilities:
             drop:
             - ALL
+          runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
           readOnlyRootFilesystem: true
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -18094,7 +18061,6 @@ spec:
                   app.kubernetes.io/name: argocd-redis
               topologyKey: kubernetes.io/hostname
       dnsPolicy: ClusterFirst
-      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -18122,6 +18088,7 @@ spec:
     metadata:
       annotations:
         checksum/cmd-params: fbf2ceebf82a78cb82832b4324cac176d20f4684e7f6b45366dc108233085bd6
+        container.apparmor.security.beta.kubernetes.io/application-controller: runtime/default
       labels:
         helm.sh/chart: argo-cd-5.36.0
         app.kubernetes.io/name: argocd-application-controller
@@ -18136,7 +18103,7 @@ spec:
         - /usr/local/bin/argocd-application-controller
         - --metrics-port=8082
         image: quay.io/argoproj/argocd:v2.7.4
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: application-controller
         env:
         - name: ARGOCD_CONTROLLER_REPLICAS
@@ -18155,10 +18122,10 @@ spec:
           successThreshold: 1
           failureThreshold: 3
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -18170,7 +18137,6 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-          runAsUser: 25000
         workingDir: /home/argocd
         volumeMounts:
         - mountPath: /app/config/controller/tls
@@ -18215,317 +18181,8 @@ spec:
           secretName: my-secret
       dnsPolicy: ClusterFirst
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

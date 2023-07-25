@@ -1,0 +1,662 @@
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: false
+metadata:
+  name: test-SA1
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-redis
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  redis-password: aW84VXpRQXFUMQ==
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-redis-configuration
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  redis.conf: '# User-supplied common configuration:
+
+    # Enable AOF https://redis.io/topics/persistence#append-only-file
+
+    appendonly yes
+
+    # Disable RDB persistence, AOF persistence already enabled.
+
+    save ""
+
+    # End of common configuration'
+  master.conf: 'dir /data
+
+    # User-supplied master configuration:
+
+    rename-command FLUSHDB ""
+
+    rename-command FLUSHALL ""
+
+    # End of master configuration'
+  replica.conf: 'dir /data
+
+    # User-supplied replica configuration:
+
+    rename-command FLUSHDB ""
+
+    rename-command FLUSHALL ""
+
+    # End of replica configuration'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-redis-health
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  ping_readiness_local.sh: "#!/bin/bash\n\n[[ -f $REDIS_PASSWORD_FILE ]] && export\
+    \ REDIS_PASSWORD=\"$(< \"${REDIS_PASSWORD_FILE}\")\"\n[[ -n \"$REDIS_PASSWORD\"\
+    \ ]] && export REDISCLI_AUTH=\"$REDIS_PASSWORD\"\nresponse=$(\n  timeout -s 15\
+    \ $1 \\\n  redis-cli \\\n    -h localhost \\\n    -p $REDIS_PORT \\\n    ping\n\
+    )\nif [ \"$?\" -eq \"124\" ]; then\n  echo \"Timed out\"\n  exit 1\nfi\nif [ \"\
+    $response\" != \"PONG\" ]; then\n  echo \"$response\"\n  exit 1\nfi"
+  ping_liveness_local.sh: "#!/bin/bash\n\n[[ -f $REDIS_PASSWORD_FILE ]] && export\
+    \ REDIS_PASSWORD=\"$(< \"${REDIS_PASSWORD_FILE}\")\"\n[[ -n \"$REDIS_PASSWORD\"\
+    \ ]] && export REDISCLI_AUTH=\"$REDIS_PASSWORD\"\nresponse=$(\n  timeout -s 15\
+    \ $1 \\\n  redis-cli \\\n    -h localhost \\\n    -p $REDIS_PORT \\\n    ping\n\
+    )\nif [ \"$?\" -eq \"124\" ]; then\n  echo \"Timed out\"\n  exit 1\nfi\nresponseFirstWord=$(echo\
+    \ $response | head -n1 | awk '{print $1;}')\nif [ \"$response\" != \"PONG\" ]\
+    \ && [ \"$responseFirstWord\" != \"LOADING\" ] && [ \"$responseFirstWord\" !=\
+    \ \"MASTERDOWN\" ]; then\n  echo \"$response\"\n  exit 1\nfi"
+  ping_readiness_master.sh: "#!/bin/bash\n\n[[ -f $REDIS_MASTER_PASSWORD_FILE ]] &&\
+    \ export REDIS_MASTER_PASSWORD=\"$(< \"${REDIS_MASTER_PASSWORD_FILE}\")\"\n[[\
+    \ -n \"$REDIS_MASTER_PASSWORD\" ]] && export REDISCLI_AUTH=\"$REDIS_MASTER_PASSWORD\"\
+    \nresponse=$(\n  timeout -s 15 $1 \\\n  redis-cli \\\n    -h $REDIS_MASTER_HOST\
+    \ \\\n    -p $REDIS_MASTER_PORT_NUMBER \\\n    ping\n)\nif [ \"$?\" -eq \"124\"\
+    \ ]; then\n  echo \"Timed out\"\n  exit 1\nfi\nif [ \"$response\" != \"PONG\"\
+    \ ]; then\n  echo \"$response\"\n  exit 1\nfi"
+  ping_liveness_master.sh: "#!/bin/bash\n\n[[ -f $REDIS_MASTER_PASSWORD_FILE ]] &&\
+    \ export REDIS_MASTER_PASSWORD=\"$(< \"${REDIS_MASTER_PASSWORD_FILE}\")\"\n[[\
+    \ -n \"$REDIS_MASTER_PASSWORD\" ]] && export REDISCLI_AUTH=\"$REDIS_MASTER_PASSWORD\"\
+    \nresponse=$(\n  timeout -s 15 $1 \\\n  redis-cli \\\n    -h $REDIS_MASTER_HOST\
+    \ \\\n    -p $REDIS_MASTER_PORT_NUMBER \\\n    ping\n)\nif [ \"$?\" -eq \"124\"\
+    \ ]; then\n  echo \"Timed out\"\n  exit 1\nfi\nresponseFirstWord=$(echo $response\
+    \ | head -n1 | awk '{print $1;}')\nif [ \"$response\" != \"PONG\" ] && [ \"$responseFirstWord\"\
+    \ != \"LOADING\" ]; then\n  echo \"$response\"\n  exit 1\nfi"
+  ping_readiness_local_and_master.sh: 'script_dir="$(dirname "$0")"
+
+    exit_status=0
+
+    "$script_dir/ping_readiness_local.sh" $1 || exit_status=$?
+
+    "$script_dir/ping_readiness_master.sh" $1 || exit_status=$?
+
+    exit $exit_status'
+  ping_liveness_local_and_master.sh: 'script_dir="$(dirname "$0")"
+
+    exit_status=0
+
+    "$script_dir/ping_liveness_local.sh" $1 || exit_status=$?
+
+    "$script_dir/ping_liveness_master.sh" $1 || exit_status=$?
+
+    exit $exit_status'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-redis-scripts
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  start-master.sh: "#!/bin/bash\n\n[[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD=\"\
+    $(< \"${REDIS_PASSWORD_FILE}\")\"\nif [[ -f /opt/bitnami/redis/mounted-etc/master.conf\
+    \ ]];then\n    cp /opt/bitnami/redis/mounted-etc/master.conf /opt/bitnami/redis/etc/master.conf\n\
+    fi\nif [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then\n    cp /opt/bitnami/redis/mounted-etc/redis.conf\
+    \ /opt/bitnami/redis/etc/redis.conf\nfi\nARGS=(\"--port\" \"${REDIS_PORT}\")\n\
+    ARGS+=(\"--requirepass\" \"${REDIS_PASSWORD}\")\nARGS+=(\"--masterauth\" \"${REDIS_PASSWORD}\"\
+    )\nARGS+=(\"--include\" \"/opt/bitnami/redis/etc/redis.conf\")\nARGS+=(\"--include\"\
+    \ \"/opt/bitnami/redis/etc/master.conf\")\nexec redis-server \"${ARGS[@]}\"\n"
+  start-replica.sh: "#!/bin/bash\n\nget_port() {\n    hostname=\"$1\"\n    type=\"\
+    $2\"\n\n    port_var=$(echo \"${hostname^^}_SERVICE_PORT_$type\" | sed \"s/-/_/g\"\
+    )\n    port=${!port_var}\n\n    if [ -z \"$port\" ]; then\n        case $type\
+    \ in\n            \"SENTINEL\")\n                echo 26379\n                ;;\n\
+    \            \"REDIS\")\n                echo 6379\n                ;;\n     \
+    \   esac\n    else\n        echo $port\n    fi\n}\n\nget_full_hostname() {\n \
+    \   hostname=\"$1\"\n    full_hostname=\"${hostname}.${HEADLESS_SERVICE}\"\n \
+    \   echo \"${full_hostname}\"\n}\n\nREDISPORT=$(get_port \"$HOSTNAME\" \"REDIS\"\
+    )\n\n[[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD=\"$(< \"${REDIS_PASSWORD_FILE}\"\
+    )\"\n[[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD=\"$(<\
+    \ \"${REDIS_MASTER_PASSWORD_FILE}\")\"\nif [[ -f /opt/bitnami/redis/mounted-etc/replica.conf\
+    \ ]];then\n    cp /opt/bitnami/redis/mounted-etc/replica.conf /opt/bitnami/redis/etc/replica.conf\n\
+    fi\nif [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then\n    cp /opt/bitnami/redis/mounted-etc/redis.conf\
+    \ /opt/bitnami/redis/etc/redis.conf\nfi\n\necho \"\" >> /opt/bitnami/redis/etc/replica.conf\n\
+    echo \"replica-announce-port $REDISPORT\" >> /opt/bitnami/redis/etc/replica.conf\n\
+    echo \"replica-announce-ip $(get_full_hostname \"$HOSTNAME\")\" >> /opt/bitnami/redis/etc/replica.conf\n\
+    ARGS=(\"--port\" \"${REDIS_PORT}\")\nARGS+=(\"--replicaof\" \"${REDIS_MASTER_HOST}\"\
+    \ \"${REDIS_MASTER_PORT_NUMBER}\")\nARGS+=(\"--requirepass\" \"${REDIS_PASSWORD}\"\
+    )\nARGS+=(\"--masterauth\" \"${REDIS_MASTER_PASSWORD}\")\nARGS+=(\"--include\"\
+    \ \"/opt/bitnami/redis/etc/redis.conf\")\nARGS+=(\"--include\" \"/opt/bitnami/redis/etc/replica.conf\"\
+    )\nexec redis-server \"${ARGS[@]}\"\n"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-redis-headless
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations: null
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: tcp-redis
+    port: 6379
+    targetPort: redis
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-redis-master
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  ports:
+  - name: tcp-redis
+    port: 6379
+    targetPort: redis
+    nodePort: null
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: master
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-redis-replicas
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: replica
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  ports:
+  - name: tcp-redis
+    port: 6379
+    targetPort: redis
+    nodePort: null
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: replica
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-redis-master
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: master
+  serviceName: release-name-redis-headless
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        helm.sh/chart: redis-17.11.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: master
+      annotations:
+        checksum/configmap: 30a23a450c6acb6ba02c3277ba90af0c771b3a22c9ae9d8502326da1e4ffe206
+        checksum/health: 95a49434bdd1144e7de35e352bc8ae0052beeef68c90647bece9831ee472dc29
+        checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
+        checksum/secret: 4d843dbc55b577c8529cb4a32b3ce894c77415c44a22bd10766078e4dd11b043
+        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
+    spec:
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 25000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: test-SA10
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: redis
+                  app.kubernetes.io/instance: release-name
+                  app.kubernetes.io/component: master
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: redis
+        image: docker.io/bitnami/redis:6-alpine3.18@sha256:f9fd65500e22bff9ebcd214268f3f03b80a45cffa91d24d7313b242d6750bebc
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        command:
+        - /bin/bash
+        args:
+        - -c
+        - /opt/bitnami/scripts/start-scripts/start-master.sh
+        env:
+        - name: BITNAMI_DEBUG
+          value: 'false'
+        - name: REDIS_REPLICATION_MODE
+          value: master
+        - name: ALLOW_EMPTY_PASSWORD
+          value: 'no'
+        - name: REDIS_TLS_ENABLED
+          value: 'no'
+        - name: REDIS_PORT
+          value: '6379'
+        ports:
+        - name: redis
+          containerPort: 6379
+        livenessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 6
+          successThreshold: 1
+          failureThreshold: 5
+          exec:
+            command:
+            - sh
+            - -c
+            - /health/ping_liveness_local.sh 5
+        readinessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 5
+          exec:
+            command:
+            - sh
+            - -c
+            - /health/ping_readiness_local.sh 1
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: start-scripts
+          mountPath: /opt/bitnami/scripts/start-scripts
+        - name: health
+          mountPath: /health
+        - name: redis-data
+          mountPath: /data
+        - name: config
+          mountPath: /opt/bitnami/redis/mounted-etc
+        - name: redis-tmp-conf
+          mountPath: /opt/bitnami/redis/etc/
+        - name: tmp
+          mountPath: /tmp
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+      volumes:
+      - name: start-scripts
+        configMap:
+          name: release-name-redis-scripts
+          defaultMode: 493
+      - name: health
+        configMap:
+          name: release-name-redis-health
+          defaultMode: 493
+      - name: config
+        configMap:
+          name: release-name-redis-configuration
+      - name: redis-tmp-conf
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+      - name: secret-volume
+        secret:
+          secretName: my-secret
+      automountServiceAccountToken: false
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/component: master
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources: {}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-redis-replicas
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: replica
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: replica
+      app: test-pdb
+  serviceName: release-name-redis-headless
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        helm.sh/chart: redis-17.11.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: replica
+      annotations:
+        checksum/configmap: 30a23a450c6acb6ba02c3277ba90af0c771b3a22c9ae9d8502326da1e4ffe206
+        checksum/health: 95a49434bdd1144e7de35e352bc8ae0052beeef68c90647bece9831ee472dc29
+        checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
+        checksum/secret: 8d4067e74965347a3a26439056e4a77d4c1000c4bb14e9380730e294eb8d2e54
+        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
+    spec:
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 25000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: release-name-redis
+      automountServiceAccountToken: false
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: redis
+                  app.kubernetes.io/instance: release-name
+                  app.kubernetes.io/component: replica
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+        nodeAffinity: null
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: redis
+        image: docker.io/bitnami/redis:6-alpine3.18@sha256:f9fd65500e22bff9ebcd214268f3f03b80a45cffa91d24d7313b242d6750bebc
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 25000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        command:
+        - /bin/bash
+        args:
+        - -c
+        - /opt/bitnami/scripts/start-scripts/start-replica.sh
+        env:
+        - name: BITNAMI_DEBUG
+          value: 'false'
+        - name: REDIS_REPLICATION_MODE
+          value: replica
+        - name: REDIS_MASTER_HOST
+          value: release-name-redis-master-0.release-name-redis-headless.default.svc.cluster.local
+        - name: REDIS_MASTER_PORT_NUMBER
+          value: '6379'
+        - name: ALLOW_EMPTY_PASSWORD
+          value: 'no'
+        - name: REDIS_TLS_ENABLED
+          value: 'no'
+        - name: REDIS_PORT
+          value: '6379'
+        ports:
+        - name: redis
+          containerPort: 6379
+        startupProbe:
+          failureThreshold: 22
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+          tcpSocket:
+            port: redis
+        livenessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 6
+          successThreshold: 1
+          failureThreshold: 5
+          exec:
+            command:
+            - sh
+            - -c
+            - /health/ping_liveness_local_and_master.sh 5
+        readinessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 5
+          exec:
+            command:
+            - sh
+            - -c
+            - /health/ping_readiness_local_and_master.sh 1
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: start-scripts
+          mountPath: /opt/bitnami/scripts/start-scripts
+        - name: health
+          mountPath: /health
+        - name: redis-data
+          mountPath: /data
+        - name: config
+          mountPath: /opt/bitnami/redis/mounted-etc
+        - name: redis-tmp-conf
+          mountPath: /opt/bitnami/redis/etc
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+      volumes:
+      - name: start-scripts
+        configMap:
+          name: release-name-redis-scripts
+          defaultMode: 493
+      - name: health
+        configMap:
+          name: release-name-redis-health
+          defaultMode: 493
+      - name: config
+        configMap:
+          name: release-name-redis-configuration
+      - name: redis-tmp-conf
+        emptyDir: {}
+      - name: secret-volume
+        secret:
+          secretName: my-secret
+      - name: secret-volume
+        secret:
+          secretName: my-secret
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/component: replica
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: false
+metadata:
+  name: test-SA1
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: test-ns
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: default
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: default
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: myapp-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: test-pdb

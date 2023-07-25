@@ -60,7 +60,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -246,7 +245,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -446,7 +444,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -633,7 +630,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -839,7 +835,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -1041,7 +1036,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -1219,7 +1213,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -1426,7 +1419,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -1788,7 +1780,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -1969,7 +1960,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -2227,7 +2217,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -2342,7 +2331,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     longhorn-manager: ''
   name: recurringjobs.longhorn.io
@@ -2523,7 +2511,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -2755,7 +2742,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -2855,7 +2841,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -2977,7 +2962,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -3112,7 +3096,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -3249,7 +3232,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -3385,7 +3367,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.4.2
@@ -4164,40 +4145,6 @@ spec:
     port: 9600
     targetPort: recov-backend
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/name: longhorn
-    helm.sh/chart: longhorn-1.4.2
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: v1.4.2
-  name: longhorn-engine-manager
-  namespace: test-ns
-spec:
-  clusterIP: None
-  selector:
-    longhorn.io/component: instance-manager
-    longhorn.io/instance-manager-type: engine
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/name: longhorn
-    helm.sh/chart: longhorn-1.4.2
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: v1.4.2
-  name: longhorn-replica-manager
-  namespace: test-ns
-spec:
-  clusterIP: None
-  selector:
-    longhorn.io/component: instance-manager
-    longhorn.io/instance-manager-type: replica
----
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -4239,10 +4186,10 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           privileged: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         livenessProbe:
           exec:
@@ -4399,9 +4346,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
           runAsGroup: 25000
         livenessProbe:
           exec:
@@ -4845,7 +4792,7 @@ spec:
           != "200" ]; do echo waiting; sleep 2; done
         imagePullPolicy: Always
         securityContext:
-          runAsUser: 2000
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL

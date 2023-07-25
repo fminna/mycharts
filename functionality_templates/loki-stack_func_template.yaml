@@ -8,14 +8,14 @@ metadata:
     heritage: Helm
   annotations: {}
   name: release-name-loki
-  namespace: test-ns
-automountServiceAccountToken: true
+  namespace: default
+automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-promtail
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: promtail-6.10.0
     app.kubernetes.io/name: promtail
@@ -27,7 +27,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-loki
-  namespace: test-ns
+  namespace: default
   labels:
     app: loki
     chart: loki-2.16.0
@@ -40,7 +40,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-promtail
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: promtail-6.10.0
     app.kubernetes.io/name: promtail
@@ -86,7 +86,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-loki-stack
-  namespace: test-ns
+  namespace: default
   labels:
     app: loki-stack
     chart: loki-stack-2.9.10
@@ -107,7 +107,6 @@ metadata:
     chart: loki-stack-2.9.10
     release: release-name
     heritage: Helm
-  namespace: test-ns
 data:
   test.sh: "#!/usr/bin/env bash\n\nLOKI_URI=\"http://${LOKI_SERVICE}:${LOKI_PORT}\"\
     \n\nfunction setup() {\n  apk add -u curl jq\n  until (curl -s ${LOKI_URI}/loki/api/v1/label/app/values\
@@ -170,7 +169,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-loki
-  namespace: test-ns
+  namespace: default
   labels:
     app: loki
     chart: loki-2.16.0
@@ -190,7 +189,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: release-name-loki
-  namespace: test-ns
+  namespace: default
   labels:
     app: loki
     chart: loki-2.16.0
@@ -208,7 +207,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-loki-headless
-  namespace: test-ns
+  namespace: default
   labels:
     app: loki
     chart: loki-2.16.0
@@ -230,7 +229,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-loki-memberlist
-  namespace: test-ns
+  namespace: default
   labels:
     app: loki
     chart: loki-2.16.0
@@ -253,7 +252,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-loki
-  namespace: test-ns
+  namespace: default
   labels:
     app: loki
     chart: loki-2.16.0
@@ -282,6 +281,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 2.7.4
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   selector:
     matchLabels:
@@ -295,7 +296,7 @@ spec:
         app.kubernetes.io/instance: release-name
       annotations:
         checksum/config: 82009e22fb5dd1cc32717be71e728f1fdbea29df04ab468fb01996d5dbcc42b9
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/promtail: runtime/default
     spec:
       serviceAccountName: release-name-promtail
       enableServiceLinks: true
@@ -304,29 +305,29 @@ spec:
         runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsNonRoot: true
       containers:
       - name: promtail
         image: docker.io/grafana/promtail:2.7.4
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - -config.file=/etc/promtail/promtail.yaml
         volumeMounts:
         - name: config
           mountPath: /etc/promtail
+          readOnly: true
         - mountPath: /run/promtail
           name: run
+          readOnly: true
         - mountPath: /var/lib/docker/containers
           name: containers
           readOnly: true
         - mountPath: /var/log/pods
           name: pods
           readOnly: true
-        env:
-        - name: HOSTNAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
+        env: []
         ports:
         - name: http-metrics
           containerPort: 3101
@@ -337,7 +338,9 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           failureThreshold: 5
           httpGet:
@@ -347,6 +350,13 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -354,13 +364,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
       tolerations:
       - effect: NoSchedule
         key: node-role.kubernetes.io/master
@@ -372,16 +375,9 @@ spec:
       - name: config
         secret:
           secretName: release-name-promtail
-      - hostPath:
-          path: /run/promtail
-        name: run
-      - hostPath:
-          path: /var/lib/docker/containers
-        name: containers
-      - hostPath:
-          path: /var/log/pods
-        name: pods
-      automountServiceAccountToken: false
+      - name: secret-volume
+        secret:
+          secretName: my-secret
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -393,7 +389,8 @@ metadata:
     chart: loki-2.16.0
     release: release-name
     heritage: Helm
-  annotations: {}
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   podManagementPolicy: OrderedReady
   replicas: 1
@@ -414,21 +411,21 @@ spec:
         checksum/config: f9b589982c89ac0bea7797751079655a51e67d7d41c063ed83f3ab5b4b110f60
         prometheus.io/port: http-metrics
         prometheus.io/scrape: 'true'
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/loki: runtime/default
     spec:
       serviceAccountName: release-name-loki
       securityContext:
         fsGroup: 10001
         runAsGroup: 10001
         runAsNonRoot: true
-        runAsUser: 10001
+        runAsUser: 1001
         seccompProfile:
           type: RuntimeDefault
       initContainers: []
       containers:
       - name: loki
         image: grafana/loki:2.6.1
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - -config.file=/etc/loki/loki.yaml
         volumeMounts:
@@ -461,18 +458,17 @@ spec:
           initialDelaySeconds: 45
         resources:
           limits:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
         securityContext:
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
+          runAsNonRoot: false
           runAsUser: 1001
+          runAsGroup: 25000
         env: null
       nodeSelector: {}
       affinity: {}
@@ -486,26 +482,25 @@ spec:
           secretName: release-name-loki
       - name: storage
         emptyDir: {}
-      automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Pod
 metadata:
   annotations:
     helm.sh/hook: test-success
-    seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/test: runtime/default
   labels:
     app: loki-stack
     chart: loki-stack-2.9.10
     release: release-name
     heritage: Helm
   name: release-name-loki-stack-test
-  namespace: test-ns
 spec:
   containers:
   - name: test
     image: bats/bats:1.8.2
-    imagePullPolicy: Always
+    imagePullPolicy: ''
     args:
     - /var/lib/loki/test.sh
     env:
@@ -516,14 +511,19 @@ spec:
     volumeMounts:
     - name: tests
       mountPath: /var/lib/loki
+    resources:
+      limits:
+        cpu: 250m
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
     securityContext:
-      capabilities:
-        drop:
-        - ALL
-      allowPrivilegeEscalation: false
-      runAsUser: 25000
       readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
       runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
     livenessProbe:
       exec:
         command:
@@ -531,13 +531,6 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
-      limits:
-        memory: 128Mi
-        cpu: 250m
     readinessProbe:
       exec:
         command:
@@ -551,140 +544,8 @@ spec:
     configMap:
       name: release-name-loki-stack-test
   securityContext:
+    runAsNonRoot: true
+    runAsUser: 25000
+    runAsGroup: 25000
     seccompProfile:
       type: RuntimeDefault
-    runAsUser: 25000
-    runAsNonRoot: true
-  automountServiceAccountToken: false
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

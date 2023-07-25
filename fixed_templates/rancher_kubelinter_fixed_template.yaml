@@ -1,0 +1,450 @@
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: release-name-rancher
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rancher-config
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+data:
+  priorityClassName: rancher-critical
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-rancher
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+subjects:
+- kind: ServiceAccount
+  name: release-name-rancher
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: release-name-rancher
+  annotations: null
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: release-name-rancher
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: release-name-rancher
+        release: release-name
+    spec:
+      priorityClassName: rancher-critical
+      serviceAccountName: release-name-rancher
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - release-name-rancher
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/os
+                operator: NotIn
+                values:
+                - windows
+      tolerations:
+      - key: cattle.io/os
+        value: linux
+        effect: NoSchedule
+        operator: Equal
+      containers:
+      - image: rancher/rancher:v2.7.4
+        imagePullPolicy: IfNotPresent
+        name: rancher
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        args:
+        - --http-listen-port=80
+        - --https-listen-port=443
+        - --add-local=true
+        env:
+        - name: CATTLE_NAMESPACE
+          value: default
+        - name: CATTLE_PEER_SERVICE
+          value: release-name-rancher
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        volumeMounts: null
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+      volumes: null
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: release-name-rancher
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+  annotations:
+    cert-manager.io/issuer: release-name-rancher
+    cert-manager.io/issuer-kind: Issuer
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  rules:
+  - host: '*.example.com'
+    http:
+      paths:
+      - backend:
+          service:
+            name: release-name-rancher
+            port:
+              number: 80
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - host
+    secretName: tls-rancher-ingress
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: release-name-rancher
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+spec:
+  ca:
+    secretName: tls-rancher
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: rancher-critical
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+value: 1000000000
+globalDefault: false
+description: Priority class used by pods critical to rancher's functionality.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-rancher-post-delete
+  namespace: default
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-weight: '1'
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded,hook-failed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-rancher-post-delete
+  namespace: default
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-weight: '1'
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded,hook-failed
+data:
+  post-delete-hook.sh: "#!/bin/bash\n\nset -e\n\nnamespaces=\"${NAMESPACES}\"\nrancher_namespace=\"\
+    ${RANCHER_NAMESPACE}\"\ntimeout=\"${TIMEOUT}\"\nignoreTimeoutError=\"${IGNORETIMEOUTERROR}\"\
+    \n\nif [[ -z ${namespaces} ]]; then\n  echo \"No namespace is provided.\"\n  exit\
+    \ 1\nfi\n\nif [[ -z ${rancher_namespace} ]]; then\n  echo \"No rancher namespace\
+    \ is provided.\"\n  exit 1\nfi\n\nif [[ -z ${timeout} ]]; then\n  echo \"No timeout\
+    \ value is provided.\"\n  exit 1\nfi\n\nif [[ -z ${ignoreTimeoutError} ]]; then\n\
+    \  echo \"No ignoreTimeoutError value is provided.\"\n  exit 1\nfi\n\nsucceeded=()\n\
+    failed=()\n\nget_pod_count() {\n  kubectl get pods --selector app=\"${1}\" -n\
+    \ \"${2}\" -o json | jq '.items | length'\n}\n\necho \"Uninstalling Rancher resources\
+    \ in the following namespaces: ${namespaces}\"\n\nfor namespace in ${namespaces};\
+    \ do\n  for app in $(helm list -n \"${namespace}\" -q); do\n    if [[ ${app} =~\
+    \ .crd$ ]]; then\n      echo \"--- Skip the app [${app}] in the namespace [${namespace}]\"\
+    \n      continue\n    fi\n    echo \"--- Deleting the app [${app}] in the namespace\
+    \ [${namespace}]\"\n    if [[ ! $(helm uninstall \"${app}\" -n \"${namespace}\"\
+    ) ]]; then\n      failed=(\"${failed[@]}\" \"${app}\")\n      continue\n    fi\n\
+    \n    t=0\n    while true; do\n      if [[ $(get_pod_count \"${app}\" \"${namespace}\"\
+    ) -eq 0 ]]; then\n        echo \"successfully uninstalled [${app}] in the namespace\
+    \ [${namespace}]\"\n        succeeded=(\"${succeeded[@]}\" \"${app}\")\n     \
+    \   break\n      fi\n      if [[ ${t} -ge ${timeout} ]]; then\n        echo \"\
+    timeout uninstalling [${app}] in the namespace [${namespace}]\"\n        failed=(\"\
+    ${failed[@]}\" \"${app}\")\n        break\n      fi\n      # by default, wait\
+    \ 120 seconds in total for an app to be uninstalled\n      echo \"waiting 5 seconds\
+    \ for pods of [${app}] to be terminated ...\"\n      sleep 5\n      t=$((t + 5))\n\
+    \    done\n  done\n\n  # delete the helm operator pods\n  for pod in $(kubectl\
+    \ get pods -n \"${namespace}\" -o name); do\n    if [[ ${pod} =~ ^pod\\/helm-operation-*\
+    \ ]]; then\n      echo \"--- Deleting the pod [${pod}] in the namespace [${namespace}]\"\
+    \n      kubectl delete \"${pod}\" -n \"${namespace}\"\n    fi\n  done\ndone\n\n\
+    echo \"Removing Rancher bootstrap secret in the following namespace: ${rancher_namespace}\"\
+    \nkubectl --ignore-not-found=true delete secret bootstrap-secret -n \"${rancher_namespace}\"\
+    \n\necho \"------ Summary ------\"\nif [[ ${#succeeded[@]} -ne 0 ]]; then\n  echo\
+    \ \"Succeeded to uninstall the following apps:\" \"${succeeded[@]}\"\nfi\n\nif\
+    \ [[ ${#failed[@]} -ne 0 ]]; then\n  echo \"Failed to uninstall the following\
+    \ apps:\" \"${failed[@]}\"\n  if [[ \"${ignoreTimeoutError}\" == \"false\" ]];\
+    \ then\n    exit 2\n  fi\nelse\n  echo \"Cleanup finished successfully.\"\nfi"
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-rancher-post-delete
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-weight: '1'
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded,hook-failed
+rules:
+- apiGroups:
+  - extensions
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+  - delete
+  - create
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterroles
+  - clusterrolebindings
+  - roles
+  - rolebindings
+  verbs:
+  - get
+  - list
+  - delete
+  - create
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  - secrets
+  - services
+  - configmaps
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  verbs:
+  - get
+  - list
+  - delete
+  - create
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  - mutatingwebhookconfigurations
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - delete
+  - create
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - delete
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - issuers
+  verbs:
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-rancher-post-delete
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-weight: '2'
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded,hook-failed
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-rancher-post-delete
+subjects:
+- kind: ServiceAccount
+  name: release-name-rancher-post-delete
+  namespace: default
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: release-name-rancher-post-delete
+  namespace: default
+  labels:
+    app: release-name-rancher
+    chart: rancher-2.7.4
+    heritage: Helm
+    release: release-name
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-weight: '3'
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      name: release-name-rancher-post-delete
+      labels:
+        app: release-name-rancher
+        chart: rancher-2.7.4
+        heritage: Helm
+        release: release-name
+    spec:
+      serviceAccountName: release-name-rancher-post-delete
+      restartPolicy: OnFailure
+      containers:
+      - name: rancher-post-delete
+        image: rancher/shell:v0.1.19
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 25000
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsGroup: 25000
+        command:
+        - /scripts/post-delete-hook.sh
+        volumeMounts:
+        - mountPath: /scripts
+          name: config-volume
+        env:
+        - name: NAMESPACES
+          value: cattle-fleet-system cattle-system rancher-operator-system
+        - name: RANCHER_NAMESPACE
+          value: default
+        - name: TIMEOUT
+          value: '120'
+        - name: IGNORETIMEOUTERROR
+          value: 'false'
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+      volumes:
+      - name: config-volume
+        configMap:
+          name: release-name-rancher-post-delete
+          defaultMode: 511

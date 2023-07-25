@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-mariadb
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mariadb
     helm.sh/chart: mariadb-12.2.5
@@ -15,7 +15,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-mariadb
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mariadb
     helm.sh/chart: mariadb-12.2.5
@@ -29,7 +29,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-mariadb
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mariadb
     helm.sh/chart: mariadb-12.2.5
@@ -95,7 +95,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mariadb
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: mariadb
     helm.sh/chart: mariadb-12.2.5
@@ -128,6 +128,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -143,7 +145,7 @@ spec:
     metadata:
       annotations:
         checksum/configuration: b65ed00d5d96d498636a909c36819a102a503f1ff51a50daf9803302c5c92919
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/mariadb: runtime/default
       labels:
         app.kubernetes.io/name: mariadb
         helm.sh/chart: mariadb-12.2.5
@@ -169,20 +171,18 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
+        runAsUser: 1001
       containers:
       - name: mariadb
         image: docker.io/bitnami/mariadb:11.0.2@sha256:c57215c3aabbdb96353ce8b89a7bd6be089f49a4d6bb37f199288a1bf0438a02
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
-          runAsNonRoot: true
+          runAsNonRoot: false
           runAsUser: 1001
-          capabilities:
-            drop:
-            - ALL
           readOnlyRootFilesystem: false
+          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -219,11 +219,11 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: data
           mountPath: /bitnami/mariadb
@@ -240,7 +240,6 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
-      automountServiceAccountToken: false
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -254,47 +253,3 @@ spec:
       resources:
         requests:
           storage: 8Gi
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

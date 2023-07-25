@@ -39,10 +39,11 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
 
     # print("Starting to fix chart's issues ...\n")
 
-    for check in results["results"]["failed_checks"]:
-        # print(f"{check['check_id']}: {check['check_name']}")
-        check_id = fix_issue(check, template)
-        all_checks.append(check_id)
+    if "results" in results and "failed_checks" in results["results"]:
+        for check in results["results"]["failed_checks"]:
+            # print(f"{check['check_id']}: {check['check_name']}")
+            check_id = fix_issue(check, template)
+            all_checks.append(check_id)
 
     # print("\nAll issues fixed!\n")
 
@@ -228,7 +229,8 @@ class LookupClass:
         "CKV2_K8S_3": "check_54",
         "CKV2_K8S_4": "check_54",
         "CKV2_K8S_2": "check_54",
-        "CKV_K8S_27": "check_15"
+        "CKV_K8S_27": "check_15",
+        "CKV2_K8S_1": "check_54",
     }
 
     @classmethod

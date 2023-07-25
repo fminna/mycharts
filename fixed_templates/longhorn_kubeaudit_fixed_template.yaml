@@ -4394,7 +4394,7 @@ spec:
           readOnlyRootFilesystem: true
       serviceAccountName: longhorn-service-account
       securityContext:
-        runAsUser: 0
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
 ---

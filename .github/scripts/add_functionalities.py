@@ -118,9 +118,12 @@ def iterate_functionalities(chart_folder: str, json_path: str, tool: str) -> Non
     template = fix_template.parse_yaml_template(name)
     # print("Starting to add chart's functionalities ...\n")
 
+    all_checks = []
+
     for pod in results["pods"]:
         for container in pod["containers"]:
-            all_checks = add_functionality(container, template, chart_folder)
+            aux_checks = add_functionality(container, template, chart_folder)
+            all_checks.extend(aux_checks)
 
     # print("\nAll functionalities added!")
     all_checks = [x for x in all_checks if x is not None]
@@ -173,7 +176,6 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> list
             uid = get_original_uid(original_template, check["resource_path"], check["obj_path"])
             if not uid:
                 uid = 1001
-
             all_checks.append(check_id)
             check["value"] = uid
             fix_template.set_template(template, check_id, check)
@@ -213,9 +215,28 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> list
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
 
+        # Docker Socket
+        elif check_id == "check_15":
+            all_checks.append(check_id)
+            # fix_template.set_template(template, check_id, check)
+
+        # RunAsNonRoot, Read-only FS,
+        elif check_id == "check_27" or check_id == "check_28":
+            all_checks.append(check_id)
+            check["value"] = False
+            fix_template.set_template(template, check_id, check)
+
+        # hostPath
+        elif check_id == "check_47" and check['value'] is False:
+            all_checks.append(check_id)
+            for host_path in check["hostPaths"]:
+                check["value"] = host_path
+                fix_template.set_template(template, check_id, check)
+
         # Non-default values
         elif check['value'] is False:
             all_checks.append(check_id)
+            check["value"] = True
             fix_template.set_template(template, check_id, check)
 
     return all_checks

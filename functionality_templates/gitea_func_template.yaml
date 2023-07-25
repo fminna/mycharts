@@ -373,8 +373,8 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -474,10 +474,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -612,7 +612,7 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
+        runAsUser: 1001
       initContainers:
       - name: init-directories
         image: gitea/gitea:1.19.3
@@ -636,11 +636,11 @@ spec:
         - name: data
           mountPath: /data
         securityContext:
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 25000
         resources:
           limits:
             memory: 128Mi
@@ -672,11 +672,11 @@ spec:
         - name: inline-config-sources
           mountPath: /env-to-ini-mounts/inlines/
         securityContext:
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 25000
         resources:
           limits:
             memory: 128Mi
@@ -690,11 +690,11 @@ spec:
         - /usr/sbin/configure_gitea.sh
         imagePullPolicy: Always
         securityContext:
-          runAsUser: 25000
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         env:
         - name: GITEA_APP_INI
           value: /data/gitea/conf/app.ini
@@ -773,12 +773,18 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
-          runAsNonRoot: false
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+          runAsUser: 1001
+          runAsGroup: 25000
           capabilities:
+            drop:
+            - DAC_OVERRIDE
+            - FSETID
+            - KILL
+            - SETGID
+            - SETUID
             add:
             - CHOWN
             - FOWNER
@@ -843,26 +849,6 @@ spec:
     - wget
     args:
     - release-name-gitea-http:3000
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     resources:
       limits:
         memory: 128Mi
@@ -870,6 +856,26 @@ spec:
       requests:
         memory: 128Mi
         cpu: 250m
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
   securityContext:
     seccompProfile:

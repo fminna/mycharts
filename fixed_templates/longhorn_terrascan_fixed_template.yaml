@@ -4211,18 +4211,18 @@ spec:
         - while [ $(curl -m 1 -s -o /dev/null -w "%{http_code}" -k https://longhorn-admission-webhook:9443/v1/healthz)
           != "200" ]; do echo waiting; sleep 2; done
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -4236,11 +4236,11 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - -d
@@ -4285,11 +4285,11 @@ spec:
         env: []
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -4356,26 +4356,26 @@ spec:
         - while [ $(curl -m 1 -s -o /dev/null -w "%{http_code}" http://longhorn-backend:9500/v1)
           != "200" ]; do echo waiting; sleep 2; done
         securityContext:
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
-        readinessProbe:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -4408,25 +4408,22 @@ spec:
         - name: CSI_LIVENESS_PROBE_IMAGE
           value: longhornio/livenessprobe:v2.8.0
         securityContext:
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -4434,10 +4431,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       serviceAccountName: longhorn-service-account
       securityContext:
         runAsUser: 25000
@@ -4499,10 +4499,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 2000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - recovery-backend
@@ -4519,11 +4519,15 @@ spec:
         env: []
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -4531,10 +4535,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       serviceAccountName: longhorn-service-account
       securityContext:
         seccompProfile:
@@ -4610,26 +4610,26 @@ spec:
         - name: LONGHORN_UI_PORT
           value: '8000'
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-        readinessProbe:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -4699,10 +4699,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 2000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - conversion-webhook
@@ -4717,11 +4717,15 @@ spec:
         env: []
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -4729,10 +4733,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       serviceAccountName: longhorn-service-account
       securityContext:
         seccompProfile:
@@ -4800,17 +4800,17 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 2000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -4824,10 +4824,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 2000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - admission-webhook
@@ -4842,11 +4842,15 @@ spec:
         env: []
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -4854,10 +4858,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       serviceAccountName: longhorn-service-account
       securityContext:
         seccompProfile:
@@ -4906,29 +4906,26 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - post-upgrade
         env: []
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -4936,10 +4933,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       restartPolicy: OnFailure
       serviceAccountName: longhorn-service-account
       securityContext:
@@ -4989,30 +4989,27 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - uninstall
         - --force
         env: []
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -5020,10 +5017,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       restartPolicy: Never
       serviceAccountName: longhorn-service-account
       securityContext:

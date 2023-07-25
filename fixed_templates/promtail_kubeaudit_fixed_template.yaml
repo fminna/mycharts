@@ -131,7 +131,7 @@ spec:
       enableServiceLinks: true
       securityContext:
         runAsGroup: 0
-        runAsUser: 0
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
       containers:

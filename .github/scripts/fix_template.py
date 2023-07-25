@@ -268,7 +268,10 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
                                       "check_64", "check_65", "check_67", \
                                       "check_13"]
                     if check_id in no_path_checks:
-                        process_func(obj)
+                        if "value" in check:
+                            process_func(obj, check["value"])
+                        else:
+                            process_func(obj)
                         break
 
                     if check_id == "check_33":
@@ -431,9 +434,8 @@ def set_capabilities(obj: dict, add="", drop=""):
 
     # Eventually, add/drop capabilities
     if add:
-        obj["securityContext"]["capabilities"]= {
-                "add": add
-        }
+        obj["securityContext"]["capabilities"]["add"] = add
+
 
     # insecure_caps = ["ALL", "All", "all", "BPF", "MAC_ADMIN", "MAC_OVERRIDE", "NET_ADMIN",
     #                 "NET_RAW", "SETPCAP", "PERFMON", "SYS_ADMIN", "SYS_BOOT", "SYS_MODULE", 
@@ -667,11 +669,12 @@ def set_equal_requests(obj: dict):
     obj["resources"]["limits"]["memory"] = memory_requests
 
 
-def remove_host_path(obj: dict):
+def remove_host_path(obj: dict, value=""):
     """Remove host path from K8s object.
     
     Args:
         obj (dict): K8s object to modify.
+        value (str): The host path value to add, eventually.
     """
 
     if "spec" in obj:
@@ -685,6 +688,24 @@ def remove_host_path(obj: dict):
         obj["volumes"] = [volume for volume in obj["volumes"] if "hostPath" not in volume]
         if not obj["volumes"]:
             del obj["volumes"]
+
+    if value:
+        volume_name = value.split("/")[-1]
+        if "volumes" not in obj or obj["volumes"] is None:
+            obj["volumes"] = [{
+                "name": volume_name,
+                "hostPath": {
+                    "path": value
+                }
+            }]
+        else:
+            volume = {
+                "name": volume_name,
+                "hostPath": {
+                    "path": value
+                }
+            }
+            obj["volumes"].append(volume)
 
 
 def set_limit_range(obj: dict) -> dict:
@@ -1338,9 +1359,8 @@ def set_subpath(obj: dict):
 
     if "volumeMounts" in obj and obj["volumeMounts"] is not None and obj["volumeMounts"]:
         obj["volumeMounts"] = [volume for volume in obj["volumeMounts"] if "subPath" not in volume]
-
-    if "volumeMounts" in obj and obj["volumeMounts"] is None or not obj["volumeMounts"]:
-        del obj["volumeMounts"]
+        if not obj["volumeMounts"]:
+            del obj["volumeMounts"]
 
 
 def set_secrets_as_files(obj: dict, secret_name="my-secret", volume_name="secret-volume"):

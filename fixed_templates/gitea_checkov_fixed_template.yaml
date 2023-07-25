@@ -371,7 +371,6 @@ spec:
         seccompProfile:
           type: RuntimeDefault
         runAsUser: 25000
-      serviceAccountName: default
       containers:
       - name: memcached
         image: docker.io/bitnami/memcached:1@sha256:0466889ea7a59c3e5075122e0dfac5f9fd4b740dbc54d7ca3355e661704b7df3
@@ -457,7 +456,6 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: primary
     spec:
-      serviceAccountName: default
       affinity:
         podAffinity: null
         podAntiAffinity:
@@ -651,6 +649,7 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
         resources:
           limits:
@@ -687,6 +686,7 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsUser: 25000
           readOnlyRootFilesystem: true
         resources:
           limits:
@@ -701,7 +701,7 @@ spec:
         - /usr/sbin/configure_gitea.sh
         imagePullPolicy: Always
         securityContext:
-          runAsUser: 1000
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL

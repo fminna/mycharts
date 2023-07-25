@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
   annotations: null
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -170,12 +170,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: release-name-external-dns
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: external-dns
     helm.sh/chart: external-dns-6.20.3
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -189,13 +191,17 @@ spec:
         helm.sh/chart: external-dns-6.20.3
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
-      annotations: null
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/external-dns: runtime/default
     spec:
       securityContext:
         fsGroup: 1001
         runAsUser: 1001
+        runAsNonRoot: true
+        runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
       affinity:
-        podAffinity: null
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - podAffinityTerm:
@@ -205,7 +211,6 @@ spec:
                   app.kubernetes.io/instance: release-name
               topologyKey: kubernetes.io/hostname
             weight: 1
-        nodeAffinity: null
       serviceAccountName: release-name-external-dns
       containers:
       - name: external-dns
@@ -250,15 +255,16 @@ spec:
           successThreshold: 1
           failureThreshold: 6
         resources:
-          limits:
-            cpu: 1000m
-            memory: 1024Mi
           requests:
-            cpu: 1000m
-            memory: 1024Mi
-        volumeMounts: null
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          runAsNonRoot: false
           runAsUser: 1001
-      volumes: null
-      automountServiceAccountToken: false
+          runAsGroup: 25000
+      automountServiceAccountToken: true

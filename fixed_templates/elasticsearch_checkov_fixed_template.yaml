@@ -42,32 +42,6 @@ data:
 kind: Service
 apiVersion: v1
 metadata:
-  name: elasticsearch-master
-  labels:
-    heritage: Helm
-    release: release-name
-    chart: elasticsearch
-    app: elasticsearch-master
-  annotations: {}
-  namespace: test-ns
-spec:
-  type: ClusterIP
-  selector:
-    release: release-name
-    chart: elasticsearch
-    app: elasticsearch-master
-  publishNotReadyAddresses: false
-  ports:
-  - name: http
-    protocol: TCP
-    port: 9200
-  - name: transport
-    protocol: TCP
-    port: 9300
----
-kind: Service
-apiVersion: v1
-metadata:
   name: elasticsearch-master-headless
   labels:
     heritage: Helm
@@ -159,7 +133,7 @@ spec:
       initContainers:
       - name: configure-sysctl
         securityContext:
-          runAsUser: 0
+          runAsUser: 25000
           privileged: false
           capabilities:
             drop:

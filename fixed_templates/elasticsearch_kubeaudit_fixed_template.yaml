@@ -102,7 +102,7 @@ spec:
     spec:
       securityContext:
         fsGroup: 1000
-        runAsUser: 1000
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
       automountServiceAccountToken: false
@@ -146,7 +146,7 @@ spec:
             drop:
             - ALL
           runAsNonRoot: true
-          runAsUser: 1000
+          runAsUser: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1

@@ -17608,6 +17608,7 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
+          runAsUser: 25000
         volumeMounts:
         - mountPath: /var/run/argocd
           name: var-files
@@ -17961,6 +17962,7 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
+          runAsUser: 25000
         livenessProbe:
           exec:
             command:

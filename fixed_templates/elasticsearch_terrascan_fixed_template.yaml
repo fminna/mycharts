@@ -302,19 +302,6 @@ spec:
     - name: secret-volume
       readOnly: true
       mountPath: /etc/secret-volume
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     resources:
       limits:
         cpu: 250m
@@ -322,6 +309,19 @@ spec:
       requests:
         cpu: 250m
         memory: 128Mi
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
     livenessProbe:
       exec:
         command:

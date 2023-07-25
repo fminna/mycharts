@@ -113,11 +113,11 @@ spec:
           mountPath: /etc/secret-volume
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         securityContext:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
@@ -182,11 +182,11 @@ spec:
       '
     resources:
       requests:
-        cpu: 250m
         memory: 128Mi
+        cpu: 250m
       limits:
-        cpu: 250m
         memory: 128Mi
+        cpu: 250m
     securityContext:
       readOnlyRootFilesystem: true
       allowPrivilegeEscalation: false

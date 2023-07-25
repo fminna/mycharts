@@ -160,10 +160,15 @@
               "value": true
             },
             "check_47": {
-              "description": "Prevent containers from accessing the underlying host",
+              "description": "Prevent containers from accessing the underlying host - hostPath",
               "resource_path": "DaemonSet/default/longhorn-manager",
               "obj_path": "",
               "value": false,
+              "hostPaths": [
+                "/dev",
+                "/proc",
+                "/var/lib/longhorn"
+              ],
               "failed_check": "test_case_1"
             },
             "check_31": {

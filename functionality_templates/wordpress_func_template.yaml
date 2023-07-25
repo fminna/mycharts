@@ -224,7 +224,7 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
+        runAsUser: 1001
       serviceAccountName: default
       containers:
       - name: wordpress
@@ -236,8 +236,9 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: false
-          runAsNonRoot: true
-          runAsUser: 25000
+          runAsNonRoot: false
+          runAsUser: 1001
+          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -381,7 +382,7 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
+        runAsUser: 1001
       containers:
       - name: mariadb
         image: docker.io/bitnami/mariadb:11.0.2@sha256:c57215c3aabbdb96353ce8b89a7bd6be089f49a4d6bb37f199288a1bf0438a02
@@ -389,9 +390,10 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
-          runAsNonRoot: true
-          runAsUser: 25000
+          runAsNonRoot: false
+          runAsUser: 1001
           readOnlyRootFilesystem: false
+          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

@@ -376,7 +376,7 @@ spec:
           requests:
             cpu: 250m
             memory: 128Mi
-      serviceAccount: post-delete-release-name-kibana
+      serviceAccountName: post-delete-release-name-kibana
       volumes:
       - name: elasticsearch-certs
         secret:
@@ -459,7 +459,7 @@ spec:
           requests:
             cpu: 250m
             memory: 128Mi
-      serviceAccount: pre-install-release-name-kibana
+      serviceAccountName: pre-install-release-name-kibana
       volumes:
       - name: elasticsearch-certs
         secret:

@@ -2,7 +2,7 @@ kind: ServiceAccount
 apiVersion: v1
 metadata:
   name: release-name-traefik
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: traefik
     app.kubernetes.io/instance: release-name-default
@@ -87,7 +87,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-traefik
-  namespace: test-ns
+  namespace: default
   labels:
     app.kubernetes.io/name: traefik
     app.kubernetes.io/instance: release-name-default
@@ -139,6 +139,7 @@ spec:
         prometheus.io/scrape: 'true'
         prometheus.io/path: /metrics
         prometheus.io/port: '9100'
+        container.apparmor.security.beta.kubernetes.io/release-name-traefik: runtime/default
       labels:
         app.kubernetes.io/name: traefik
         app.kubernetes.io/instance: release-name-default
@@ -150,13 +151,13 @@ spec:
       hostNetwork: false
       containers:
       - image: docker.io/traefik:2.10.3-windowsservercore-1809@sha256:04cf9d1feba10cb60fbf505c56970efb6d21391a19cf284d4181bfba73d619e9
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: release-name-traefik
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         readinessProbe:
@@ -197,9 +198,11 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
+          runAsNonRoot: false
           runAsUser: 1001
+          runAsGroup: 25000
         volumeMounts:
         - name: data
           mountPath: /data
@@ -228,10 +231,10 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
         runAsGroup: 65532
         runAsNonRoot: true
-        runAsUser: 65532
+        runAsUser: 1001
         seccompProfile:
           type: RuntimeDefault
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
 ---
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
@@ -267,47 +270,3 @@ spec:
     services:
     - name: api@internal
       kind: TraefikService
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

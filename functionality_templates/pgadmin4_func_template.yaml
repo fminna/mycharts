@@ -113,18 +113,30 @@ spec:
           mountPath: /etc/secret-volume
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         securityContext:
           readOnlyRootFilesystem: false
-          allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: true
           runAsNonRoot: false
-          runAsUser: 25000
+          runAsUser: 1001
           runAsGroup: 25000
           capabilities:
+            drop:
+            - CHOWN
+            - DAC_OVERRIDE
+            - FOWNER
+            - FSETID
+            - KILL
+            - SETPCAP
+            - SETFCAP
+            - NET_RAW
+            - SYS_CHROOT
+            - MKNOD
+            - AUDIT_WRITE
             add:
             - SETGID
             - SETUID
@@ -139,7 +151,7 @@ spec:
       securityContext:
         fsGroup: 5050
         runAsGroup: 5050
-        runAsUser: 25000
+        runAsUser: 1001
         seccompProfile:
           type: RuntimeDefault
         runAsNonRoot: true
@@ -187,11 +199,11 @@ spec:
       '
     resources:
       requests:
-        cpu: 250m
         memory: 128Mi
+        cpu: 250m
       limits:
-        cpu: 250m
         memory: 128Mi
+        cpu: 250m
     securityContext:
       readOnlyRootFilesystem: true
       allowPrivilegeEscalation: false

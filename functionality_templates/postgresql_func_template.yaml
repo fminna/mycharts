@@ -65,13 +65,15 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-postgresql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: postgresql
     helm.sh/chart: postgresql-12.5.6
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   serviceName: release-name-postgresql-hl
@@ -94,7 +96,6 @@ spec:
         app.kubernetes.io/component: primary
       annotations:
         container.apparmor.security.beta.kubernetes.io/postgresql: runtime/default
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
     spec:
       serviceAccountName: default
       affinity:
@@ -114,6 +115,7 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 1001
       hostNetwork: false
       hostIPC: false
       containers:
@@ -122,12 +124,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
           runAsNonRoot: false
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -137,11 +137,6 @@ spec:
           value: /bitnami/postgresql
         - name: PGDATA
           value: /bitnami/postgresql/data
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: release-name-postgresql
-              key: postgres-password
         - name: POSTGRESQL_ENABLE_LDAP
           value: 'no'
         - name: POSTGRESQL_ENABLE_TLS
@@ -201,11 +196,16 @@ spec:
           mountPath: /dev/shm
         - name: data
           mountPath: /bitnami/postgresql
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: dshm
         emptyDir:
           medium: Memory
-      automountServiceAccountToken: false
+      - name: secret-volume
+        secret:
+          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: data

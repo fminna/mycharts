@@ -1,0 +1,330 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-external-dns
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: external-dns
+    helm.sh/chart: external-dns-6.20.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations: null
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: release-name-external-dns-default
+  namespace: default
+  labels:
+    app.kubernetes.io/name: external-dns
+    helm.sh/chart: external-dns-6.20.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - services
+  - pods
+  - nodes
+  - endpoints
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - extensions
+  - networking.k8s.io
+  - getambassador.io
+  resources:
+  - ingresses
+  - hosts
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - gateways
+  - virtualservices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - zalando.org
+  resources:
+  - routegroups
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - zalando.org
+  resources:
+  - routegroups/status
+  verbs:
+  - patch
+  - update
+- apiGroups:
+  - projectcontour.io
+  resources:
+  - httpproxies
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups:
+  - gloo.solo.io
+  - gateway.solo.io
+  resources:
+  - proxies
+  - virtualservices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - configuration.konghq.com
+  resources:
+  - tcpingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - gateways
+  - httproutes
+  - tlsroutes
+  - tcproutes
+  - udproutes
+  - grpcroutes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cis.f5.com
+  resources:
+  - virtualservers
+  verbs:
+  - get
+  - watch
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-external-dns-default
+  namespace: default
+  labels:
+    app.kubernetes.io/name: external-dns
+    helm.sh/chart: external-dns-6.20.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-external-dns-default
+subjects:
+- kind: ServiceAccount
+  name: release-name-external-dns
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-external-dns
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: external-dns
+    helm.sh/chart: external-dns-6.20.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+  - name: http
+    port: 7979
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: external-dns
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-external-dns
+  namespace: test-ns
+  labels:
+    app.kubernetes.io/name: external-dns
+    helm.sh/chart: external-dns-6.20.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: external-dns
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: external-dns
+        helm.sh/chart: external-dns-6.20.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/external-dns: runtime/default
+    spec:
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 25000
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: external-dns
+                  app.kubernetes.io/instance: release-name
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      serviceAccountName: release-name-external-dns
+      containers:
+      - name: external-dns
+        image: docker.io/bitnami/external-dns:0.13.4-debian-11-r19
+        imagePullPolicy: Always
+        args:
+        - --metrics-address=:7979
+        - --log-level=info
+        - --log-format=text
+        - --policy=upsert-only
+        - --provider=aws
+        - --registry=txt
+        - --interval=1m
+        - --source=service
+        - --source=ingress
+        - --aws-api-retries=3
+        - --aws-zone-type=
+        - --aws-batch-change-size=1000
+        env:
+        - name: AWS_DEFAULT_REGION
+          value: us-east-1
+        envFrom: null
+        ports:
+        - name: http
+          containerPort: 7979
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 2
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: test-ns
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: default
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: default
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high

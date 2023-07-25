@@ -1,24 +1,3 @@
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: release-name-pgadmin4
-  namespace: default
-  labels:
-    app.kubernetes.io/name: pgadmin4
-    helm.sh/chart: pgadmin4-1.15.2
-    app.kubernetes.io/version: '7.0'
-    app.kubernetes.io/managed-by: Helm
-spec:
-  policyTypes:
-  - Ingress
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: pgadmin4
-      app.kubernetes.io/instance: release-name
-  ingress:
-  - ports:
-    - port: 80
----
 apiVersion: v1
 kind: Secret
 metadata:
@@ -69,7 +48,6 @@ spec:
     name: http
   selector:
     app.kubernetes.io/name: pgadmin4
-    app.kubernetes.io/instance: release-name
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -88,12 +66,10 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: pgadmin4
-      app.kubernetes.io/instance: release-name
   template:
     metadata:
       labels:
         app.kubernetes.io/name: pgadmin4
-        app.kubernetes.io/instance: release-name
       annotations:
         checksum/secret: 59aee739a7f5c89c5555f4fc7799b9b33cb01e37e7046a22f01ddebcafd69467
     spec:
@@ -235,6 +211,50 @@ spec:
       periodSeconds: 10
   restartPolicy: Never
   automountServiceAccountToken: false
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

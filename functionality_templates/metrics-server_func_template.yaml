@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 0.6.3
     app.kubernetes.io/managed-by: Helm
-automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -155,7 +154,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 0.6.3
     app.kubernetes.io/managed-by: Helm
-    app: my-app
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -167,7 +167,8 @@ spec:
       labels:
         app.kubernetes.io/name: metrics-server
         app.kubernetes.io/instance: release-name
-        app: my-app
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/metrics-server: runtime/default
     spec:
       schedulerName: null
       serviceAccountName: release-name-metrics-server
@@ -179,11 +180,12 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
           runAsUser: 1000
           seccompProfile:
             type: RuntimeDefault
+          runAsGroup: 25000
         image: registry.k8s.io/metrics-server/metrics-server:v0.6.3
         imagePullPolicy: IfNotPresent
         args:
@@ -216,16 +218,22 @@ spec:
         - name: tmp
           mountPath: /tmp
         resources:
-          limits:
-            memory: 1024Mi
-            cpu: 1000m
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
       volumes:
       - name: tmp
         emptyDir: {}
-      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 25000
+      automountServiceAccountToken: true
 ---
 apiVersion: apiregistration.k8s.io/v1
 kind: APIService
@@ -247,47 +255,3 @@ spec:
     port: 443
   version: v1beta1
   versionPriority: 100
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

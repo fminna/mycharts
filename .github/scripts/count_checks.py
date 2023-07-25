@@ -61,11 +61,6 @@ def count_checks(result_path: str, tool: str) -> list:
     with open(result_path, 'r', encoding="utf-8") as file:
         results = json.load(file)
 
-
-    print("PORCODIOOOOO")
-    print(result_path)
-
-
     # List of all checks
     all_checks = []
 

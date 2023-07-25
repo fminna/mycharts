@@ -1,0 +1,895 @@
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: true
+metadata:
+  labels:
+    app: release-name-datadog
+    chart: datadog-3.31.0
+    heritage: Helm
+    release: release-name
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  name: release-name-datadog-cluster-agent
+  namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
+---
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: true
+metadata:
+  name: release-name-datadog
+  namespace: default
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-datadog
+  namespace: default
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+type: Opaque
+data:
+  api-key: TUlTU0lORw==
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-datadog-cluster-agent
+  namespace: default
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+type: Opaque
+data:
+  token: T2ZWN0o4QlpMNVBMWGJnb0JTNUd0YjJrMFpNTW5yQTY=
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-datadog-cluster-agent-confd
+  namespace: default
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  annotations:
+    checksum/confd-config: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+data:
+  kubernetes_state_core.yaml.default: "init_config:\ninstances:\n  - collectors:\n\
+    \    - secrets\n    - nodes\n    - pods\n    - services\n    - resourcequotas\n\
+    \    - replicationcontrollers\n    - limitranges\n    - persistentvolumeclaims\n\
+    \    - persistentvolumes\n    - namespaces\n    - endpoints\n    - daemonsets\n\
+    \    - deployments\n    - replicasets\n    - statefulsets\n    - cronjobs\n  \
+    \  - jobs\n    - horizontalpodautoscalers\n    - poddisruptionbudgets\n    - storageclasses\n\
+    \    - volumeattachments\n    - ingresses\n    labels_as_tags:\n      {}\n   \
+    \ annotations_as_tags:\n      {}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-datadog-installinfo
+  namespace: default
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  annotations:
+    checksum/install_info: b6dcbdf4926476a6ba6a94e21779cdcd250d8b9f5d0ff1675df9f862b40a8e60
+data:
+  install_info: "---\ninstall_method:\n  tool: helm\n  tool_version: Helm\n  installer_version:\
+    \ datadog-3.31.0\n"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  name: release-name-datadog-cluster-agent
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - services
+  - endpoints
+  - pods
+  - nodes
+  - namespaces
+  - componentstatuses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+- apiGroups:
+  - quota.openshift.io
+  resources:
+  - clusterresourcequotas
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - release-name-datadogtoken
+  - datadogtoken
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - release-name-datadog-leader-election
+  - datadog-leader-election
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  resourceNames:
+  - release-name-datadog-leader-election
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  - events
+  verbs:
+  - create
+- nonResourceURLs:
+  - /version
+  - /healthz
+  verbs:
+  - get
+- apiGroups:
+  - ''
+  resources:
+  - namespaces
+  resourceNames:
+  - kube-system
+  verbs:
+  - get
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - datadog-cluster-id
+  verbs:
+  - create
+  - get
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - persistentvolumes
+  - persistentvolumeclaims
+  - serviceaccounts
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - replicasets
+  - daemonsets
+  - statefulsets
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  - clusterroles
+  - clusterrolebindings
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - autoscaling.k8s.io
+  resources:
+  - verticalpodautoscalers
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - create
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - get
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  - replicasets
+  - deployments
+  - daemonsets
+  verbs:
+  - get
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+  resourceNames:
+  - release-name-datadog-cluster-agent
+- apiGroups:
+  - security.openshift.io
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+  resourceNames:
+  - release-name-datadog-cluster-agent
+  - hostnetwork
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  name: release-name-datadog-ksm-core
+rules:
+- apiGroups:
+  - extensions
+  resources:
+  - daemonsets
+  - deployments
+  - replicasets
+  verbs:
+  - get
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  - daemonsets
+  - deployments
+  - replicasets
+  verbs:
+  - get
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - get
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - get
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - get
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  - volumeattachments
+  verbs:
+  - get
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: release-name-datadog
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+- apiGroups:
+  - ''
+  resources:
+  - nodes/metrics
+  - nodes/spec
+  - nodes/proxy
+  - nodes/stats
+  verbs:
+  - get
+- apiGroups:
+  - ''
+  resources:
+  - endpoints
+  verbs:
+  - get
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+  resourceNames:
+  - release-name-datadog
+- apiGroups:
+  - security.openshift.io
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+  resourceNames:
+  - release-name-datadog
+  - hostaccess
+  - privileged
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  name: release-name-datadog-cluster-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-datadog-cluster-agent
+subjects:
+- kind: ServiceAccount
+  name: release-name-datadog-cluster-agent
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  name: release-name-datadog-ksm-core
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-datadog-ksm-core
+subjects:
+- kind: ServiceAccount
+  name: release-name-datadog-cluster-agent
+  namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-datadog
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-datadog
+subjects:
+- kind: ServiceAccount
+  name: release-name-datadog
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  name: release-name-datadog-cluster-agent-main
+  namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  name: release-name-datadog-dca-flare
+  namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  name: release-name-datadog-cluster-agent-main
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-datadog-cluster-agent-main
+subjects:
+- kind: ServiceAccount
+  name: release-name-datadog-cluster-agent
+  namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+  name: release-name-datadog-dca-flare
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-datadog-dca-flare
+subjects:
+- kind: ServiceAccount
+  name: release-name-datadog-cluster-agent
+  namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-datadog-cluster-agent
+  namespace: default
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: release-name-datadog
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+spec:
+  type: ClusterIP
+  selector:
+    app: release-name-datadog-cluster-agent
+  ports:
+  - port: 5005
+    name: agentport
+    protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-datadog-cluster-agent
+  namespace: test-ns
+  labels:
+    helm.sh/chart: datadog-3.31.0
+    app.kubernetes.io/name: MyApp
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: '7'
+    app.kubernetes.io/component: cluster-agent
+    app: MyApp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: release-name-datadog-cluster-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: MyApp
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: cluster-agent
+        app: MyApp
+      name: release-name-datadog-cluster-agent
+      annotations:
+        checksum/clusteragent_token: a56cbd91751937f5f5305a4d50ac34efefa86cc44aa34338b7c18a58cddeaee7
+        checksum/clusteragent-configmap: ed2ea487c5b74d839946af6aa068f08e0467b8c17070000bf8abde25b0163592
+        checksum/api_key: 5fa77f92c1e8e435ca7c49283696ab42bebb65a848f5f6f8db57a6108101c113
+        checksum/application_key: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/install_info: b6dcbdf4926476a6ba6a94e21779cdcd250d8b9f5d0ff1675df9f862b40a8e60
+        container.apparmor.security.beta.kubernetes.io/cluster-agent: runtime/default
+        container.apparmor.security.beta.kubernetes.io/init-volume: runtime/default
+    spec:
+      serviceAccountName: release-name-datadog-cluster-agent
+      automountServiceAccountToken: true
+      initContainers:
+      - name: init-volume
+        image: gcr.io/datadoghq/cluster-agent:7.45.0
+        imagePullPolicy: IfNotPresent
+        command:
+        - cp
+        args:
+        - -r
+        - /etc/datadog-agent
+        - /opt
+        volumeMounts:
+        - name: config
+          mountPath: /opt/datadog-agent
+      containers:
+      - name: cluster-agent
+        image: gcr.io/datadoghq/cluster-agent:7.45.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
+        ports:
+        - containerPort: 5005
+          name: agentport
+          protocol: TCP
+        - containerPort: 5000
+          name: agentmetrics
+          protocol: TCP
+        env:
+        - name: DD_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: DD_HEALTH_PORT
+          value: '5556'
+        - name: DD_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: release-name-datadog
+              key: api-key
+              optional: true
+        - name: KUBERNETES
+          value: 'yes'
+        - name: DD_ADMISSION_CONTROLLER_ENABLED
+          value: 'true'
+        - name: DD_ADMISSION_CONTROLLER_MUTATE_UNLABELLED
+          value: 'false'
+        - name: DD_ADMISSION_CONTROLLER_SERVICE_NAME
+          value: release-name-datadog-cluster-agent-admission-controller
+        - name: DD_ADMISSION_CONTROLLER_INJECT_CONFIG_MODE
+          value: socket
+        - name: DD_ADMISSION_CONTROLLER_INJECT_CONFIG_LOCAL_SERVICE_NAME
+          value: release-name-datadog
+        - name: DD_ADMISSION_CONTROLLER_FAILURE_POLICY
+          value: Ignore
+        - name: DD_CLUSTER_CHECKS_ENABLED
+          value: 'true'
+        - name: DD_EXTRA_CONFIG_PROVIDERS
+          value: kube_endpoints kube_services
+        - name: DD_EXTRA_LISTENERS
+          value: kube_endpoints kube_services
+        - name: DD_LOG_LEVEL
+          value: INFO
+        - name: DD_LEADER_ELECTION
+          value: 'true'
+        - name: DD_LEADER_LEASE_NAME
+          value: release-name-datadog-leader-election
+        - name: DD_CLUSTER_AGENT_TOKEN_NAME
+          value: release-name-datadogtoken
+        - name: DD_COLLECT_KUBERNETES_EVENTS
+          value: 'true'
+        - name: DD_CLUSTER_AGENT_KUBERNETES_SERVICE_NAME
+          value: release-name-datadog-cluster-agent
+        - name: DD_CLUSTER_AGENT_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: release-name-datadog-cluster-agent
+              key: token
+        - name: DD_CLUSTER_AGENT_COLLECT_KUBERNETES_TAGS
+          value: 'false'
+        - name: DD_KUBE_RESOURCES_NAMESPACE
+          value: default
+        - name: CHART_RELEASE_NAME
+          value: release-name
+        - name: AGENT_DAEMONSET
+          value: release-name-datadog
+        - name: CLUSTER_AGENT_DEPLOYMENT
+          value: release-name-datadog-cluster-agent
+        - name: DD_ORCHESTRATOR_EXPLORER_ENABLED
+          value: 'true'
+        - name: DD_ORCHESTRATOR_EXPLORER_CONTAINER_SCRUBBING_ENABLED
+          value: 'true'
+        livenessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /live
+            port: 5556
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /ready
+            port: 5556
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+        volumeMounts:
+        - name: datadogrun
+          mountPath: /opt/datadog-agent/run
+          readOnly: false
+        - name: varlog
+          mountPath: /var/log/datadog
+          readOnly: false
+        - name: tmpdir
+          mountPath: /tmp
+          readOnly: false
+        - name: installinfo
+          subPath: install_info
+          mountPath: /etc/datadog-agent/install_info
+          readOnly: true
+        - name: confd
+          mountPath: /conf.d
+          readOnly: true
+        - name: config
+          mountPath: /etc/datadog-agent
+      volumes:
+      - name: datadogrun
+        emptyDir: {}
+      - name: varlog
+        emptyDir: {}
+      - name: tmpdir
+        emptyDir: {}
+      - name: installinfo
+        configMap:
+          name: release-name-datadog-installinfo
+      - name: confd
+        configMap:
+          name: release-name-datadog-cluster-agent-confd
+          items:
+          - key: kubernetes_state_core.yaml.default
+            path: kubernetes_state_core.yaml.default
+      - name: config
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: release-name-datadog-cluster-agent
+              topologyKey: kubernetes.io/hostname
+      nodeSelector:
+        kubernetes.io/os: linux
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 25000
+    runAsGroup: 25000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978

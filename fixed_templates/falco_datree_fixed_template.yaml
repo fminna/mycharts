@@ -151,14 +151,14 @@ spec:
             memory: 512Mi
         securityContext:
           privileged: false
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
         args:
         - /usr/bin/falco
         - --cri
@@ -227,6 +227,13 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -241,13 +248,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
       initContainers:
       - name: falco-driver-loader
         image: docker.io/falcosecurity/falco-driver-loader:0.34.1

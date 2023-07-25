@@ -151,13 +151,6 @@
               "obj_path": "",
               "value": true
             },
-            "check_41": {
-              "description": "Cluster Allows Unsafe Sysctls",
-              "resource_path": "Deployment/default/release-name-ingress-nginx-controller",
-              "obj_path": "",
-              "value": false,
-              "failed_check": "test_case_2"
-            },
             "check_47": {
               "description": "Prevent containers from accessing the underlying host",
               "resource_path": "Deployment/default/release-name-ingress-nginx-controller",

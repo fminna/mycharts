@@ -7,7 +7,6 @@ metadata:
     chart: rancher-2.7.4
     heritage: Helm
     release: release-name
-  namespace: test-ns
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -18,7 +17,6 @@ metadata:
     chart: rancher-2.7.4
     heritage: Helm
     release: release-name
-  namespace: test-ns
 data:
   priorityClassName: rancher-critical
 ---
@@ -40,40 +38,17 @@ roleRef:
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: release-name-rancher
-  labels:
-    app: release-name-rancher
-    chart: rancher-2.7.4
-    heritage: Helm
-    release: release-name
-  namespace: test-ns
-spec:
-  ports:
-  - port: 80
-    targetPort: 80
-    protocol: TCP
-    name: http
-  - port: 443
-    targetPort: 444
-    protocol: TCP
-    name: https-internal
-  selector:
-    app: release-name-rancher
----
 kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: release-name-rancher
-  annotations: null
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
   labels:
     app: release-name-rancher
     chart: rancher-2.7.4
     heritage: Helm
     release: release-name
-  namespace: test-ns
 spec:
   replicas: 3
   selector:
@@ -90,7 +65,7 @@ spec:
         app: release-name-rancher
         release: release-name
       annotations:
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/rancher: runtime/default
     spec:
       priorityClassName: rancher-critical
       serviceAccountName: release-name-rancher
@@ -121,7 +96,7 @@ spec:
         operator: Equal
       containers:
       - image: rancher/rancher:v2.7.4
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: rancher
         ports:
         - containerPort: 80
@@ -148,30 +123,44 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 30
         resources:
-          limits:
-            memory: 1024Mi
-            cpu: 1000m
           requests:
-            memory: 1024Mi
-            cpu: 1000m
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts: null
         securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: false
+          runAsUser: 1001
+          runAsGroup: 25000
+          readOnlyRootFilesystem: false
           capabilities:
+            drop:
+            - CHOWN
+            - FOWNER
+            - FSETID
+            - KILL
+            - SETGID
+            - SETUID
+            - SETPCAP
+            - SETFCAP
+            - NET_RAW
+            - SYS_CHROOT
+            - AUDIT_WRITE
             add:
             - DAC_OVERRIDE
             - NET_BIND_SERVICE
             - MKNOD
-          allowPrivilegeEscalation: false
-          runAsUser: 1001
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
       volumes: null
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
         runAsNonRoot: true
-      automountServiceAccountToken: false
+        runAsUser: 1001
+        runAsGroup: 25000
+      automountServiceAccountToken: true
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -188,10 +177,9 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
     nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
     nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
-  namespace: test-ns
 spec:
   rules:
-  - host: null
+  - host: '*.example.com'
     http:
       paths:
       - backend:
@@ -202,7 +190,7 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - null
+    - host
     secretName: tls-rancher-ingress
 ---
 apiVersion: cert-manager.io/v1
@@ -231,48 +219,11 @@ value: 1000000000
 globalDefault: false
 description: Priority class used by pods critical to rancher's functionality.
 ---
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: release-name-rancher-post-delete
-  labels:
-    app: release-name-rancher
-    chart: rancher-2.7.4
-    heritage: Helm
-    release: release-name
-  annotations:
-    helm.sh/hook: post-delete
-    helm.sh/hook-weight: '1'
-    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded,hook-failed
-spec:
-  privileged: false
-  hostNetwork: false
-  hostIPC: false
-  hostPID: false
-  runAsUser:
-    rule: RunAsAny
-  seLinux:
-    rule: RunAsAny
-  supplementalGroups:
-    rule: MustRunAs
-    ranges:
-    - min: 1
-      max: 65535
-  fsGroup:
-    rule: MustRunAs
-    ranges:
-    - min: 1
-      max: 65535
-  readOnlyRootFilesystem: false
-  volumes:
-  - secret
-  - configMap
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-rancher-post-delete
-  namespace: test-ns
+  namespace: default
   labels:
     app: release-name-rancher
     chart: rancher-2.7.4
@@ -287,7 +238,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-rancher-post-delete
-  namespace: test-ns
+  namespace: default
   labels:
     app: release-name-rancher
     chart: rancher-2.7.4
@@ -477,6 +428,7 @@ metadata:
     helm.sh/hook: post-delete
     helm.sh/hook-weight: '3'
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   backoffLimit: 3
   template:
@@ -488,20 +440,19 @@ spec:
         heritage: Helm
         release: release-name
       annotations:
-        seccomp.security.alpha.kubernetes.io/defaultProfileName: runtime/default
+        container.apparmor.security.beta.kubernetes.io/rancher-post-delete: runtime/default
     spec:
       serviceAccountName: release-name-rancher-post-delete
       restartPolicy: OnFailure
       containers:
       - name: rancher-post-delete
         image: rancher/shell:v0.1.19
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsGroup: 25000
           readOnlyRootFilesystem: true
         command:
         - /scripts/post-delete-hook.sh
@@ -517,109 +468,35 @@ spec:
           value: '120'
         - name: IGNORETIMEOUTERROR
           value: 'false'
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       volumes:
       - name: config-volume
         configMap:
           name: release-name-rancher-post-delete
           defaultMode: 511
       securityContext:
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
         runAsNonRoot: true
-      automountServiceAccountToken: false
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
+        runAsGroup: 25000

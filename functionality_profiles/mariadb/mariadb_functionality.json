@@ -92,7 +92,7 @@
               "description": "Prevent containers from accessing host files by using high UIDs",
               "resource_path": "StatefulSet/default/release-name-mariadb",
               "obj_path": "spec/template/spec/containers/0",
-              "value": true
+              "value": false
             },
             "check_14": {
               "description": "Prevent containers from accessing host files by using high GIDs",

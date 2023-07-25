@@ -228,7 +228,8 @@ class LookupClass:
         "non-existent-service-account": "check_58",
         "pdb-max-unavailable": "check_67",
         "ssh-port": "check_68",
-        "no-anti-affinity": ""
+        "no-anti-affinity": "",
+        "mismatching-selector": "",
     }
 
     @classmethod

@@ -8,8 +8,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.25.0
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -23,14 +22,14 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 2.8.0
   name: release-name-kube-state-metrics
-  namespace: test-ns
+  namespace: default
 imagePullSecrets: null
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-prometheus-node-exporter
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: prometheus-node-exporter-4.8.1
     app.kubernetes.io/managed-by: Helm
@@ -50,7 +49,6 @@ metadata:
     app.kubernetes.io/version: v1.5.1
     app.kubernetes.io/managed-by: Helm
   name: release-name-prometheus-pushgateway
-  namespace: test-ns
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -64,7 +62,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: prometheus
   name: release-name-prometheus-server
-  namespace: test-ns
+  namespace: default
   annotations: {}
 ---
 apiVersion: v1
@@ -77,7 +75,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.25.0
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
 data:
   alertmanager.yml: "global: {}\nreceivers:\n- name: default-receiver\nroute:\n  group_interval:\
     \ 5m\n  group_wait: 10s\n  receiver: default-receiver\n  repeat_interval: 3h\n\
@@ -95,7 +92,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: prometheus
   name: release-name-prometheus-server
-  namespace: test-ns
+  namespace: default
 data:
   allow-snippet-annotations: 'false'
   alerting_rules.yml: '{}
@@ -545,7 +542,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.25.0
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
 spec:
   type: ClusterIP
   ports:
@@ -567,7 +563,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: v0.25.0
     app.kubernetes.io/managed-by: Helm
-  namespace: test-ns
 spec:
   clusterIP: None
   ports:
@@ -583,7 +578,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-kube-state-metrics
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: kube-state-metrics-4.30.0
     app.kubernetes.io/managed-by: Helm
@@ -609,7 +604,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-prometheus-node-exporter
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: prometheus-node-exporter-4.8.1
     app.kubernetes.io/managed-by: Helm
@@ -643,7 +638,6 @@ metadata:
     app.kubernetes.io/version: v1.5.1
     app.kubernetes.io/managed-by: Helm
   name: release-name-prometheus-pushgateway
-  namespace: test-ns
 spec:
   type: ClusterIP
   ports:
@@ -667,7 +661,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: prometheus
   name: release-name-prometheus-server
-  namespace: test-ns
+  namespace: default
 spec:
   ports:
   - name: http
@@ -709,6 +703,7 @@ spec:
     metadata:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
+        container.apparmor.security.beta.kubernetes.io/node-exporter: runtime/default
       labels:
         helm.sh/chart: prometheus-node-exporter-4.8.1
         app.kubernetes.io/managed-by: Helm
@@ -730,7 +725,7 @@ spec:
       containers:
       - name: node-exporter
         image: quay.io/prometheus/node-exporter:v1.5.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - --path.procfs=/host/proc
         - --path.sysfs=/host/sys
@@ -738,9 +733,9 @@ spec:
         - --web.listen-address=[$(HOST_IP)]:9100
         securityContext:
           allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
           readOnlyRootFilesystem: true
         env:
         - name: HOST_IP
@@ -794,16 +789,6 @@ spec:
       tolerations:
       - effect: NoSchedule
         operator: Exists
-      volumes:
-      - name: proc
-        hostPath:
-          path: /proc
-      - name: sys
-        hostPath:
-          path: /sys
-      - name: root
-        hostPath:
-          path: /
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -836,6 +821,8 @@ spec:
         app.kubernetes.io/name: kube-state-metrics
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/version: 2.8.0
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/kube-state-metrics: runtime/default
     spec:
       hostNetwork: false
       serviceAccountName: release-name-kube-state-metrics
@@ -845,12 +832,13 @@ spec:
         runAsUser: 65534
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
       containers:
       - name: kube-state-metrics
         args:
         - --port=8080
         - --resources=certificatesigningrequests,configmaps,cronjobs,daemonsets,deployments,endpoints,horizontalpodautoscalers,ingresses,jobs,leases,limitranges,mutatingwebhookconfigurations,namespaces,networkpolicies,nodes,persistentvolumeclaims,persistentvolumes,poddisruptionbudgets,pods,replicasets,replicationcontrollers,resourcequotas,secrets,services,statefulsets,storageclasses,validatingwebhookconfigurations,volumeattachments
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.8.0
         ports:
         - containerPort: 8080
@@ -867,15 +855,6 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           timeoutSeconds: 5
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
         resources:
           requests:
             memory: 128Mi
@@ -883,7 +862,12 @@ spec:
           limits:
             memory: 128Mi
             cpu: 250m
-      automountServiceAccountToken: false
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -897,7 +881,6 @@ metadata:
   name: release-name-prometheus-pushgateway
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
-  namespace: test-ns
 spec:
   replicas: 1
   strategy:
@@ -914,12 +897,14 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/version: v1.5.1
         app.kubernetes.io/managed-by: Helm
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/pushgateway: runtime/default
     spec:
       serviceAccountName: release-name-prometheus-pushgateway
       containers:
       - name: pushgateway
         image: prom/pushgateway:v1.5.1
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - name: metrics
           containerPort: 9091
@@ -940,15 +925,6 @@ spec:
         - name: storage-volume
           mountPath: /data
           subPath: ''
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
         resources:
           requests:
             memory: 128Mi
@@ -956,16 +932,22 @@ spec:
           limits:
             memory: 128Mi
             cpu: 250m
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
       securityContext:
         fsGroup: 65534
         runAsNonRoot: true
         runAsUser: 65534
         seccompProfile:
           type: RuntimeDefault
+        runAsGroup: 25000
       volumes:
       - name: storage-volume
         emptyDir: {}
-      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1002,36 +984,30 @@ spec:
         helm.sh/chart: prometheus-22.6.2
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: prometheus
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/prometheus-server-configmap-reload: runtime/default
+        container.apparmor.security.beta.kubernetes.io/prometheus-server: runtime/default
     spec:
       enableServiceLinks: true
       serviceAccountName: release-name-prometheus-server
       containers:
       - name: prometheus-server-configmap-reload
         image: quay.io/prometheus-operator/prometheus-config-reloader:v0.65.1
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - --watched-dir=/etc/config
         - --reload-url=http://127.0.0.1:9090/-/reload
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
           readOnly: true
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: false
-          runAsUser: 1001
-          runAsGroup: 25000
         livenessProbe:
           exec:
             command:
@@ -1039,6 +1015,12 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: false
+          runAsUser: 1001
+          runAsGroup: 25000
+          readOnlyRootFilesystem: false
         readinessProbe:
           exec:
             command:
@@ -1048,7 +1030,7 @@ spec:
           periodSeconds: 10
       - name: prometheus-server
         image: quay.io/prometheus/prometheus:v2.44.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - --storage.tsdb.retention.time=15d
         - --config.file=/etc/config/prometheus.yml
@@ -1073,10 +1055,10 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         volumeMounts:
@@ -1086,20 +1068,17 @@ spec:
           mountPath: /data
           subPath: ''
         securityContext:
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
+          runAsUser: 1001
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
       dnsPolicy: ClusterFirst
       securityContext:
         fsGroup: 65534
         runAsGroup: 65534
         runAsNonRoot: true
-        runAsUser: 65534
+        runAsUser: 1001
         seccompProfile:
           type: RuntimeDefault
       terminationGracePeriodSeconds: 300
@@ -1110,7 +1089,7 @@ spec:
       - name: storage-volume
         persistentVolumeClaim:
           claimName: release-name-prometheus-server
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -1124,7 +1103,6 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
-  namespace: test-ns
 spec:
   replicas: 1
   selector:
@@ -1139,6 +1117,7 @@ spec:
         app.kubernetes.io/instance: release-name
       annotations:
         checksum/config: 41817d3ccbcd6b37d578ce19525576b96fd5ea1b01566d215e2178d3ad978011
+        container.apparmor.security.beta.kubernetes.io/alertmanager: runtime/default
     spec:
       automountServiceAccountToken: false
       serviceAccountName: release-name-alertmanager
@@ -1155,19 +1134,11 @@ spec:
           runAsGroup: 65534
           runAsNonRoot: true
           runAsUser: 65534
-          capabilities:
-            drop:
-            - ALL
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         image: quay.io/prometheus/alertmanager:v0.25.0
-        imagePullPolicy: Always
-        env:
-        - name: POD_IP
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: status.podIP
+        imagePullPolicy: IfNotPresent
+        env: []
         args:
         - --storage.path=/alertmanager
         - --config.file=/etc/alertmanager/alertmanager.yml
@@ -1184,10 +1155,10 @@ spec:
             path: /
             port: http
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         volumeMounts:
@@ -1195,10 +1166,16 @@ spec:
           mountPath: /etc/alertmanager
         - name: storage
           mountPath: /alertmanager
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: config
         configMap:
           name: release-name-alertmanager
+      - name: secret-volume
+        secret:
+          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: storage
@@ -1208,223 +1185,3 @@ spec:
       resources:
         requests:
           storage: 2Gi
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

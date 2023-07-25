@@ -1,24 +1,3 @@
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: release-name-pgadmin4
-  namespace: default
-  labels:
-    app.kubernetes.io/name: pgadmin4
-    helm.sh/chart: pgadmin4-1.15.2
-    app.kubernetes.io/version: '7.0'
-    app.kubernetes.io/managed-by: Helm
-spec:
-  policyTypes:
-  - Ingress
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: pgadmin4
-      app.kubernetes.io/instance: release-name
-  ingress:
-  - ports:
-    - port: 80
----
 apiVersion: v1
 kind: Secret
 metadata:
@@ -69,7 +48,6 @@ spec:
     name: http
   selector:
     app.kubernetes.io/name: pgadmin4
-    app.kubernetes.io/instance: release-name
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -88,12 +66,10 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: pgadmin4
-      app.kubernetes.io/instance: release-name
   template:
     metadata:
       labels:
         app.kubernetes.io/name: pgadmin4
-        app.kubernetes.io/instance: release-name
       annotations:
         checksum/secret: 59aee739a7f5c89c5555f4fc7799b9b33cb01e37e7046a22f01ddebcafd69467
     spec:
@@ -142,10 +118,10 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
       volumes:
       - name: pgadmin-data
@@ -158,9 +134,9 @@ spec:
         fsGroup: 5050
         runAsGroup: 5050
         runAsUser: 5050
-        runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
 ---
 apiVersion: v1
 kind: Pod
@@ -215,14 +191,14 @@ spec:
         drop:
         - ALL
       allowPrivilegeEscalation: false
-    readinessProbe:
+    livenessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    livenessProbe:
+    readinessProbe:
       exec:
         command:
         - ls

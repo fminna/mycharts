@@ -143,8 +143,8 @@ spec:
           runAsNonRoot: true
           runAsUser: 1000
           allowPrivilegeEscalation: false
-          runAsGroup: 25000
           readOnlyRootFilesystem: true
+          runAsGroup: 25000
         image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
         imagePullPolicy: IfNotPresent
         readinessProbe:
@@ -257,18 +257,10 @@ metadata:
   annotations:
     helm.sh/hook: test
     helm.sh/hook-delete-policy: hook-succeeded
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
-    container.apparmor.security.beta.kubernetes.io/release-name-crwcs-test: runtime/default
-  labels:
-    app: MyApp
-    app.kubernetes.io/name: MyApp
-  namespace: test-ns
 spec:
   securityContext:
     fsGroup: 1000
     runAsUser: 1000
-    seccompProfile:
-      type: RuntimeDefault
   containers:
   - name: release-name-crwcs-test
     env:
@@ -292,40 +284,11 @@ spec:
     - name: elasticsearch-certs
       mountPath: /usr/share/elasticsearch/config/certs
       readOnly: true
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    resources:
-      limits:
-        memory: 128Mi
-        cpu: 250m
-      requests:
-        memory: 128Mi
-        cpu: 250m
-    securityContext:
-      capabilities:
-        drop:
-        - ALL
   restartPolicy: Never
   volumes:
   - name: elasticsearch-certs
     secret:
       secretName: elasticsearch-master-certs
-  metadata:
-    labels:
-      app: MyApp
-      app.kubernetes.io/name: MyApp
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

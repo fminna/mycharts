@@ -7,7 +7,6 @@ metadata:
     chart: pihole-2.14.0
     heritage: Helm
     release: release-name
-  namespace: test-ns
 type: Opaque
 data:
   password: YWRtaW4=
@@ -21,7 +20,6 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
-  namespace: test-ns
 data:
   02-custom.conf: 'addn-hosts=/etc/addn-hosts
 
@@ -38,9 +36,10 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
-  namespace: test-ns
+  annotations:
+    networking.gke.io/load-balancer-type: Internal
 spec:
-  type: NodePort
+  type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
   - port: 67
@@ -60,9 +59,10 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
-  namespace: test-ns
+  annotations:
+    networking.gke.io/load-balancer-type: Internal
 spec:
-  type: NodePort
+  type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
   - port: 53
@@ -82,9 +82,10 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
-  namespace: test-ns
+  annotations:
+    networking.gke.io/load-balancer-type: Internal
 spec:
-  type: NodePort
+  type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
   - port: 53
@@ -104,7 +105,6 @@ metadata:
     chart: pihole-2.14.0
     release: release-name
     heritage: Helm
-  namespace: test-ns
 spec:
   type: ClusterIP
   ports:
@@ -131,7 +131,6 @@ metadata:
     heritage: Helm
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
-  namespace: test-ns
 spec:
   replicas: 1
   strategy:
@@ -152,6 +151,7 @@ spec:
         checksum.config.whitelist: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546
         checksum.config.dnsmasqConfig: d7c6cce648da84da2ddb40143f2ada49af634d5c7bafaebdfd12c6372924409
         checksum.config.staticDhcpConfig: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546
+        container.apparmor.security.beta.kubernetes.io/pihole: runtime/default
       labels:
         app: pihole
         release: release-name
@@ -173,10 +173,22 @@ spec:
         - name: PIHOLE_DNS_
           value: 8.8.8.8;8.8.4.4
         image: pihole/pihole:2023.01
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
+          runAsNonRoot: false
+          runAsUser: 1001
+          runAsGroup: 25000
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
           capabilities:
+            drop:
+            - FSETID
+            - SETPCAP
+            - NET_RAW
+            - SYS_CHROOT
+            - MKNOD
+            - AUDIT_WRITE
             add:
             - CHOWN
             - DAC_OVERRIDE
@@ -186,11 +198,6 @@ spec:
             - SETUID
             - SETFCAP
             - NET_BIND_SERVICE
-          allowPrivilegeEscalation: false
-          runAsUser: 1001
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
-          runAsGroup: 25000
         ports:
         - containerPort: 80
           name: http
@@ -239,10 +246,10 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
       volumes:
@@ -256,12 +263,11 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Pod
@@ -269,33 +275,17 @@ metadata:
   name: release-name-smoke-test
   annotations:
     helm.sh/hook: test
+    container.apparmor.security.beta.kubernetes.io/hook1-container: runtime/default
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
-  namespace: test-ns
 spec:
   containers:
   - name: hook1-container
     image: docker.io/curlimages/curl:8.1.2
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
     command:
     - sh
     - -c
     - curl http://release-name-pihole-web:80/
-    securityContext:
-      capabilities:
-        drop:
-        - ALL
-      allowPrivilegeEscalation: false
-      runAsUser: 25000
-      readOnlyRootFilesystem: true
-      runAsNonRoot: true
-      runAsGroup: 25000
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     resources:
       requests:
         memory: 128Mi
@@ -310,100 +300,24 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
   terminationGracePeriodSeconds: 0
   securityContext:
+    runAsNonRoot: true
+    runAsUser: 25000
+    runAsGroup: 25000
     seccompProfile:
       type: RuntimeDefault
-    runAsUser: 25000
-    runAsNonRoot: true
-    runAsGroup: 25000
-  automountServiceAccountToken: false
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
