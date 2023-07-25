@@ -267,7 +267,7 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
-          runAsUser: 25000
+          runAsUser: 1001
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
@@ -307,7 +307,7 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
-          runAsUser: 25000
+          runAsUser: 1001
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
@@ -349,9 +349,9 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
           runAsGroup: 25000
         livenessProbe:
           exec:
@@ -381,10 +381,10 @@ spec:
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
+        runAsUser: 1001
         runAsNonRoot: true
         runAsGroup: 25000
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
 ---
 apiVersion: apps/v1
 kind: Deployment

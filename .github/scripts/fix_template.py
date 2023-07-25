@@ -254,6 +254,10 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
             # Iterate with index through the document dictionaries
             for document in template:
 
+                if check["resource_path"].split("/")[0] == "CronJob":
+                    if check_id == "check_30":
+                        print(check_resource_path(check["resource_path"].split("/"), document))
+
                 # If the resource to fix is in the current YAML document
                 if check_resource_path(check["resource_path"].split("/"), document):
 
@@ -1754,16 +1758,15 @@ def assign_service(obj: dict):
 
 
 def remove_ssh_port(obj: dict):
-    """Remove the SSH port from each K8s Service object.
+    """Remove the SSH port from each K8s container object.
     
     Policy: Do not expose SSH ports
     
     Args:
-        obj (dict): K8s object to modify.
+        obj (dict): K8s container object to modify.
     """
 
     delete_idx = []
-
     for idx, port in enumerate(obj["ports"]):
         if "containerPort" in port and port["containerPort"] is not None:
             if port["containerPort"] == 22:

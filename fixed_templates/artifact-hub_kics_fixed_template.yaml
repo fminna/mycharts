@@ -3,7 +3,7 @@ kind: ServiceAccount
 metadata:
   name: hub
   namespace: test-ns
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Secret
@@ -178,8 +178,10 @@ metadata:
     app.kubernetes.io/version: 1.14.0
     app.kubernetes.io/managed-by: Helm
   namespace: test-ns
+  annotations:
+    networking.gke.io/load-balancer-type: Internal
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
   - port: 80
     targetPort: http
@@ -241,6 +243,9 @@ spec:
         prometheus.io/scrape: 'true'
         prometheus.io/path: /metrics
         prometheus.io/port: '8001'
+        container.apparmor.security.beta.kubernetes.io/hub: runtime/default
+        container.apparmor.security.beta.kubernetes.io/check-db-ready: runtime/default
+        container.apparmor.security.beta.kubernetes.io/check-db-migrator-run: runtime/default
       labels:
         app.kubernetes.io/component: hub
         app.kubernetes.io/name: artifact-hub
@@ -250,7 +255,7 @@ spec:
       initContainers:
       - name: check-db-ready
         image: docker.io/artifacthub/postgres:12@sha256:c549ac499c81cd8760e2c1b861a18138763da4e2678f90eb3b64c193f49b641a
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         env:
         - name: PGHOST
           value: release-name-postgresql.default
@@ -263,35 +268,21 @@ spec:
         - -c
         - until pg_isready; do echo waiting for database; sleep 2; done;
         securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          readOnlyRootFilesystem: true
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
       - name: check-db-migrator-run
         image: bitnami/kubectl:1.27
         imagePullPolicy: Always
@@ -303,35 +294,21 @@ spec:
         - job/db-migrator-install
         - --timeout=60s
         securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          readOnlyRootFilesystem: true
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
       containers:
       - name: hub
         image: artifacthub/hub:v1.14.0
@@ -345,29 +322,29 @@ spec:
           containerPort: 8000
           protocol: TCP
         securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-        livenessProbe:
+          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -379,12 +356,9 @@ spec:
         secret:
           secretName: hub-config
       securityContext:
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -415,6 +389,8 @@ spec:
         app.kubernetes.io/component: trivy
         app.kubernetes.io/name: artifact-hub
         app.kubernetes.io/instance: release-name
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/trivy: runtime/default
     spec:
       containers:
       - name: trivy
@@ -435,30 +411,30 @@ spec:
           containerPort: 8081
           protocol: TCP
         securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-        livenessProbe:
+          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
         imagePullPolicy: Always
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -469,11 +445,9 @@ spec:
       - name: trivy
         emptyDir: {}
       securityContext:
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
       automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
@@ -507,12 +481,15 @@ spec:
         release: release-name
         heritage: Helm
         role: master
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/release-name-postgresql: runtime/default
+        container.apparmor.security.beta.kubernetes.io/init-chmod-data: runtime/default
     spec:
       securityContext:
         fsGroup: 1001
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
       initContainers:
       - name: init-chmod-data
         image: docker.io/bitnami/minideb:stretch
@@ -522,8 +499,8 @@ spec:
             cpu: 250m
             memory: 256Mi
           limits:
-            memory: 256Mi
             cpu: 250m
+            memory: 256Mi
         command:
         - /bin/sh
         - -c
@@ -532,34 +509,36 @@ spec:
           \ -R 1001:1001\nchmod -R 777 /dev/shm\n"
         securityContext:
           runAsUser: 25000
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         volumeMounts:
         - name: data
           mountPath: /data
           subPath: null
+          readOnly: true
         - name: dshm
           mountPath: /dev/shm
+          readOnly: true
       containers:
       - name: release-name-postgresql
         image: docker.io/artifacthub/postgres:12@sha256:c549ac499c81cd8760e2c1b861a18138763da4e2678f90eb3b64c193f49b641a
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         resources:
           requests:
             cpu: 250m
             memory: 256Mi
           limits:
-            memory: 256Mi
             cpu: 250m
+            memory: 256Mi
         securityContext:
           runAsUser: 25000
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
@@ -607,12 +586,11 @@ spec:
         volumeMounts:
         - name: dshm
           mountPath: /dev/shm
+          readOnly: true
         - name: data
           mountPath: /data
           subPath: null
-        - name: secret-volume
           readOnly: true
-          mountPath: /etc/secret-volume
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
@@ -624,9 +602,6 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
-      - name: secret-volume
-        secret:
-          secretName: my-secret
       automountServiceAccountToken: false
   volumeClaimTemplates:
   - metadata:
@@ -634,11 +609,9 @@ spec:
     spec:
       accessModes:
       - ReadWriteOnce
-      resources:
-        requests:
-          storage: 8Gi
+      resources: {}
 ---
-apiVersion: apps/v1
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: db-migrator-install
@@ -653,7 +626,7 @@ spec:
       initContainers:
       - name: check-db-ready
         image: docker.io/artifacthub/postgres:12@sha256:c549ac499c81cd8760e2c1b861a18138763da4e2678f90eb3b64c193f49b641a
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         env:
         - name: PGHOST
           value: release-name-postgresql.default
@@ -666,21 +639,21 @@ spec:
         - -c
         - until pg_isready; do echo waiting for database; sleep 2; done;
         securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
       containers:
       - name: db-migrator
         image: artifacthub/db-migrator:v1.14.0
@@ -695,39 +668,43 @@ spec:
         command:
         - ./migrate.sh
         securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 25000
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
       volumes:
       - name: db-migrator-config
         secret:
           secretName: db-migrator-config
       securityContext:
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
       automountServiceAccountToken: false
+    metadata:
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/db-migrator: runtime/default
+        container.apparmor.security.beta.kubernetes.io/check-db-ready: runtime/default
 ---
-apiVersion: apps/v1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: scanner
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/scanner: runtime/default
+    container.apparmor.security.beta.kubernetes.io/check-db-ready: runtime/default
   namespace: test-ns
 spec:
   schedule: 15,45 * * * *
@@ -741,7 +718,7 @@ spec:
           restartPolicy: Never
           initContainers:
           - name: check-db-ready
-            image: docker.io/artifacthub/postgres:latest
+            image: docker.io/artifacthub/postgres:12@sha256:c549ac499c81cd8760e2c1b861a18138763da4e2678f90eb3b64c193f49b641a
             imagePullPolicy: IfNotPresent
             env:
             - name: PGHOST
@@ -755,35 +732,64 @@ spec:
             - -c
             - until pg_isready; do echo waiting for database; sleep 2; done;
             securityContext:
+              allowPrivilegeEscalation: false
               runAsUser: 25000
+              capabilities:
+                drop:
+                - ALL
+              runAsNonRoot: true
+              runAsGroup: 25000
+              readOnlyRootFilesystem: true
+            resources:
+              limits:
+                cpu: 250m
+                memory: 128Mi
+              requests:
+                cpu: 250m
+                memory: 128Mi
           containers:
           - name: scanner
             image: artifacthub/scanner:v1.14.0
-            imagePullPolicy: IfNotPresent
+            imagePullPolicy: Always
             volumeMounts:
             - name: scanner-config
               mountPath: /home/scanner/.cfg
               readOnly: true
             securityContext:
+              allowPrivilegeEscalation: false
               runAsUser: 25000
+              capabilities:
+                drop:
+                - ALL
+              runAsNonRoot: true
+              runAsGroup: 25000
+              readOnlyRootFilesystem: true
+            resources:
+              limits:
+                cpu: 250m
+                memory: 128Mi
+              requests:
+                cpu: 250m
+                memory: 128Mi
           volumes:
           - name: scanner-config
             secret:
               secretName: scanner-config
           securityContext:
+            runAsUser: 25000
             seccompProfile:
               type: RuntimeDefault
-            runAsUser: 25000
-            runAsNonRoot: true
-            runAsGroup: 25000
           automountServiceAccountToken: false
+  startingDeadlineSeconds: 100
 ---
-apiVersion: apps/v1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: tracker
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/tracker: runtime/default
+    container.apparmor.security.beta.kubernetes.io/check-db-ready: runtime/default
   namespace: test-ns
 spec:
   schedule: 1,30 * * * *
@@ -797,7 +803,7 @@ spec:
           restartPolicy: Never
           initContainers:
           - name: check-db-ready
-            image: docker.io/artifacthub/postgres:latest
+            image: docker.io/artifacthub/postgres:12@sha256:c549ac499c81cd8760e2c1b861a18138763da4e2678f90eb3b64c193f49b641a
             imagePullPolicy: IfNotPresent
             env:
             - name: PGHOST
@@ -811,28 +817,55 @@ spec:
             - -c
             - until pg_isready; do echo waiting for database; sleep 2; done;
             securityContext:
+              allowPrivilegeEscalation: false
               runAsUser: 25000
+              capabilities:
+                drop:
+                - ALL
+              runAsNonRoot: true
+              runAsGroup: 25000
+              readOnlyRootFilesystem: true
+            resources:
+              limits:
+                cpu: 250m
+                memory: 128Mi
+              requests:
+                cpu: 250m
+                memory: 128Mi
           containers:
           - name: tracker
             image: artifacthub/tracker:v1.14.0
-            imagePullPolicy: IfNotPresent
+            imagePullPolicy: Always
             volumeMounts:
             - name: tracker-config
               mountPath: /home/tracker/.cfg
               readOnly: true
             securityContext:
+              allowPrivilegeEscalation: false
               runAsUser: 25000
+              capabilities:
+                drop:
+                - ALL
+              runAsNonRoot: true
+              runAsGroup: 25000
+              readOnlyRootFilesystem: true
+            resources:
+              limits:
+                cpu: 250m
+                memory: 128Mi
+              requests:
+                cpu: 250m
+                memory: 128Mi
           volumes:
           - name: tracker-config
             secret:
               secretName: tracker-config
           securityContext:
+            runAsUser: 25000
             seccompProfile:
               type: RuntimeDefault
-            runAsUser: 25000
-            runAsNonRoot: true
-            runAsGroup: 25000
           automountServiceAccountToken: false
+  startingDeadlineSeconds: 100
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -855,134 +888,62 @@ spec:
       port:
         number: 80
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: v1
+kind: LimitRange
 metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
+  name: cpu-min-max-demo-lr
   namespace: test-ns
 spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: v1
+kind: LimitRange
 metadata:
-  name: test-network-policy
+  name: cpu-min-max-demo-lr
+  namespace: default
 spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: v1
+kind: ResourceQuota
 metadata:
-  name: test-network-policy
+  name: pods-high
   namespace: test-ns
 spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: v1
+kind: ResourceQuota
 metadata:
-  name: test-network-policy
+  name: pods-high
+  namespace: default
 spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high

@@ -31,7 +31,7 @@ echo "Running analyzers on $chart_name ..."
 # Step 1 - Datree
 echo -e "\n -------------------------- \n"
 echo "Step 1 - Run Datree"
-helm datree test templates/${chart_folder}_template.yaml --only-k8s-files --quiet --output json > results_${iteration}.json
+helm datree test --schema-version 1.21.0 templates/${chart_folder}_template.yaml --only-k8s-files --quiet --output json > results_${iteration}.json
 python .github/scripts/main.py --count-checks
 
 # Step 2 - Fix Datree output

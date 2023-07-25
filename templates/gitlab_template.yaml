@@ -12402,7 +12402,6 @@ metadata:
     chart: kas-7.0.3
     release: release-name
     heritage: Helm
-    
   annotations:
     kubernetes.io/ingress.class: "release-name-nginx"
     kubernetes.io/ingress.provider: "nginx"
@@ -12411,7 +12410,6 @@ metadata:
     cert-manager.io/issuer: "release-name-issuer"
     acme.cert-manager.io/http01-edit-in-place: "true"
 spec:
-  
   rules:
     - host: kas.example.com
       http:
@@ -12441,7 +12439,6 @@ metadata:
     release: release-name
     heritage: Helm
     gitlab.com/webservice-name: default
-    
   annotations:
     kubernetes.io/ingress.class: "release-name-nginx"
     kubernetes.io/ingress.provider: "nginx"
@@ -12452,7 +12449,6 @@ metadata:
     acme.cert-manager.io/http01-edit-in-place: "true"
     nginx.ingress.kubernetes.io/service-upstream: "true"
 spec:
-  
   rules:
     - host: gitlab.example.com
       http:

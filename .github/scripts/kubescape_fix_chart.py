@@ -19,6 +19,7 @@ from typing import Callable
 import json
 import re
 import kubeaudit_fix_chart
+import terrascan_fix_chart
 import fix_template
 
 
@@ -235,6 +236,14 @@ def fix_resource(template: dict, control_id: str, check_id: str, paths: dict) ->
         fix_template.set_template(template, "check_22", paths)
         return ["check_28", "check_22"]
 
+    elif control_id == "C-0042":
+        cont_path, containers, _ = terrascan_fix_chart.get_container_path(template, \
+                                                                          paths["resource_path"].split("/"))
+        for idx, _ in enumerate(containers):
+            paths["obj_path"] = cont_path + str(idx)
+            fix_template.set_template(template, check_id, paths)
+        return [check_id]
+
     else:
         fix_template.set_template(template, check_id, paths)
         return [check_id]
@@ -278,6 +287,7 @@ class LookupClass:
         "C-0031": "check_54", 
         "C-0065": "check_54",
         "C-0063": "check_54",
+        "C-0042": "check_68",
         "C-0035": "",
         "C-0026": "", # Kubernetes CronJob
         "C-0012": "", # Applications credentials in configuration file

@@ -159,7 +159,7 @@ metadata:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-certmanager-cainjector
   namespace: default
@@ -171,10 +171,17 @@ metadata:
     app.kubernetes.io/version: v1.11.1
     app.kubernetes.io/managed-by: Helm
     helm.sh/chart: certmanager-v1.11.1
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-certmanager
   namespace: default
@@ -186,10 +193,17 @@ metadata:
     app.kubernetes.io/version: v1.11.1
     app.kubernetes.io/managed-by: Helm
     helm.sh/chart: certmanager-v1.11.1
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-certmanager-webhook
   namespace: default
@@ -201,6 +215,13 @@ metadata:
     app.kubernetes.io/version: v1.11.1
     app.kubernetes.io/managed-by: Helm
     helm.sh/chart: certmanager-v1.11.1
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -212,6 +233,13 @@ metadata:
     chart: gitlab-runner-0.52.0
     release: release-name
     heritage: Helm
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -228,7 +256,14 @@ metadata:
     app.kubernetes.io/component: controller
   name: release-name-nginx-ingress
   namespace: default
-automountServiceAccountToken: false
+automountServiceAccountToken: true
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -245,7 +280,7 @@ metadata:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-redis
   namespace: default
@@ -10045,25 +10080,6 @@ rules:
   - certificates
   verbs:
   - get
-  - list
-  - watch
-- apiGroups:
-  - ''
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ''
-  resources:
-  - events
-  verbs:
-  - get
-  - create
-  - update
-  - patch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
@@ -10071,27 +10087,18 @@ rules:
   - mutatingwebhookconfigurations
   verbs:
   - get
-  - list
-  - watch
-  - update
 - apiGroups:
   - apiregistration.k8s.io
   resources:
   - apiservices
   verbs:
   - get
-  - list
-  - watch
-  - update
 - apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
   verbs:
   - get
-  - list
-  - watch
-  - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -10112,34 +10119,13 @@ rules:
   - issuers
   - issuers/status
   verbs:
-  - update
-  - patch
+  - get
 - apiGroups:
   - cert-manager.io
   resources:
   - issuers
   verbs:
   - get
-  - list
-  - watch
-- apiGroups:
-  - ''
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - delete
-- apiGroups:
-  - ''
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -10160,34 +10146,13 @@ rules:
   - clusterissuers
   - clusterissuers/status
   verbs:
-  - update
-  - patch
+  - get
 - apiGroups:
   - cert-manager.io
   resources:
   - clusterissuers
   verbs:
   - get
-  - list
-  - watch
-- apiGroups:
-  - ''
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - delete
-- apiGroups:
-  - ''
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -10210,8 +10175,7 @@ rules:
   - certificaterequests
   - certificaterequests/status
   verbs:
-  - update
-  - patch
+  - get
 - apiGroups:
   - cert-manager.io
   resources:
@@ -10221,44 +10185,19 @@ rules:
   - issuers
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
   - cert-manager.io
   resources:
   - certificates/finalizers
   - certificaterequests/finalizers
   verbs:
-  - update
+  - get
 - apiGroups:
   - acme.cert-manager.io
   resources:
   - orders
   verbs:
-  - create
-  - delete
   - get
-  - list
-  - watch
-- apiGroups:
-  - ''
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - delete
-  - patch
-- apiGroups:
-  - ''
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -10279,8 +10218,7 @@ rules:
   - orders
   - orders/status
   verbs:
-  - update
-  - patch
+  - get
 - apiGroups:
   - acme.cert-manager.io
   resources:
@@ -10288,8 +10226,6 @@ rules:
   - challenges
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
   - cert-manager.io
   resources:
@@ -10297,36 +10233,18 @@ rules:
   - issuers
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
   - acme.cert-manager.io
   resources:
   - challenges
   verbs:
-  - create
-  - delete
+  - get
 - apiGroups:
   - acme.cert-manager.io
   resources:
   - orders/finalizers
   verbs:
-  - update
-- apiGroups:
-  - ''
-  resources:
-  - secrets
-  verbs:
   - get
-  - list
-  - watch
-- apiGroups:
-  - ''
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -10347,16 +10265,13 @@ rules:
   - challenges
   - challenges/status
   verbs:
-  - update
-  - patch
+  - get
 - apiGroups:
   - acme.cert-manager.io
   resources:
   - challenges
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
   - cert-manager.io
   resources:
@@ -10364,76 +10279,37 @@ rules:
   - clusterissuers
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
-  - ''
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ''
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
-- apiGroups:
-  - ''
+  - v1
   resources:
   - pods
   - services
   verbs:
   - get
-  - list
-  - watch
-  - create
-  - delete
 - apiGroups:
   - networking.k8s.io
   resources:
   - ingresses
   verbs:
   - get
-  - list
-  - watch
-  - create
-  - delete
-  - update
 - apiGroups:
   - gateway.networking.k8s.io
   resources:
   - httproutes
   verbs:
   - get
-  - list
-  - watch
-  - create
-  - delete
-  - update
 - apiGroups:
   - route.openshift.io
   resources:
   - routes/custom-host
   verbs:
-  - create
+  - get
 - apiGroups:
   - acme.cert-manager.io
   resources:
   - challenges/finalizers
   verbs:
-  - update
-- apiGroups:
-  - ''
-  resources:
-  - secrets
-  verbs:
   - get
-  - list
-  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -10690,59 +10566,35 @@ metadata:
   name: release-name-nginx-ingress
 rules:
 - apiGroups:
-  - ''
-  resources:
-  - configmaps
-  - endpoints
-  - nodes
-  - pods
-  - secrets
-  verbs:
-  - list
-  - watch
-- apiGroups:
-  - ''
+  - v1
   resources:
   - nodes
   verbs:
   - get
 - apiGroups:
-  - ''
+  - v1
   resources:
   - services
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
   - networking.k8s.io
   resources:
   - ingresses
   verbs:
   - get
-  - list
-  - watch
-- apiGroups:
-  - ''
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
 - apiGroups:
   - networking.k8s.io
   resources:
   - ingresses/status
   verbs:
-  - update
+  - get
 - apiGroups:
   - networking.k8s.io
   resources:
   - ingressclasses
   verbs:
   - get
-  - list
-  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -10805,6 +10657,13 @@ subjects:
 - name: release-name-certmanager-cainjector
   namespace: default
   kind: ServiceAccount
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -10826,6 +10685,13 @@ subjects:
 - name: release-name-certmanager
   namespace: default
   kind: ServiceAccount
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -10847,6 +10713,13 @@ subjects:
 - name: release-name-certmanager
   namespace: default
   kind: ServiceAccount
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -10868,6 +10741,13 @@ subjects:
 - name: release-name-certmanager
   namespace: default
   kind: ServiceAccount
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -10889,6 +10769,13 @@ subjects:
 - name: release-name-certmanager
   namespace: default
   kind: ServiceAccount
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -10910,6 +10797,13 @@ subjects:
 - name: release-name-certmanager
   namespace: default
   kind: ServiceAccount
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -11017,6 +10911,13 @@ subjects:
 - kind: ServiceAccount
   name: release-name-nginx-ingress
   namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -11132,22 +11033,11 @@ metadata:
     helm.sh/chart: certmanager-v1.11.1
 rules:
 - apiGroups:
-  - ''
+  - v1
   resources:
-  - secrets
-  resourceNames:
-  - release-name-certmanager-webhook-ca
+  - pods
   verbs:
   - get
-  - list
-  - watch
-  - update
-- apiGroups:
-  - ''
-  resources:
-  - secrets
-  verbs:
-  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -11161,11 +11051,11 @@ metadata:
   namespace: default
 rules:
 - apiGroups:
-  - ''
+  - v1
   resources:
-  - '*'
+  - pods
   verbs:
-  - '*'
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -11184,74 +11074,49 @@ metadata:
   namespace: default
 rules:
 - apiGroups:
-  - ''
+  - v1
   resources:
   - namespaces
   verbs:
   - get
 - apiGroups:
-  - ''
-  resources:
-  - configmaps
-  - pods
-  - secrets
-  - endpoints
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ''
+  - v1
   resources:
   - services
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
   - networking.k8s.io
   resources:
   - ingresses
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
   - networking.k8s.io
   resources:
   - ingresses/status
   verbs:
-  - update
+  - get
 - apiGroups:
   - networking.k8s.io
   resources:
   - ingressclasses
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
-  - ''
+  - v1
   resources:
   - configmaps
   resourceNames:
   - ingress-controller-leader
   verbs:
   - get
-  - update
 - apiGroups:
-  - ''
+  - v1
   resources:
   - configmaps
   verbs:
-  - create
-- apiGroups:
-  - ''
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -11339,6 +11204,13 @@ subjects:
   kind: ServiceAccount
   name: release-name-certmanager-webhook
   namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -11358,6 +11230,13 @@ subjects:
 - kind: ServiceAccount
   name: release-name-gitlab-runner
   namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -11382,6 +11261,13 @@ subjects:
 - kind: ServiceAccount
   name: release-name-nginx-ingress
   namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: v1
 kind: Service
@@ -11868,8 +11754,6 @@ metadata:
     app.kubernetes.io/version: v1.11.1
     app.kubernetes.io/managed-by: Helm
     helm.sh/chart: certmanager-v1.11.1
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -11887,8 +11771,6 @@ spec:
         app.kubernetes.io/version: v1.11.1
         app.kubernetes.io/managed-by: Helm
         helm.sh/chart: certmanager-v1.11.1
-      annotations:
-        container.apparmor.security.beta.kubernetes.io/certmanager-cainjector: runtime/default
     spec:
       serviceAccountName: release-name-certmanager-cainjector
       securityContext:
@@ -11902,27 +11784,24 @@ spec:
         args:
         - --v=2
         - --leader-election-namespace=kube-system
-        env: []
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           readOnlyRootFilesystem: true
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -11939,10 +11818,6 @@ spec:
           periodSeconds: 10
       nodeSelector:
         kubernetes.io/os: linux
-      volumes:
-      - name: secret-volume
-        secret:
-          secretName: my-secret
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -11957,8 +11832,6 @@ metadata:
     app.kubernetes.io/version: v1.11.1
     app.kubernetes.io/managed-by: Helm
     helm.sh/chart: certmanager-v1.11.1
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -11980,7 +11853,6 @@ spec:
         prometheus.io/path: /metrics
         prometheus.io/scrape: 'true'
         prometheus.io/port: '9402'
-        container.apparmor.security.beta.kubernetes.io/certmanager-controller: runtime/default
     spec:
       serviceAccountName: release-name-certmanager
       securityContext:
@@ -12006,22 +11878,19 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           readOnlyRootFilesystem: true
-        env: []
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -12038,10 +11907,6 @@ spec:
           periodSeconds: 10
       nodeSelector:
         kubernetes.io/os: linux
-      volumes:
-      - name: secret-volume
-        secret:
-          secretName: my-secret
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -12056,8 +11921,6 @@ metadata:
     app.kubernetes.io/version: v1.11.1
     app.kubernetes.io/managed-by: Helm
     helm.sh/chart: certmanager-v1.11.1
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -12075,8 +11938,6 @@ spec:
         app.kubernetes.io/version: v1.11.1
         app.kubernetes.io/managed-by: Helm
         helm.sh/chart: certmanager-v1.11.1
-      annotations:
-        container.apparmor.security.beta.kubernetes.io/certmanager-webhook: runtime/default
     spec:
       serviceAccountName: release-name-certmanager-webhook
       securityContext:
@@ -12127,28 +11988,21 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           readOnlyRootFilesystem: true
-        env: []
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       nodeSelector:
         kubernetes.io/os: linux
-      volumes:
-      - name: secret-volume
-        secret:
-          secretName: my-secret
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -12156,12 +12010,11 @@ metadata:
   name: release-name-gitlab-runner
   namespace: test-ns
   labels:
-    app: release-name-gitlab-runner
+    app: MyApp
     chart: gitlab-runner-0.52.0
     release: release-name
     heritage: Helm
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    app.kubernetes.io/name: MyApp
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -12171,22 +12024,20 @@ spec:
   template:
     metadata:
       labels:
-        app: release-name-gitlab-runner
+        app: MyApp
         chart: gitlab-runner-0.52.0
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         checksum/configmap: 5a15f7e19f40d6edafb6fd95c4fe4eaa6ae16a72d7cf3051d71a878f725f52bc
         checksum/secrets: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         gitlab.com/prometheus_port: '9252'
         gitlab.com/prometheus_scrape: 'true'
-        container.apparmor.security.beta.kubernetes.io/release-name-gitlab-runner: runtime/default
     spec:
       securityContext:
         fsGroup: 65533
-        runAsUser: 1001
-        seccompProfile:
-          type: RuntimeDefault
+        runAsUser: 100
       terminationGracePeriodSeconds: 3600
       serviceAccountName: release-name-gitlab-runner
       containers:
@@ -12197,26 +12048,10 @@ spec:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
-            - CHOWN
-            - DAC_OVERRIDE
-            - FOWNER
-            - FSETID
-            - KILL
-            - SETGID
-            - SETPCAP
-            - SETFCAP
-            - NET_BIND_SERVICE
-            - NET_RAW
-            - SYS_CHROOT
-            - MKNOD
-            - AUDIT_WRITE
-            add:
-            - SETUID
+            - ALL
           privileged: false
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
-          runAsUser: 1001
-          runAsGroup: 25000
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
         command:
         - /usr/bin/dumb-init
         - --
@@ -12266,12 +12101,12 @@ spec:
         - name: configmaps
           mountPath: /configmaps
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       volumes:
       - name: runner-secrets
         emptyDir:
@@ -12294,7 +12129,6 @@ spec:
       - name: configmaps
         configMap:
           name: release-name-gitlab-runner
-      hostNetwork: true
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -12302,10 +12136,11 @@ metadata:
   name: release-name-gitlab-exporter
   namespace: test-ns
   labels:
-    app: gitlab-exporter
+    app: MyApp
     chart: gitlab-exporter-7.0.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -12317,10 +12152,11 @@ spec:
   template:
     metadata:
       labels:
-        app: gitlab-exporter
+        app: MyApp
         chart: gitlab-exporter-7.0.3
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         checksum/config: 299dba0ffa0fc13a8e9c0a4347683a9d09453494bf2d50fc074fd632469ed40d
         gitlab.com/prometheus_scrape: 'true'
@@ -12373,21 +12209,11 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       - name: configure
         command:
         - sh
         - /config/configure
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
         env:
         - name: MALLOC_CONF
           value: dirty_decay_ms:0,muzzy_decay_ms:0
@@ -12410,25 +12236,18 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       containers:
       - name: gitlab-exporter
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-exporter:13.0.0
         securityContext:
           runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
         env:
         - name: CONFIG_TEMPLATE_DIRECTORY
           value: /var/opt/gitlab-exporter/templates
@@ -12480,10 +12299,10 @@ spec:
         resources:
           requests:
             cpu: 75m
-            memory: 128Mi
+            memory: 100M
           limits:
+            memory: 100M
             cpu: 75m
-            memory: 128Mi
       volumes:
       - name: gitlab-exporter-config
         configMap:
@@ -12523,10 +12342,11 @@ metadata:
   name: release-name-gitlab-shell
   namespace: test-ns
   labels:
-    app: gitlab-shell
+    app: MyApp
     chart: gitlab-shell-7.0.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -12537,10 +12357,11 @@ spec:
   template:
     metadata:
       labels:
-        app: gitlab-shell
+        app: MyApp
         chart: gitlab-shell-7.0.3
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         checksum/config: a05d60216578ecc23193175905bcf140fcf9bdf27ff33552cebae5f5ef68d55d
         checksum/config-sshd: 56b55f51f35c387fa90b2e0acc57a792f6b5495ce258e8999be7e2702dc1b7b7
@@ -12563,21 +12384,11 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       - name: configure
         command:
         - sh
         - /config/configure
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
         env: null
         volumeMounts:
         - name: shell-config
@@ -12592,16 +12403,6 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       securityContext:
         runAsUser: 1000
         fsGroup: 1000
@@ -12625,10 +12426,13 @@ spec:
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-shell:v14.20.0
         securityContext:
           runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
         ports:
         - containerPort: 2222
           name: ssh
@@ -12683,10 +12487,10 @@ spec:
         resources:
           requests:
             cpu: 0
-            memory: 128Mi
+            memory: 6M
           limits:
+            memory: 6M
             cpu: 0
-            memory: 128Mi
       terminationGracePeriodSeconds: 30
       volumes:
       - name: shell-config
@@ -12722,10 +12526,11 @@ metadata:
   name: release-name-kas
   namespace: test-ns
   labels:
-    app: kas
+    app: MyApp
     chart: kas-7.0.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -12736,10 +12541,11 @@ spec:
   template:
     metadata:
       labels:
-        app: kas
+        app: MyApp
         chart: kas-7.0.3
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         checksum/config: c8fb16a8e34df6cee8d0f486eebfb5b782208a304294cd0c738dcc979b446289
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
@@ -12784,30 +12590,27 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 65532
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       containers:
       - name: kas
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-kas:v16.0.1
         securityContext:
           runAsUser: 65532
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
         args:
         - --configuration-file=/etc/kas/config.yaml
         env:
         - name: OWN_PRIVATE_API_HOST
           value: release-name-kas.default.svc
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         - name: OWN_PRIVATE_API_URL
           value: grpc://$(POD_IP):8155
         ports:
@@ -12834,10 +12637,10 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 128Mi
+            memory: 100M
           limits:
+            memory: 100M
             cpu: 100m
-            memory: 128Mi
         volumeMounts:
         - name: init-etc-kas
           mountPath: /etc/kas
@@ -12848,9 +12651,6 @@ spec:
         - name: etc-pki-ca-trust-extracted-pem
           mountPath: /etc/pki/ca-trust/extracted/pem
           readOnly: true
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       terminationGracePeriodSeconds: 300
       volumes:
       - name: etc-ssl-certs
@@ -12880,9 +12680,6 @@ spec:
               items:
               - key: secret
                 path: redis/redis-password
-      - name: secret-volume
-        secret:
-          secretName: my-secret
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -12890,11 +12687,12 @@ metadata:
   name: release-name-sidekiq-all-in-1-v2
   namespace: test-ns
   labels:
-    app: sidekiq
+    app: MyApp
     chart: sidekiq-7.0.3
     release: release-name
     heritage: Helm
     queue-pod-name: all-in-1
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -12906,11 +12704,12 @@ spec:
   template:
     metadata:
       labels:
-        app: sidekiq
+        app: MyApp
         chart: sidekiq-7.0.3
         release: release-name
         heritage: Helm
         queue-pod-name: all-in-1
+        app.kubernetes.io/name: MyApp
       annotations:
         checksum/configmap: d9f6036a5655e17204e436912273af9437b10a11b71f8079bef43994c0fac08a
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
@@ -12958,21 +12757,11 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       - name: configure
         command:
         - sh
         - /config/configure
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
         env: null
         volumeMounts:
         - name: sidekiq-config
@@ -12987,16 +12776,6 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       - name: dependencies
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-sidekiq-ee:v16.0.3
         args:
@@ -13034,25 +12813,18 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       containers:
       - name: sidekiq
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-sidekiq-ee:v16.0.3
         securityContext:
           runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
         env:
         - name: prometheus_multiproc_dir
           value: /metrics
@@ -13142,10 +12914,10 @@ spec:
         resources:
           requests:
             cpu: 900m
-            memory: 128Mi
+            memory: 2G
           limits:
+            memory: 2G
             cpu: 900m
-            memory: 128Mi
       volumes:
       - name: sidekiq-metrics
         emptyDir:
@@ -13227,10 +12999,11 @@ metadata:
   name: release-name-toolbox
   namespace: test-ns
   labels:
-    app: toolbox
+    app: MyApp
     chart: toolbox-7.0.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -13244,10 +13017,11 @@ spec:
   template:
     metadata:
       labels:
-        app: toolbox
+        app: MyApp
         chart: toolbox-7.0.3
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         checksum/config: 0ac931e688c2462966913ada8408dc2d11135c1203ddf3aad81c640f0891d28e
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
@@ -13277,35 +13051,11 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       - name: configure
         command:
         - sh
         - /config/configure
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
         env: null
         volumeMounts:
         - name: toolbox-config
@@ -13320,30 +13070,6 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -13363,10 +13089,13 @@ spec:
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-toolbox-ee:v16.0.3
         securityContext:
           runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
         env:
         - name: ARTIFACTS_BUCKET_NAME
           value: gitlab-artifacts
@@ -13427,10 +13156,10 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
+            memory: 350M
           limits:
+            memory: 350M
             cpu: 50m
-            memory: 128Mi
         readinessProbe:
           exec:
             command:
@@ -13530,11 +13259,12 @@ metadata:
   name: release-name-webservice-default
   namespace: test-ns
   labels:
-    app: webservice
+    app: MyApp
     chart: webservice-7.0.3
     release: release-name
     heritage: Helm
     gitlab.com/webservice-name: default
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -13546,11 +13276,12 @@ spec:
   template:
     metadata:
       labels:
-        app: webservice
+        app: MyApp
         chart: webservice-7.0.3
         release: release-name
         heritage: Helm
         gitlab.com/webservice-name: default
+        app.kubernetes.io/name: MyApp
       annotations:
         checksum/config: 41031acc86fad565d101f9ece367bbda2bea1e4d064309844aa20d958c520656
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
@@ -13598,16 +13329,6 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       - name: configure
         command:
         - sh
@@ -13615,7 +13336,7 @@ spec:
         - -c
         - sh -x /config-webservice/configure ; sh -x /config-workhorse/configure ;
           mkdir -p -m 3770 /tmp/gitlab
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
         volumeMounts:
         - name: webservice-config
           mountPath: /config-webservice
@@ -13638,16 +13359,6 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       - name: dependencies
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ee:v16.0.3
         args:
@@ -13682,25 +13393,18 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       containers:
       - name: webservice
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ee:v16.0.3
         securityContext:
           runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
         ports:
         - containerPort: 8080
           name: http-webservice
@@ -13799,10 +13503,10 @@ spec:
         resources:
           requests:
             cpu: 300m
-            memory: 128Mi
+            memory: 2.5G
           limits:
+            memory: 2.5G
             cpu: 300m
-            memory: 128Mi
       - name: gitlab-workhorse
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-workhorse-ee:v16.0.3
         ports:
@@ -13871,16 +13575,19 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 128Mi
+            memory: 100M
           limits:
+            memory: 100M
             cpu: 100m
-            memory: 128Mi
         securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
-          runAsUser: 1000
+          runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
       volumes:
       - name: shared-tmp
         emptyDir: {}
@@ -13980,10 +13687,11 @@ metadata:
   name: release-name-minio
   namespace: test-ns
   labels:
-    app: minio
+    app: MyApp
     chart: minio-0.4.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -13999,10 +13707,11 @@ spec:
       name: release-name-minio
       labels:
         component: app
-        app: minio
+        app: MyApp
         chart: minio-0.4.3
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/minio: runtime/default
         container.apparmor.security.beta.kubernetes.io/configure: runtime/default
@@ -14037,7 +13746,7 @@ spec:
           medium: Memory
       initContainers:
       - name: configure
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
         command:
         - sh
         - /config/configure
@@ -14049,23 +13758,6 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       containers:
       - name: minio
         image: minio/minio:RELEASE.2017-12-28T01-21-00Z
@@ -14095,8 +13787,17 @@ spec:
             cpu: 100m
             memory: 128Mi
           limits:
-            cpu: 100m
             memory: 128Mi
+            cpu: 100m
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           exec:
             command:
@@ -14104,18 +13805,12 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: nginx-ingress
+    app: MyApp
     chart: nginx-ingress-4.0.6
     release: release-name
     heritage: Helm
@@ -14124,10 +13819,10 @@ metadata:
     app.kubernetes.io/version: 1.0.4
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
+    app.kubernetes.io/name: MyApp
   name: release-name-nginx-ingress-controller
   namespace: test-ns
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  annotations: null
 spec:
   selector:
     matchLabels:
@@ -14140,11 +13835,10 @@ spec:
   template:
     metadata:
       labels:
-        app: nginx-ingress
+        app: MyApp
         release: release-name
         component: controller
-      annotations:
-        container.apparmor.security.beta.kubernetes.io/controller: runtime/default
+        app.kubernetes.io/name: MyApp
     spec:
       dnsPolicy: ClusterFirst
       containers:
@@ -14168,14 +13862,20 @@ spec:
           capabilities:
             drop:
             - ALL
-            add:
-            - NET_BIND_SERVICE
-          runAsUser: 25000
+          runAsUser: 101
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
           readOnlyRootFilesystem: true
         env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         - name: LD_PRELOAD
           value: /usr/local/lib/libmimalloc.so
         livenessProbe:
@@ -14208,42 +13908,26 @@ spec:
         - name: metrics
           containerPort: 10254
           protocol: TCP
-        - name: gitlab-shell
-          containerPort: 22
-          protocol: TCP
         resources:
           requests:
             cpu: 100m
             memory: 100Mi
           limits:
-            cpu: 100m
             memory: 100Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+            cpu: 100m
       serviceAccountName: release-name-nginx-ingress
       terminationGracePeriodSeconds: 300
-      volumes:
-      - name: secret-volume
-        secret:
-          secretName: my-secret
-      securityContext:
-        runAsUser: 25000
-        seccompProfile:
-          type: RuntimeDefault
-        runAsNonRoot: true
-        runAsGroup: 25000
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     component: server
-    app: prometheus
+    app: MyApp
     release: release-name
     chart: prometheus-15.18.0
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   name: release-name-prometheus-server
   namespace: test-ns
   annotations:
@@ -14262,10 +13946,11 @@ spec:
     metadata:
       labels:
         component: server
-        app: prometheus
+        app: MyApp
         release: release-name
         chart: prometheus-15.18.0
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/prometheus-server-configmap-reload: runtime/default
         container.apparmor.security.beta.kubernetes.io/prometheus-server: runtime/default
@@ -14280,16 +13965,25 @@ spec:
         - --volume-dir=/etc/config
         - --webhook-url=http://127.0.0.1:9090/-/reload
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
           readOnly: true
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           exec:
             command:
@@ -14297,12 +13991,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -14323,26 +14011,32 @@ spec:
         ports:
         - containerPort: 9090
         readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
+          httpGet:
+            path: /-/ready
+            port: 9090
+            scheme: HTTP
           initialDelaySeconds: 30
-          periodSeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 4
+          failureThreshold: 3
+          successThreshold: 1
         livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
+          httpGet:
+            path: /-/healthy
+            port: 9090
+            scheme: HTTP
           initialDelaySeconds: 30
-          periodSeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
@@ -14350,11 +14044,14 @@ spec:
           mountPath: /data
           subPath: ''
         securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
       dnsPolicy: ClusterFirst
       securityContext:
         fsGroup: 65534
@@ -14378,10 +14075,11 @@ metadata:
   name: release-name-registry
   namespace: test-ns
   labels:
-    app: registry
+    app: MyApp
     chart: registry-0.7.0
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -14392,10 +14090,11 @@ spec:
   template:
     metadata:
       labels:
-        app: registry
+        app: MyApp
         chart: registry-0.7.0
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         checksum/configmap: e33fd0be2f3ecafcebe1e28c00f2e25d2e40b4140c8b9816519a5bb49bbae05f
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
@@ -14434,18 +14133,8 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       - name: configure
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
         command:
         - sh
         - /config/configure
@@ -14457,26 +14146,19 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
         env: null
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       containers:
       - name: registry
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-container-registry:v3.73.1-gitlab
         securityContext:
           runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
         env: null
         volumeMounts:
         - name: registry-server-config
@@ -14516,10 +14198,10 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
+            memory: 32Mi
           limits:
+            memory: 32Mi
             cpu: 50m
-            memory: 128Mi
         lifecycle:
           preStop:
             exec:
@@ -14678,10 +14360,11 @@ metadata:
   name: release-name-gitaly
   namespace: test-ns
   labels:
-    app: gitaly
+    app: MyApp
     chart: gitaly-7.0.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -14695,10 +14378,11 @@ spec:
   template:
     metadata:
       labels:
-        app: gitaly
+        app: MyApp
         chart: gitaly-7.0.3
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         checksum/config: 76ffb493937aac69a44af72bfdd72e8fba066e25ff148db2be18bcf08bc20833
         gitlab.com/prometheus_scrape: 'true'
@@ -14725,21 +14409,11 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       - name: configure
         command:
         - sh
         - /config/configure
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
         volumeMounts:
         - name: gitaly-config
           mountPath: /config
@@ -14753,16 +14427,6 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       securityContext:
         runAsUser: 1000
         fsGroup: 1000
@@ -14786,10 +14450,13 @@ spec:
         image: registry.gitlab.com/gitlab-org/build/cng/gitaly:v16.0.3
         securityContext:
           runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         ports:
         - containerPort: 8075
           name: grpc-gitaly
@@ -14839,10 +14506,10 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 128Mi
+            memory: 200Mi
           limits:
+            memory: 200Mi
             cpu: 100m
-            memory: 128Mi
       volumes:
       - name: gitaly-config
         configMap:
@@ -14891,11 +14558,12 @@ metadata:
   name: release-name-postgresql
   namespace: test-ns
   labels:
-    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/name: MyApp
     helm.sh/chart: postgresql-12.5.2
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: primary
+    app: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -14913,11 +14581,12 @@ spec:
     metadata:
       name: release-name-postgresql
       labels:
-        app.kubernetes.io/name: postgresql
+        app.kubernetes.io/name: MyApp
         helm.sh/chart: postgresql-12.5.2
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: primary
+        app: MyApp
       annotations:
         postgresql.gitlab/init-revision: '1'
         container.apparmor.security.beta.kubernetes.io/postgresql: runtime/default
@@ -14941,6 +14610,9 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
       hostNetwork: false
       hostIPC: false
       containers:
@@ -14949,10 +14621,13 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -14964,6 +14639,16 @@ spec:
           value: /bitnami/postgresql/data
         - name: POSTGRES_USER
           value: gitlab
+        - name: POSTGRES_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-postgresql-password
+              key: postgresql-postgres-password
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-postgresql-password
+              key: postgresql-password
         - name: POSTGRES_DB
           value: gitlabhq_production
         - name: POSTGRESQL_ENABLE_LDAP
@@ -15017,11 +14702,11 @@ spec:
               '
         resources:
           limits:
+            memory: 256Mi
             cpu: 250m
-            memory: 128Mi
           requests:
             cpu: 250m
-            memory: 128Mi
+            memory: 256Mi
         volumeMounts:
         - name: custom-init-scripts
           mountPath: /docker-entrypoint-initdb.d/
@@ -15032,21 +14717,26 @@ spec:
         - mountPath: /docker-entrypoint-preinitdb.d/init_revision.sh
           name: custom-init-scripts
           subPath: init_revision.sh
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       - name: metrics
         image: docker.io/bitnami/postgres-exporter:0.12.0-debian-11-r86
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         env:
         - name: DATA_SOURCE_URI
           value: 127.0.0.1:5432/gitlabhq_production?sslmode=disable
+        - name: DATA_SOURCE_PASS
+          valueFrom:
+            secretKeyRef:
+              name: release-name-postgresql-password
+              key: postgresql-password
         - name: DATA_SOURCE_USER
           value: gitlab
         ports:
@@ -15070,17 +14760,12 @@ spec:
           httpGet:
             path: /
             port: http-metrics
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+        volumeMounts: null
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
-          requests:
             cpu: 250m
-            memory: 128Mi
+          requests: {}
       volumes:
       - name: custom-init-scripts
         configMap:
@@ -15088,9 +14773,6 @@ spec:
       - name: dshm
         emptyDir:
           medium: Memory
-      - name: secret-volume
-        secret:
-          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -15107,11 +14789,12 @@ metadata:
   name: release-name-redis-master
   namespace: test-ns
   labels:
-    app.kubernetes.io/name: redis
+    app.kubernetes.io/name: MyApp
     helm.sh/chart: redis-16.13.2
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: master
+    app: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -15128,11 +14811,12 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: redis
+        app.kubernetes.io/name: MyApp
         helm.sh/chart: redis-16.13.2
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: master
+        app: MyApp
       annotations:
         checksum/configmap: 169c8c0e9c586b7a35477e1358014305b8d2a661cb4fdba43d68220318b3d0a4
         checksum/health: 59d784a388edd40d5b42dd66eceeac59b980f4596412d919a63fe1ebbf800744
@@ -15147,6 +14831,9 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
       serviceAccountName: release-name-redis
       affinity:
         podAffinity: null
@@ -15164,14 +14851,17 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: redis
-        image: docker.io/bitnami/redis:6-alpine3.18@sha256:f9fd65500e22bff9ebcd214268f3f03b80a45cffa91d24d7313b242d6750bebc
+        image: docker.io/bitnami/redis:6.2.7-debian-11-r11
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         command:
         - /bin/bash
         args:
@@ -15194,26 +14884,32 @@ spec:
         - name: redis
           containerPort: 6379
         livenessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 6
+          successThreshold: 1
+          failureThreshold: 5
           exec:
             command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+            - sh
+            - -c
+            - /health/ping_liveness_local.sh 5
         readinessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 5
           exec:
             command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+            - sh
+            - -c
+            - /health/ping_readiness_local.sh 1
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
-          requests:
             cpu: 250m
-            memory: 128Mi
+          requests: {}
         volumeMounts:
         - name: start-scripts
           mountPath: /opt/bitnami/scripts/start-scripts
@@ -15235,10 +14931,13 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         command:
         - /bin/bash
         - -c
@@ -15261,11 +14960,9 @@ spec:
           containerPort: 9121
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
-          requests:
             cpu: 250m
-            memory: 128Mi
+          requests: {}
         volumeMounts:
         - name: redis-password
           mountPath: /secrets/
@@ -15325,10 +15022,11 @@ metadata:
   name: release-name-issuer-1
   namespace: test-ns
   labels:
-    app: certmanager-issuer
+    app: MyApp
     chart: certmanager-issuer-0.1.0
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -15336,8 +15034,9 @@ spec:
   template:
     metadata:
       labels:
-        app: certmanager-issuer
+        app: MyApp
         release: release-name
+        app.kubernetes.io/name: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/create-issuer: runtime/default
     spec:
@@ -15363,10 +15062,18 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
           limits:
-            cpu: 50m
             memory: 128Mi
+            cpu: 50m
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           exec:
             command:
@@ -15374,12 +15081,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -15398,10 +15099,11 @@ metadata:
   name: release-name-migrations-1
   namespace: test-ns
   labels:
-    app: migrations
+    app: MyApp
     chart: migrations-7.0.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -15410,10 +15112,11 @@ spec:
   template:
     metadata:
       labels:
-        app: migrations
+        app: MyApp
         chart: migrations-7.0.3
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/migrations: runtime/default
         container.apparmor.security.beta.kubernetes.io/certificates: runtime/default
@@ -15441,35 +15144,11 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       - name: configure
         command:
         - sh
         - /config/configure
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
         env: null
         volumeMounts:
         - name: migrations-config
@@ -15484,30 +15163,6 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       restartPolicy: OnFailure
       containers:
       - name: migrations
@@ -15517,10 +15172,13 @@ spec:
         - /scripts/db-migrate
         securityContext:
           runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         env:
         - name: CONFIG_TEMPLATE_DIRECTORY
           value: /var/opt/gitlab/templates
@@ -15554,10 +15212,10 @@ spec:
         resources:
           requests:
             cpu: 250m
-            memory: 128Mi
+            memory: 200Mi
           limits:
+            memory: 200Mi
             cpu: 250m
-            memory: 128Mi
         readinessProbe:
           exec:
             command:
@@ -15631,10 +15289,11 @@ metadata:
   name: release-name-minio-create-buckets-1
   namespace: test-ns
   labels:
-    app: minio
+    app: MyApp
     chart: minio-0.4.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
@@ -15643,10 +15302,11 @@ spec:
     metadata:
       labels:
         component: create-buckets
-        app: minio
+        app: MyApp
         chart: minio-0.4.3
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/minio-mc: runtime/default
     spec:
@@ -15677,10 +15337,18 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
           limits:
-            cpu: 50m
             memory: 128Mi
+            cpu: 50m
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -15688,12 +15356,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -15704,9 +15366,6 @@ spec:
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsNonRoot: true
-        runAsUser: 25000
-        runAsGroup: 25000
 ---
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
@@ -15950,7 +15609,7 @@ webhooks:
 ---
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-certmanager-startupapicheck
   namespace: default
@@ -15981,6 +15640,13 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-weight: '-5'
     helm.sh/hook-delete-policy: hook-succeeded,before-hook-creation
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -16183,14 +15849,11 @@ metadata:
     helm.sh/hook-delete-policy: hook-succeeded,before-hook-creation
 rules:
 - apiGroups:
-  - ''
+  - v1
   resources:
-  - secrets
+  - pods
   verbs:
   - get
-  - list
-  - create
-  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -16240,17 +15903,22 @@ subjects:
 - kind: ServiceAccount
   name: release-name-shared-secrets
   namespace: default
+rules:
+- apiGroups:
+  - v1
+  resources:
+  - pods
+  verbs:
+  - get
 ---
 apiVersion: v1
-kind: Pod
+kind: Deployment
 metadata:
   name: release-name-webservice-test-runner-t8yp6
-  namespace: test-ns
+  namespace: default
   annotations:
     helm.sh/hook: test
     helm.sh/hook-delete-policy: hook-succeeded,hook-failed,before-hook-creation
-    container.apparmor.security.beta.kubernetes.io/test-runner: runtime/default
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
   labels:
     app: webservice
     chart: webservice-7.0.3
@@ -16270,33 +15938,6 @@ spec:
       readOnly: true
       mountPath: /initial_root_password
       subPath: initial_root_password
-    resources:
-      requests:
-        cpu: 250m
-        memory: 128Mi
-      limits:
-        cpu: 250m
-        memory: 128Mi
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    securityContext:
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
   volumes:
   - name: tests
     configMap:
@@ -16308,12 +15949,6 @@ spec:
       - key: password
         path: initial_root_password
   restartPolicy: Never
-  securityContext:
-    seccompProfile:
-      type: RuntimeDefault
-    runAsNonRoot: true
-    runAsUser: 25000
-    runAsGroup: 25000
 ---
 apiVersion: batch/v1
 kind: Job
@@ -16332,7 +15967,6 @@ metadata:
     helm.sh/hook: post-install
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
     helm.sh/hook-weight: '1'
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   backoffLimit: 4
   template:
@@ -16345,8 +15979,6 @@ spec:
         app.kubernetes.io/version: v1.11.1
         app.kubernetes.io/managed-by: Helm
         helm.sh/chart: certmanager-v1.11.1
-      annotations:
-        container.apparmor.security.beta.kubernetes.io/certmanager-startupapicheck: runtime/default
     spec:
       restartPolicy: OnFailure
       serviceAccountName: release-name-certmanager-startupapicheck
@@ -16367,17 +15999,14 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           readOnlyRootFilesystem: true
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -16401,10 +16030,11 @@ metadata:
   name: release-name-shared-secrets-1-vmm
   namespace: test-ns
   labels:
-    app: gitlab
+    app: MyApp
     chart: gitlab-7.0.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-delete-policy: hook-succeeded,before-hook-creation
@@ -16413,10 +16043,11 @@ spec:
   template:
     metadata:
       labels:
-        app: gitlab
+        app: MyApp
         chart: gitlab-7.0.3
         release: release-name
         heritage: Helm
+        app.kubernetes.io/name: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/gitlab: runtime/default
     spec:
@@ -16443,10 +16074,18 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
           limits:
-            cpu: 50m
             memory: 128Mi
+            cpu: 50m
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           exec:
             command:
@@ -16454,12 +16093,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -16480,10 +16113,11 @@ metadata:
   name: release-name-gitlab-upgrade-check
   namespace: test-ns
   labels:
-    app: gitlab
+    app: MyApp
     chart: gitlab-7.0.3
     release: release-name
     heritage: Helm
+    app.kubernetes.io/name: MyApp
   annotations:
     helm.sh/hook: pre-upgrade
     helm.sh/hook-weight: '-10'
@@ -16494,8 +16128,9 @@ spec:
   template:
     metadata:
       labels:
-        app: gitlab
+        app: MyApp
         release: release-name
+        app.kubernetes.io/name: MyApp
       annotations:
         container.apparmor.security.beta.kubernetes.io/run-check: runtime/default
     spec:
@@ -16509,8 +16144,8 @@ spec:
       restartPolicy: Never
       containers:
       - name: run-check
-        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
-        imagePullPolicy: IfNotPresent
+        image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:latest
+        imagePullPolicy: Always
         command:
         - /bin/sh
         - /scripts/runcheck
@@ -16529,10 +16164,18 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
           limits:
-            cpu: 50m
             memory: 128Mi
+            cpu: 50m
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           exec:
             command:
@@ -16540,12 +16183,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -16565,3 +16202,1059 @@ spec:
         secret:
           secretName: release-name-postgresql-password
           optional: true
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
