@@ -542,13 +542,6 @@ spec:
             port: http-metrics
           initialDelaySeconds: 15
           timeoutSeconds: 1
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           limits:
             memory: 128Mi
@@ -556,6 +549,13 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -569,9 +569,9 @@ metadata:
     helm.sh/chart: grafana-agent-operator-0.2.3
     app.kubernetes.io/version: 0.25.1
     app: MyApp
-  namespace: test-ns
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  namespace: test-ns
 spec:
   replicas: 1
   selector:
@@ -603,6 +603,13 @@ spec:
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -617,13 +624,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
       securityContext:
         seccompProfile:
           type: RuntimeDefault
@@ -1271,9 +1271,10 @@ metadata:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
     container.apparmor.security.beta.kubernetes.io/busybox: runtime/default
     container.apparmor.security.beta.kubernetes.io/sleep: runtime/default
-  namespace: test-ns
   labels:
     app: MyApp
+    app.kubernetes.io/name: MyApp
+  namespace: test-ns
 spec:
   containers:
   - name: busybox
@@ -1289,20 +1290,13 @@ spec:
         - ALL
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
+    resources:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
   initContainers:
   - name: sleep
     image: busybox:1.36
@@ -1317,6 +1311,7 @@ spec:
   metadata:
     labels:
       app: MyApp
+      app.kubernetes.io/name: MyApp
 ---
 apiVersion: v1
 kind: Deployment
@@ -1352,20 +1347,13 @@ spec:
         - ALL
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
+    resources:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
   restartPolicy: Never
   securityContext:
     seccompProfile:

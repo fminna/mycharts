@@ -11914,15 +11914,11 @@ spec:
           readOnlyRootFilesystem: true
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -11930,6 +11926,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -12013,15 +12013,11 @@ spec:
         env: []
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -12029,6 +12025,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -12134,11 +12134,11 @@ spec:
         env: []
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: secret-volume
           readOnly: true
@@ -12252,11 +12252,11 @@ spec:
           mountPath: /configmaps
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
       volumes:
       - name: runner-secrets
         emptyDir:
@@ -12362,10 +12362,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       - name: configure
         command:
@@ -12399,19 +12399,19 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       containers:
       - name: gitlab-exporter
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-exporter:13.0.0
         securityContext:
           runAsUser: 1000
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         env:
         - name: CONFIG_TEMPLATE_DIRECTORY
@@ -12552,10 +12552,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       - name: configure
         command:
@@ -12581,10 +12581,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       securityContext:
         runAsUser: 1000
@@ -12609,9 +12609,9 @@ spec:
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-shell:v14.20.0
         securityContext:
           runAsUser: 1000
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         ports:
         - containerPort: 2222
@@ -12773,19 +12773,19 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       containers:
       - name: kas
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-kas:v16.0.1
         securityContext:
           runAsUser: 65532
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         args:
         - --configuration-file=/etc/kas/config.yaml
@@ -12947,10 +12947,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       - name: configure
         command:
@@ -12976,10 +12976,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       - name: dependencies
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-sidekiq-ee:v16.0.3
@@ -13023,19 +13023,19 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       containers:
       - name: sidekiq
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-sidekiq-ee:v16.0.3
         securityContext:
           runAsUser: 1000
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         env:
         - name: prometheus_multiproc_dir
@@ -13265,6 +13265,12 @@ spec:
           limits:
             cpu: 50m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -13272,12 +13278,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -13308,6 +13308,12 @@ spec:
           limits:
             cpu: 50m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -13315,12 +13321,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -13347,9 +13347,9 @@ spec:
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-toolbox-ee:v16.0.3
         securityContext:
           runAsUser: 1000
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         env:
         - name: ARTIFACTS_BUCKET_NAME
@@ -13587,10 +13587,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       - name: configure
         command:
@@ -13627,10 +13627,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       - name: dependencies
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ee:v16.0.3
@@ -13671,19 +13671,19 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       containers:
       - name: webservice
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ee:v16.0.3
         securityContext:
           runAsUser: 1000
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         ports:
         - containerPort: 8080
@@ -13860,10 +13860,10 @@ spec:
             cpu: 100m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       volumes:
       - name: shared-tmp
@@ -14037,6 +14037,12 @@ spec:
           limits:
             cpu: 50m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -14044,12 +14050,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
       containers:
       - name: minio
         image: minio/minio:RELEASE.2017-12-28T01-21-00Z
@@ -14081,6 +14081,12 @@ spec:
           limits:
             cpu: 100m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -14088,12 +14094,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -14208,16 +14208,16 @@ spec:
           mountPath: /etc/secret-volume
       serviceAccountName: release-name-nginx-ingress
       terminationGracePeriodSeconds: 300
-      volumes:
-      - name: secret-volume
-        secret:
-          secretName: my-secret
       securityContext:
         runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
         runAsNonRoot: true
         runAsGroup: 25000
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: my-secret
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -14265,15 +14265,21 @@ spec:
         - --webhook-url=http://127.0.0.1:9090/-/reload
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
           readOnly: true
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -14281,12 +14287,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -14322,11 +14322,11 @@ spec:
           periodSeconds: 10
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
@@ -14334,10 +14334,10 @@ spec:
           mountPath: /data
           subPath: ''
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       dnsPolicy: ClusterFirst
       securityContext:
@@ -14423,10 +14423,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       - name: configure
         image: registry.gitlab.com/gitlab-org/cloud-native/mirror/images/busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
@@ -14447,19 +14447,19 @@ spec:
             memory: 128Mi
         env: null
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       containers:
       - name: registry
         image: registry.gitlab.com/gitlab-org/build/cng/gitlab-container-registry:v3.73.1-gitlab
         securityContext:
           runAsUser: 1000
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         env: null
         volumeMounts:
@@ -14714,10 +14714,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       - name: configure
         command:
@@ -14742,10 +14742,10 @@ spec:
             cpu: 50m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       securityContext:
         runAsUser: 1000
@@ -14770,9 +14770,9 @@ spec:
         image: registry.gitlab.com/gitlab-org/build/cng/gitaly:v16.0.3
         securityContext:
           runAsUser: 1000
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         ports:
         - containerPort: 8075
@@ -14933,9 +14933,9 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
@@ -15025,8 +15025,8 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
-          allowPrivilegeEscalation: false
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         env:
         - name: DATA_SOURCE_URI
@@ -15063,8 +15063,8 @@ spec:
             cpu: 250m
             memory: 128Mi
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
       volumes:
       - name: custom-init-scripts
         configMap:
@@ -15152,9 +15152,9 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         command:
         - /bin/bash
@@ -15196,8 +15196,8 @@ spec:
             cpu: 250m
             memory: 128Mi
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: start-scripts
           mountPath: /opt/bitnami/scripts/start-scripts
@@ -15219,9 +15219,9 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         command:
         - /bin/bash
@@ -15248,8 +15248,8 @@ spec:
             cpu: 250m
             memory: 128Mi
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: redis-password
           mountPath: /secrets/
@@ -15351,6 +15351,12 @@ spec:
           limits:
             cpu: 50m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -15358,12 +15364,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -15429,6 +15429,12 @@ spec:
           limits:
             cpu: 50m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -15436,12 +15442,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -15472,6 +15472,12 @@ spec:
           limits:
             cpu: 50m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -15479,12 +15485,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -15501,9 +15501,9 @@ spec:
         - /scripts/db-migrate
         securityContext:
           runAsUser: 1000
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         env:
         - name: CONFIG_TEMPLATE_DIRECTORY
@@ -15665,6 +15665,12 @@ spec:
           limits:
             cpu: 50m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -15672,12 +15678,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -16233,8 +16233,8 @@ metadata:
   annotations:
     helm.sh/hook: test
     helm.sh/hook-delete-policy: hook-succeeded,hook-failed,before-hook-creation
-    container.apparmor.security.beta.kubernetes.io/test-runner: runtime/default
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/test-runner: runtime/default
   labels:
     app: webservice
     chart: webservice-7.0.3
@@ -16256,11 +16256,17 @@ spec:
       subPath: initial_root_password
     resources:
       requests:
-        cpu: 250m
         memory: 128Mi
+        cpu: 250m
       limits:
-        cpu: 250m
         memory: 128Mi
+        cpu: 250m
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
     readinessProbe:
       exec:
         command:
@@ -16268,12 +16274,6 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    securityContext:
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
     livenessProbe:
       exec:
         command:
@@ -16357,11 +16357,11 @@ spec:
           readOnlyRootFilesystem: true
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -16431,6 +16431,12 @@ spec:
           limits:
             cpu: 50m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -16438,12 +16444,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -16517,6 +16517,12 @@ spec:
           limits:
             cpu: 50m
             memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -16524,12 +16530,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:

@@ -315,10 +315,10 @@ spec:
         - /var/jenkins_config/apply_config.sh
         resources:
           limits:
-            cpu: 2000m
+            cpu: 50m
             memory: 4096Mi
           requests:
-            cpu: 2000m
+            cpu: 50m
             memory: 4096Mi
         volumeMounts:
         - mountPath: /var/jenkins_home
@@ -396,10 +396,10 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            cpu: 2000m
+            cpu: 50m
             memory: 4096Mi
           requests:
-            cpu: 2000m
+            cpu: 50m
             memory: 4096Mi
         volumeMounts:
         - mountPath: /var/jenkins_home
@@ -446,12 +446,12 @@ spec:
         - name: REQ_RETRY_CONNECT
           value: '10'
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: sc-config-volume
           mountPath: /var/jenkins_home/casc_configs
@@ -545,18 +545,12 @@ spec:
     - mountPath: /tools
       name: tools
     resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
       limits:
-        memory: 128Mi
         cpu: 250m
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
     readinessProbe:
       exec:
         command:
@@ -564,6 +558,12 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
     livenessProbe:
       exec:
         command:
@@ -585,18 +585,12 @@ spec:
     - mountPath: /tools
       name: tools
     resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
       limits:
-        memory: 128Mi
         cpu: 250m
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
     readinessProbe:
       exec:
         command:
@@ -604,6 +598,12 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
     livenessProbe:
       exec:
         command:

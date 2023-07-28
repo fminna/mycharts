@@ -44,9 +44,9 @@ spec:
       automountServiceAccountToken: true
       securityContext:
         fsGroup: 1000
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
       volumes:
       - name: kibana-tokens
         emptyDir: {}
@@ -64,8 +64,8 @@ spec:
             - ALL
           runAsNonRoot: true
           runAsUser: 25000
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         image: docker.elastic.co/kibana/kibana:8.5.1
         imagePullPolicy: IfNotPresent
         env:
@@ -348,15 +348,22 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -364,13 +371,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -394,11 +394,11 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: batch/v1
 kind: Job
@@ -441,15 +441,22 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -457,13 +464,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -487,8 +487,8 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault

@@ -1,4 +1,4 @@
-# Copyright 2023 AssureMOSS
+# Copyright 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -109,15 +109,25 @@ def count_checks(result_path: str, tool: str) -> list:
 
                     # Multi-check Kubelinter IDs
                     if check["Check"] == "unset-memory-requirements":
-                        check_id = "check_1, check_2"
+                        if "request" in check["Diagnostic"]["Message"]:
+                            check_id = "check_1"
+                        else:
+                            check_id = "check_2"
+
                     elif check["Check"] == "unset-cpu-requirements":
-                        check_id = "check_4, check_5"
+                        if "request" in check["Diagnostic"]["Message"]:
+                            check_id = "check_4"
+                        else:
+                            check_id = "check_5"
+
                     elif check["Check"] == "privilege-escalation-container":
                         check_id = "check_22, check_21, check_34"
 
                     # If the check is not yet implemented, append original ID
                     if check_id is None:
                         check_id = check["Check"]
+                        check_id = ""
+
                     all_checks.append(check_id)
 
     elif tool == "kubeaudit":
@@ -140,50 +150,29 @@ def count_checks(result_path: str, tool: str) -> list:
             for resource in results["results"]:
                 for control in resource["controls"]:
                     if control["status"]["status"] == "failed":
-                        for rule in control["rules"]:
-                            if "paths" in rule:
-                                for _ in rule["paths"]:
-                                    my_lookup = kubescape_fix_chart.LookupClass()
-                                    check_id = my_lookup.get_value(control["controlID"])
-
-                                    # Multi-check Kubeescape IDs
-                                    if control["controlID"] == "C-0050":
-                                        check_id = "check_4, check_5"
-                                    elif control["controlID"] == "C-0009":
-                                        check_id = "check_2, check_5"
-                                    elif control["controlID"] == "C-0055":
-                                        check_id = "check_31, check_32, check_34"
-                                    elif control["controlID"] == "C-0038":
-                                        check_id = "check_10, check_11"
-                                    elif control["controlID"] == "C-0086":
-                                        check_id = "check_22, check_28, check_32, check_34"
-
-                                    # Ignore Secrets policies
-                                    elif control["controlID"] == "C-0012":
-                                        continue
-                                    # Ignore Admission Controller policies
-                                    elif control["controlID"] == "C-0036":
-                                        continue
-
-                                    # If the check is not yet implemented, append original ID
-                                    if check_id is None:
-                                        check_id = control["controlID"]
-                                    all_checks.append(check_id)
-                            else:
+                        for _ in control["rules"]:
                                 my_lookup = kubescape_fix_chart.LookupClass()
                                 check_id = my_lookup.get_value(control["controlID"])
 
-                                # Multi-check Kubeescape IDs
+                                # Multi-check Kubescape IDs
                                 if control["controlID"] == "C-0050":
                                     check_id = "check_4, check_5"
+
                                 elif control["controlID"] == "C-0009":
                                     check_id = "check_2, check_5"
+
                                 elif control["controlID"] == "C-0055":
                                     check_id = "check_31, check_32, check_34"
+
                                 elif control["controlID"] == "C-0038":
                                     check_id = "check_10, check_11"
+
                                 elif control["controlID"] == "C-0086":
-                                    check_id = "check_22, check_28, check_32, check_34"
+                                    # check_id = "check_22, check_28, check_32, check_34"
+                                    check_id = "check_22"
+
+                                elif control["controlID"] == "C-0004":
+                                    check_id = "check_1, check_2, check_4, check_5"
 
                                 # Ignore Secrets policies
                                 elif control["controlID"] == "C-0012":
@@ -192,9 +181,6 @@ def count_checks(result_path: str, tool: str) -> list:
                                 elif control["controlID"] == "C-0036":
                                     continue
 
-                                # If the check is not yet implemented, append original ID
-                                if check_id is None:
-                                    check_id = control["controlID"]
                                 all_checks.append(check_id)
 
     elif tool == "terrascan":
@@ -214,14 +200,8 @@ def count_checks(result_path: str, tool: str) -> list:
     ##################################
 
 
-    # Print all found checks
     all_checks = [str(x) for x in all_checks if x is not None]
-
-    # Convert all_checks to string
-    # Needed to convert multi-check elements (e.g., "check_1, check_2")
     all_checks = ", ".join(all_checks)
-
-    # Convert all checks back to list
     all_checks = all_checks.split(", ")
     all_checks.sort()
 

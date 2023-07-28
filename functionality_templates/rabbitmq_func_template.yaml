@@ -198,7 +198,6 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1001
       terminationGracePeriodSeconds: 120
       initContainers: null
       containers:
@@ -206,9 +205,9 @@ spec:
         image: docker.io/bitnami/rabbitmq:3.10.25-management@sha256:0eb3250acd419f41c6bef4aaad09de73ef4d8afa4bf512368d523c8ae10a5a41
         imagePullPolicy: IfNotPresent
         securityContext:
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsUser: 1001
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsGroup: 25000
         lifecycle:
@@ -286,8 +285,8 @@ spec:
             - curl -f --user user:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/local-alarms
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           requests:
             cpu: 250m
             memory: 128Mi
@@ -308,7 +307,7 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
   volumeClaimTemplates:
   - apiVersion: v1
     kind: PersistentVolumeClaim

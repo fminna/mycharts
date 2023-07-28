@@ -286,8 +286,8 @@ spec:
               -h /opt/bitnami/pgpool/tmp -tA -c "SELECT 1" >/dev/null
         resources:
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           requests:
             cpu: 250m
             memory: 128Mi
@@ -364,8 +364,8 @@ spec:
         image: docker.io/bitnami/postgresql-repmgr:15.3.0-debian-11-r6
         imagePullPolicy: IfNotPresent
         securityContext:
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsUser: 1001
           allowPrivilegeEscalation: false
           runAsGroup: 25000
@@ -472,8 +472,8 @@ spec:
               127.0.0.1 -p 5432 -c "SELECT 1"
         resources:
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           requests:
             cpu: 250m
             memory: 128Mi
@@ -497,7 +497,7 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
   volumeClaimTemplates:
   - metadata:
       name: data

@@ -791,9 +791,6 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
         volumeMounts:
         - name: datadogrun
           mountPath: /opt/datadog-agent/run

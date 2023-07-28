@@ -210,9 +210,9 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       containers:
       - name: pgpool
         image: docker.io/bitnami/pgpool:4.4.3-debian-11-r1
@@ -221,10 +221,10 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -368,9 +368,9 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       hostNetwork: false
       hostIPC: false
       containers:
@@ -381,10 +381,10 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
         lifecycle:
           preStop:
             exec:

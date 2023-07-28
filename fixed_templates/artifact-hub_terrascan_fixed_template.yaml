@@ -254,6 +254,13 @@ spec:
         - sh
         - -c
         - until pg_isready; do echo waiting for database; sleep 2; done;
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
             cpu: 250m
@@ -262,18 +269,11 @@ spec:
             cpu: 250m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          allowPrivilegeEscalation: false
         readinessProbe:
           exec:
             command:
@@ -291,6 +291,13 @@ spec:
         - --for=condition=complete
         - job/db-migrator-install
         - --timeout=60s
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
             cpu: 250m
@@ -299,18 +306,11 @@ spec:
             cpu: 250m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          allowPrivilegeEscalation: false
         readinessProbe:
           exec:
             command:
@@ -330,6 +330,13 @@ spec:
         - name: http
           containerPort: 8000
           protocol: TCP
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
             cpu: 250m
@@ -338,18 +345,11 @@ spec:
             cpu: 250m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          allowPrivilegeEscalation: false
         readinessProbe:
           exec:
             command:
@@ -362,11 +362,11 @@ spec:
         secret:
           secretName: hub-config
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -417,6 +417,13 @@ spec:
         - name: http
           containerPort: 8081
           protocol: TCP
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
             cpu: 250m
@@ -425,18 +432,11 @@ spec:
             cpu: 250m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          allowPrivilegeEscalation: false
         readinessProbe:
           exec:
             command:
@@ -448,11 +448,11 @@ spec:
       - name: trivy
         emptyDir: {}
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -490,9 +490,9 @@ spec:
     spec:
       securityContext:
         fsGroup: 1001
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
       initContainers:
       - name: init-chmod-data
         image: docker.io/bitnami/minideb:stretch
@@ -512,10 +512,10 @@ spec:
           \ -R 1001:1001\nchmod -R 777 /dev/shm\n"
         securityContext:
           runAsUser: 25000
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         volumeMounts:
         - name: data
           mountPath: /data
@@ -535,10 +535,10 @@ spec:
             memory: 256Mi
         securityContext:
           runAsUser: 25000
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -609,7 +609,7 @@ spec:
         requests:
           storage: 8Gi
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: Job
 metadata:
   name: db-migrator-install
@@ -635,6 +635,13 @@ spec:
         - sh
         - -c
         - until pg_isready; do echo waiting for database; sleep 2; done;
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
             cpu: 250m
@@ -643,18 +650,11 @@ spec:
             cpu: 250m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          allowPrivilegeEscalation: false
         readinessProbe:
           exec:
             command:
@@ -675,6 +675,13 @@ spec:
           readOnly: true
         command:
         - ./migrate.sh
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
             cpu: 250m
@@ -683,18 +690,11 @@ spec:
             cpu: 250m
             memory: 128Mi
         securityContext:
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          allowPrivilegeEscalation: false
         readinessProbe:
           exec:
             command:
@@ -707,13 +707,13 @@ spec:
         secret:
           secretName: db-migrator-config
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: CronJob
 metadata:
   name: scanner
@@ -744,6 +744,13 @@ spec:
             - sh
             - -c
             - until pg_isready; do echo waiting for database; sleep 2; done;
+            livenessProbe:
+              exec:
+                command:
+                - ls
+                - /
+              initialDelaySeconds: 30
+              periodSeconds: 10
             resources:
               requests:
                 cpu: 250m
@@ -752,18 +759,11 @@ spec:
                 cpu: 250m
                 memory: 128Mi
             securityContext:
-              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
               runAsNonRoot: true
               runAsUser: 25000
               runAsGroup: 25000
-              readOnlyRootFilesystem: true
-            livenessProbe:
-              exec:
-                command:
-                - ls
-                - /
-              initialDelaySeconds: 30
-              periodSeconds: 10
+              allowPrivilegeEscalation: false
             readinessProbe:
               exec:
                 command:
@@ -779,6 +779,13 @@ spec:
             - name: scanner-config
               mountPath: /home/scanner/.cfg
               readOnly: true
+            livenessProbe:
+              exec:
+                command:
+                - ls
+                - /
+              initialDelaySeconds: 30
+              periodSeconds: 10
             resources:
               requests:
                 cpu: 250m
@@ -787,18 +794,11 @@ spec:
                 cpu: 250m
                 memory: 128Mi
             securityContext:
-              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
               runAsNonRoot: true
               runAsUser: 25000
               runAsGroup: 25000
-              readOnlyRootFilesystem: true
-            livenessProbe:
-              exec:
-                command:
-                - ls
-                - /
-              initialDelaySeconds: 30
-              periodSeconds: 10
+              allowPrivilegeEscalation: false
             readinessProbe:
               exec:
                 command:
@@ -811,13 +811,13 @@ spec:
             secret:
               secretName: scanner-config
           securityContext:
-            seccompProfile:
-              type: RuntimeDefault
             runAsNonRoot: true
             runAsUser: 25000
             runAsGroup: 25000
+            seccompProfile:
+              type: RuntimeDefault
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: CronJob
 metadata:
   name: tracker
@@ -848,6 +848,13 @@ spec:
             - sh
             - -c
             - until pg_isready; do echo waiting for database; sleep 2; done;
+            livenessProbe:
+              exec:
+                command:
+                - ls
+                - /
+              initialDelaySeconds: 30
+              periodSeconds: 10
             resources:
               requests:
                 cpu: 250m
@@ -856,18 +863,11 @@ spec:
                 cpu: 250m
                 memory: 128Mi
             securityContext:
-              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
               runAsNonRoot: true
               runAsUser: 25000
               runAsGroup: 25000
-              readOnlyRootFilesystem: true
-            livenessProbe:
-              exec:
-                command:
-                - ls
-                - /
-              initialDelaySeconds: 30
-              periodSeconds: 10
+              allowPrivilegeEscalation: false
             readinessProbe:
               exec:
                 command:
@@ -883,6 +883,13 @@ spec:
             - name: tracker-config
               mountPath: /home/tracker/.cfg
               readOnly: true
+            livenessProbe:
+              exec:
+                command:
+                - ls
+                - /
+              initialDelaySeconds: 30
+              periodSeconds: 10
             resources:
               requests:
                 cpu: 250m
@@ -891,18 +898,11 @@ spec:
                 cpu: 250m
                 memory: 128Mi
             securityContext:
-              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
               runAsNonRoot: true
               runAsUser: 25000
               runAsGroup: 25000
-              readOnlyRootFilesystem: true
-            livenessProbe:
-              exec:
-                command:
-                - ls
-                - /
-              initialDelaySeconds: 30
-              periodSeconds: 10
+              allowPrivilegeEscalation: false
             readinessProbe:
               exec:
                 command:
@@ -915,11 +915,11 @@ spec:
             secret:
               secretName: tracker-config
           securityContext:
-            seccompProfile:
-              type: RuntimeDefault
             runAsNonRoot: true
             runAsUser: 25000
             runAsGroup: 25000
+            seccompProfile:
+              type: RuntimeDefault
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

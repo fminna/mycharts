@@ -383,7 +383,6 @@ spec:
             - ALL
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -493,8 +492,6 @@ spec:
             - ALL
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -778,10 +775,10 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
         volumeMounts:
         - name: temp
           mountPath: /tmp
@@ -831,7 +828,7 @@ spec:
   containers:
   - name: wget
     image: busybox:latest
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
     command:
     - wget
     args:
@@ -841,13 +838,16 @@ spec:
         drop:
         - ALL
       allowPrivilegeEscalation: false
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+    resources:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
   restartPolicy: Never
   securityContext:
     seccompProfile:

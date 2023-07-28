@@ -1,4 +1,4 @@
-# Copyright 2023 AssureMOSS
+# Copyright 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -232,9 +232,8 @@ def fix_resource(template: dict, control_id: str, check_id: str, paths: dict) ->
 
     # Non-root containers
     elif control_id == "C-0013":
-        fix_template.set_template(template, "check_28", paths)
         fix_template.set_template(template, "check_22", paths)
-        return ["check_28", "check_22"]
+        return ["check_22"]
 
     elif control_id == "C-0042":
         cont_path, containers, _ = terrascan_fix_chart.get_container_path(template, \
@@ -271,7 +270,7 @@ class LookupClass:
         "C-0046": "check_23",
         "C-0061": "check_26",
         "C-0017": "check_27",
-        "C-0013": "check_28",
+        "C-0013": "check_22",
         "C-0044": "check_29",
         "C-0045": "check_29",
         "C-0055": "check_30",

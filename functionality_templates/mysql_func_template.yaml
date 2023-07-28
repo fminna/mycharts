@@ -205,13 +205,13 @@ spec:
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8@sha256:eb11df7b201aa831c1f1a0c4a07a630b40fcbfacdb7eb6fda8c41277c00c7849
+        image: docker.io/bitnami/mysql:8-oracle@sha256:1da5cf22e7177925fa4d2a707936ca4ade59ba10b40b23550b0ffc12f8340600
         imagePullPolicy: IfNotPresent
         securityContext:
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsUser: 1001
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
           runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG

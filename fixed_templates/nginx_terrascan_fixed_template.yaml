@@ -106,11 +106,11 @@ spec:
             memory: 128Mi
         volumeMounts: null
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
       volumes: null
       securityContext:
         runAsNonRoot: true

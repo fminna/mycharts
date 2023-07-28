@@ -1007,13 +1007,6 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -1021,6 +1014,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -1099,13 +1099,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -1113,6 +1106,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -1210,10 +1210,10 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
       nodeSelector:
@@ -1430,13 +1430,6 @@ spec:
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -1444,6 +1437,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         livenessProbe:
           exec:
             command:

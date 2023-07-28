@@ -863,11 +863,11 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -933,11 +933,11 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
       securityContext:
         fsGroup: 65534
         runAsNonRoot: true
@@ -1008,20 +1008,20 @@ spec:
         - name: config-volume
           mountPath: /etc/config
           readOnly: true
-        livenessProbe:
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: false
-          runAsUser: 1001
-          runAsGroup: 25000
-          readOnlyRootFilesystem: false
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -1068,11 +1068,11 @@ spec:
           mountPath: /data
           subPath: ''
         securityContext:
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 1001
           runAsGroup: 25000
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
       dnsPolicy: ClusterFirst
       securityContext:
         fsGroup: 65534
@@ -1089,7 +1089,7 @@ spec:
       - name: storage-volume
         persistentVolumeClaim:
           claimName: release-name-prometheus-server
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -1134,8 +1134,8 @@ spec:
           runAsGroup: 65534
           runAsNonRoot: true
           runAsUser: 65534
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         image: quay.io/prometheus/alertmanager:v0.25.0
         imagePullPolicy: IfNotPresent
         env: []

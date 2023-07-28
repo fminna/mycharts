@@ -180,10 +180,10 @@ spec:
           privileged: false
           runAsNonRoot: true
           runAsUser: 25000
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

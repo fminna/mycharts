@@ -256,9 +256,7 @@ metadata:
     helm.sh/hook: test
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
     container.apparmor.security.beta.kubernetes.io/hook1-container: runtime/default
-  labels:
-    app: MyApp
-    app.kubernetes.io/name: MyApp
+  namespace: test-ns
 spec:
   containers:
   - name: hook1-container
@@ -272,24 +270,8 @@ spec:
       capabilities:
         drop:
         - ALL
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
   restartPolicy: Never
   terminationGracePeriodSeconds: 0
-  metadata:
-    labels:
-      app: MyApp
-      app.kubernetes.io/name: MyApp
   securityContext:
     seccompProfile:
       type: RuntimeDefault

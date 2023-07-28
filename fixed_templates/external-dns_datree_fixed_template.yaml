@@ -252,12 +252,10 @@ spec:
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 6
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: true
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         resources:
           limits:
             memory: 128Mi
@@ -265,10 +263,12 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       volumes:
       - name: secret-volume
         secret:

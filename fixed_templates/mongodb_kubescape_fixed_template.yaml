@@ -155,11 +155,11 @@ spec:
       securityContext:
         fsGroup: 1001
         sysctls: []
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: mongodb
         image: docker.io/bitnami/mongodb:6.0.6-debian-11-r3
@@ -167,12 +167,11 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

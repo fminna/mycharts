@@ -375,11 +375,11 @@ spec:
         secret:
           secretName: release-name-ingress-nginx-admission
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsUser: 25000
         runAsNonRoot: true
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
@@ -588,17 +588,17 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         livenessProbe:
@@ -675,17 +675,17 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         livenessProbe:

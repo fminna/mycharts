@@ -69,7 +69,7 @@ spec:
     spec:
       containers:
       - name: nextcloud
-        image: nextcloud:27.0-fpm@sha256:ec6a912bf5100c8cf2d9cbc2c318fb37c34cf25048126fd9ceaac69164067b26
+        image: nextcloud:27.0.1-fpm@sha256:bf1347048d51e3395c2ac345aaf6d39ec3582421e1758b3104031640b89c3ef0
         imagePullPolicy: IfNotPresent
         env:
         - name: SQLITE_DATABASE
@@ -131,6 +131,12 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         resources:
           requests:
             memory: 128Mi
@@ -138,12 +144,6 @@ spec:
           limits:
             memory: 128Mi
             cpu: 250m
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
       volumes:
       - name: nextcloud-main
         emptyDir: {}

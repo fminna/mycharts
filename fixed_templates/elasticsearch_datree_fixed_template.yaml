@@ -281,6 +281,13 @@ spec:
     - name: secret-volume
       readOnly: true
       mountPath: /etc/secret-volume
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
     resources:
       limits:
         memory: 128Mi
@@ -289,13 +296,6 @@ spec:
         memory: 128Mi
         cpu: 250m
     livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    readinessProbe:
       exec:
         command:
         - ls

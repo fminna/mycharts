@@ -20003,14 +20003,11 @@ spec:
           mountPropagation: HostToContainer
           readOnly: true
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi
@@ -20116,14 +20113,18 @@ spec:
         - name: sc-dashboard-volume
           mountPath: /tmp/dashboards
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -20138,13 +20139,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
       - name: grafana-sc-datasources
         image: quay.io/kiwigrid/k8s-sidecar:1.22.0
         imagePullPolicy: IfNotPresent
@@ -20177,14 +20171,18 @@ spec:
         - name: sc-datasources-volume
           mountPath: /etc/grafana/provisioning/datasources
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
+          allowPrivilegeEscalation: false
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -20199,13 +20197,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
       - name: grafana
         image: grafana/grafana:9.3.8
         imagePullPolicy: IfNotPresent
@@ -20267,14 +20258,11 @@ spec:
             path: /api/health
             port: 3000
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi
@@ -20366,14 +20354,11 @@ spec:
           initialDelaySeconds: 5
           timeoutSeconds: 5
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi
@@ -24034,16 +24019,13 @@ metadata:
   name: release-name-grafana-test
   labels:
     helm.sh/chart: grafana-6.51.5
-    app.kubernetes.io/name: MyApp
+    app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 9.3.8
     app.kubernetes.io/managed-by: Helm
-    app: MyApp
   annotations:
     helm.sh/hook: test-success
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
-    container.apparmor.security.beta.kubernetes.io/release-name-test: runtime/default
   namespace: default
 spec:
   serviceAccountName: release-name-grafana-test
@@ -24059,29 +24041,11 @@ spec:
     - mountPath: /tests
       name: tests
       readOnly: true
-    securityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-        - ALL
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
   volumes:
   - name: tests
     configMap:
       name: release-name-grafana-test
   restartPolicy: Never
-  metadata:
-    labels:
-      app: MyApp
-  securityContext:
-    seccompProfile:
-      type: RuntimeDefault
 ---
 apiVersion: batch/v1
 kind: Job
@@ -24127,14 +24091,11 @@ spec:
         - --namespace=default
         - --secret-name=release-name-kube-promethe-admission
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi
@@ -24210,14 +24171,11 @@ spec:
         - --secret-name=release-name-kube-promethe-admission
         - --patch-failure-policy=
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi

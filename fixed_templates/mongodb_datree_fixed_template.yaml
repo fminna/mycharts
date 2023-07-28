@@ -151,9 +151,9 @@ spec:
       securityContext:
         fsGroup: 1001
         sysctls: []
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
       containers:
       - name: mongodb
         image: docker.io/bitnami/mongodb:6.0.6-debian-11-r3

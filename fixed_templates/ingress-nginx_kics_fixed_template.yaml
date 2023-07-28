@@ -609,7 +609,7 @@ spec:
             cpu: 250m
             memory: 128Mi
       restartPolicy: OnFailure
-      serviceAccountName: release-name-ingress-nginx-admission
+      serviceAccountName: test-SA10
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:
@@ -683,7 +683,7 @@ spec:
             cpu: 250m
             memory: 128Mi
       restartPolicy: OnFailure
-      serviceAccountName: test-SA10
+      serviceAccountName: release-name-ingress-nginx-admission
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:

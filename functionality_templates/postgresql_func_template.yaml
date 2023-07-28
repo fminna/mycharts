@@ -124,10 +124,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
-          runAsGroup: 25000
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -186,8 +186,8 @@ spec:
               '
         resources:
           limits:
-            memory: 256Mi
             cpu: 250m
+            memory: 256Mi
           requests:
             cpu: 250m
             memory: 256Mi

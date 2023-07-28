@@ -231,7 +231,6 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
@@ -391,7 +390,6 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
         lifecycle:
           preStop:

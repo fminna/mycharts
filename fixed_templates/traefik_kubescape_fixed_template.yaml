@@ -199,9 +199,6 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
         volumeMounts:
         - name: data

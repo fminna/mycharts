@@ -198,11 +198,11 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 120
       initContainers: null
       containers:
@@ -212,12 +212,11 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsGroup: 25000
         lifecycle:
           preStop:
             exec:

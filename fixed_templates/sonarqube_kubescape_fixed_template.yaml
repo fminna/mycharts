@@ -229,8 +229,6 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -475,8 +473,6 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsGroup: 25000
         volumeMounts:
         - mountPath: /opt/sonarqube/data
           name: sonarqube
@@ -553,13 +549,7 @@ spec:
     - /tools/bats/bin/bats
     - --tap
     - /tests/run.sh
-    resources:
-      limits:
-        memory: 128Mi
-        cpu: 250m
-      requests:
-        memory: 128Mi
-        cpu: 250m
+    resources: {}
     volumeMounts:
     - mountPath: /tests
       name: tests
@@ -567,6 +557,13 @@ spec:
     - mountPath: /tools
       name: tools
     readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    livenessProbe:
       exec:
         command:
         - ls

@@ -167,8 +167,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   annotations:
     helm.sh/hook: test-success
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
     container.apparmor.security.beta.kubernetes.io/wget: runtime/default
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   containers:
   - name: wget
@@ -177,27 +177,27 @@ spec:
     - wget
     args:
     - release-name-kubeview:80
-    resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
-      limits:
-        memory: 128Mi
-        cpu: 250m
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     securityContext:
       runAsNonRoot: true
       runAsUser: 25000
       runAsGroup: 25000
       readOnlyRootFilesystem: true
       allowPrivilegeEscalation: false
+    resources:
+      limits:
+        cpu: 250m
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
     readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    livenessProbe:
       exec:
         command:
         - ls

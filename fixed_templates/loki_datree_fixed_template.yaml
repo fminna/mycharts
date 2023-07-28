@@ -514,13 +514,6 @@ spec:
             port: http-metrics
           initialDelaySeconds: 15
           timeoutSeconds: 1
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           limits:
             memory: 128Mi
@@ -528,6 +521,13 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -561,26 +561,6 @@ spec:
         imagePullPolicy: IfNotPresent
         args:
         - --kubelet-service=default/kubelet
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           limits:
             memory: 128Mi
@@ -588,6 +568,26 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       securityContext:
         runAsNonRoot: true
         runAsUser: 25000
@@ -1234,26 +1234,6 @@ spec:
     - wget
     args:
     - grafana-agent-test-operated:8080/-/healthy
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    securityContext:
-      capabilities:
-        drop:
-        - ALL
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     resources:
       limits:
         memory: 128Mi
@@ -1261,6 +1241,26 @@ spec:
       requests:
         memory: 128Mi
         cpu: 250m
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   initContainers:
   - name: sleep
     image: busybox:1.36
@@ -1303,26 +1303,6 @@ spec:
       value: 1m
     args:
     - -test.v
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    securityContext:
-      capabilities:
-        drop:
-        - ALL
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     resources:
       limits:
         memory: 128Mi
@@ -1330,6 +1310,26 @@ spec:
       requests:
         memory: 128Mi
         cpu: 250m
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
   automountServiceAccountToken: false
   securityContext:

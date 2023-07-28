@@ -176,10 +176,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
-          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsUser: 1001
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities:
             drop:
@@ -246,10 +246,10 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
       volumes:
@@ -275,8 +275,8 @@ metadata:
   name: release-name-smoke-test
   annotations:
     helm.sh/hook: test
-    container.apparmor.security.beta.kubernetes.io/hook1-container: runtime/default
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/hook1-container: runtime/default
 spec:
   containers:
   - name: hook1-container
@@ -287,12 +287,18 @@ spec:
     - -c
     - curl http://release-name-pihole-web:80/
     resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
       limits:
         memory: 128Mi
         cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
+    securityContext:
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      allowPrivilegeEscalation: false
     readinessProbe:
       exec:
         command:
@@ -300,12 +306,6 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
     livenessProbe:
       exec:
         command:

@@ -256,15 +256,6 @@ spec:
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 6
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
         resources:
           limits:
             memory: 128Mi
@@ -272,6 +263,12 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

@@ -128,12 +128,11 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

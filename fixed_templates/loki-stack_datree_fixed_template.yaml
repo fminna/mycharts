@@ -349,13 +349,6 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           requests:
             memory: 128Mi
@@ -363,6 +356,13 @@ spec:
           limits:
             memory: 128Mi
             cpu: 250m
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       tolerations:
       - effect: NoSchedule
         key: node-role.kubernetes.io/master
@@ -460,13 +460,13 @@ spec:
             cpu: 250m
         securityContext:
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
       nodeSelector: {}
       affinity: {}
       tolerations: []
@@ -510,7 +510,13 @@ spec:
     volumeMounts:
     - name: tests
       mountPath: /var/lib/loki
-    livenessProbe:
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+    readinessProbe:
       exec:
         command:
         - ls
@@ -524,28 +530,22 @@ spec:
       limits:
         memory: 128Mi
         cpu: 250m
-    readinessProbe:
+    livenessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    securityContext:
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop:
-        - ALL
-      allowPrivilegeEscalation: false
   restartPolicy: Never
   volumes:
   - name: tests
     configMap:
       name: release-name-loki-stack-test
+  automountServiceAccountToken: false
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
-    seccompProfile:
-      type: RuntimeDefault
-  automountServiceAccountToken: false

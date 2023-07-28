@@ -123,19 +123,19 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 30
         resources:
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
         volumeMounts: null
         securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsUser: 1001
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - CHOWN
@@ -160,7 +160,7 @@ spec:
         runAsNonRoot: true
         runAsUser: 1001
         runAsGroup: 25000
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -450,9 +450,9 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         command:
         - /scripts/post-delete-hook.sh
@@ -468,21 +468,21 @@ spec:
           value: '120'
         - name: IGNORETIMEOUTERROR
           value: 'false'
-        readinessProbe:
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls

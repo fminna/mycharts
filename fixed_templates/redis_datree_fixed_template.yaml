@@ -298,10 +298,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
@@ -463,10 +463,10 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL

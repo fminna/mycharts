@@ -102,7 +102,7 @@ spec:
     spec:
       securityContext:
         fsGroup: 1000
-        runAsUser: 1000
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
       automountServiceAccountToken: false
@@ -128,12 +128,12 @@ spec:
       initContainers:
       - name: configure-sysctl
         securityContext:
-          runAsUser: 1000
+          runAsUser: 25000
           privileged: true
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10@sha256:81facec55eceeb7bebeed80af49eb9a05fce77709b231210f343ac8b9599098e
         imagePullPolicy: IfNotPresent
         command:
@@ -141,10 +141,10 @@ spec:
         - -w
         - vm.max_map_count=262144
         resources:
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
@@ -160,11 +160,11 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: false
-          runAsUser: 1000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 25000
         image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10@sha256:81facec55eceeb7bebeed80af49eb9a05fce77709b231210f343ac8b9599098e
         imagePullPolicy: IfNotPresent
         readinessProbe:
@@ -271,8 +271,8 @@ metadata:
   annotations:
     helm.sh/hook: test
     helm.sh/hook-delete-policy: hook-succeeded
-    container.apparmor.security.beta.kubernetes.io/release-name-crwcs-test: runtime/default
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/release-name-crwcs-test: runtime/default
 spec:
   securityContext:
     fsGroup: 1000
@@ -303,26 +303,26 @@ spec:
       readOnly: true
       mountPath: /etc/secret-volume
     resources:
-      limits:
-        cpu: 250m
-        memory: 128Mi
       requests:
         cpu: 250m
         memory: 128Mi
-    readinessProbe:
+      limits:
+        cpu: 250m
+        memory: 128Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+    livenessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-    livenessProbe:
+    readinessProbe:
       exec:
         command:
         - ls

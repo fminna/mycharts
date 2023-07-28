@@ -3240,11 +3240,11 @@ spec:
             cpu: 50m
             memory: 50Mi
         securityContext:
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
       volumes:
       - name: certs
         secret:
@@ -3254,11 +3254,11 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -3315,12 +3315,6 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /bootstrap/config
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -3328,6 +3322,12 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         livenessProbe:
           exec:
             command:
@@ -3342,11 +3342,11 @@ spec:
         configMap:
           name: release-name-consul-webhook-cert-manager-config
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -3486,11 +3486,11 @@ spec:
             cpu: 100m
             memory: 100Mi
         securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsUser: 1001
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
         livenessProbe:
           exec:
             command:
@@ -3799,12 +3799,6 @@ spec:
       limits:
         cpu: 250m
         memory: 128Mi
-    securityContext:
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
     volumeMounts:
     - name: secret-volume
       readOnly: true
@@ -3816,6 +3810,12 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
+    securityContext:
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      allowPrivilegeEscalation: false
     livenessProbe:
       exec:
         command:
@@ -3824,13 +3824,13 @@ spec:
       initialDelaySeconds: 30
       periodSeconds: 10
   restartPolicy: Never
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: true
+    runAsUser: 25000
+    runAsGroup: 25000
   volumes:
   - name: secret-volume
     secret:
       secretName: my-secret
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 25000
-    runAsGroup: 25000
-    seccompProfile:
-      type: RuntimeDefault

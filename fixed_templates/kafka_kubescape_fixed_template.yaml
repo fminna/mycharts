@@ -163,10 +163,10 @@ spec:
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 1001
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
         command:
         - /scripts/setup.sh
         env:

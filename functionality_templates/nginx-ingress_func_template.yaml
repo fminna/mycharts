@@ -234,7 +234,7 @@ spec:
         container.apparmor.security.beta.kubernetes.io/nginx-ingress: runtime/default
     spec:
       serviceAccountName: release-name-nginx-ingress
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
       securityContext:
         seccompProfile:
           type: RuntimeDefault
@@ -266,13 +266,13 @@ spec:
             cpu: 100m
             memory: 128Mi
           limits:
-            cpu: 100m
             memory: 128Mi
+            cpu: 100m
         securityContext:
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           runAsUser: 101
-          runAsNonRoot: false
+          runAsNonRoot: true
           capabilities:
             drop:
             - CHOWN
@@ -328,10 +328,6 @@ spec:
         - -ready-status=true
         - -ready-status-port=8081
         - -enable-latency-metrics=false
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -339,6 +335,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: secret-volume
         secret:

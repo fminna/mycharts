@@ -129,9 +129,8 @@ spec:
       serviceAccountName: release-name-promtail
       enableServiceLinks: true
       securityContext:
-        runAsGroup: 25000
-        runAsUser: 25000
-        runAsNonRoot: true
+        runAsGroup: 0
+        runAsUser: 0
       containers:
       - name: promtail
         image: docker.io/grafana/promtail:2.8.2

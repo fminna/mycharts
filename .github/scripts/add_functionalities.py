@@ -1,4 +1,4 @@
-# Copyright 2023 AssureMOSS
+# Copyright 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -128,8 +128,10 @@ def iterate_functionalities(chart_folder: str, json_path: str, tool: str) -> Non
     # print("\nAll functionalities added!")
     all_checks = [x for x in all_checks if x is not None]
     all_checks.sort()
+    # print("")
     # print(f"Total number of checks: {len(all_checks)}")
     # print(", ".join(all_checks))
+    # print("")
 
     # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
     # occurrences of each check in all_checks, all in one line
@@ -169,74 +171,62 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> list
                 all_checks.append(check_id)
                 fix_template.set_template(template, check_id, check)
 
-        # Low UID
-        elif check_id == "check_13":
-            # Retrieve UID from original template
-            original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
-            uid = get_original_uid(original_template, check["resource_path"], check["obj_path"])
-            if not uid:
-                uid = 1001
-            all_checks.append(check_id)
-            check["value"] = uid
-            fix_template.set_template(template, check_id, check)
-
-        # Low GID
-        elif check_id == "check_14":
-
-            # For now, we do not change anything in the functionality template, because
-            # no tool checks the GID, thus is never modified from the original template.
-
-            # Retrieve GID from original template
-            # original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
-            # gid = get_original_gid(original_template, check["resource_path"], check["obj_path"])
-
-            all_checks.append(check_id)
-
-            # check["value"] = gid
-            # fix_template.set_template(template, check_id, check)
-
         # Memory request
-        elif check_id == "check_1":
+        elif check_id == "check_1" and check['value'] is not None:
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
 
         # Memory limit
-        elif check_id == "check_2":
+        elif check_id == "check_2" and check['value'] is not None:
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
 
         # CPU request
-        elif check_id == "check_4":
+        elif check_id == "check_4" and check['value'] is not None:
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
 
         # CPU limit
-        elif check_id == "check_5":
+        elif check_id == "check_5" and check['value'] is not None:
             all_checks.append(check_id)
             fix_template.set_template(template, check_id, check)
-
-        # Docker Socket
-        elif check_id == "check_15":
-            all_checks.append(check_id)
-            # fix_template.set_template(template, check_id, check)
-
-        # RunAsNonRoot, Read-only FS,
-        elif check_id == "check_27" or check_id == "check_28":
-            all_checks.append(check_id)
-            check["value"] = False
-            fix_template.set_template(template, check_id, check)
-
-        # hostPath
-        elif check_id == "check_47" and check['value'] is False:
-            all_checks.append(check_id)
-            for host_path in check["hostPaths"]:
-                check["value"] = host_path
-                fix_template.set_template(template, check_id, check)
 
         # Non-default values
         elif check['value'] is False:
             all_checks.append(check_id)
-            check["value"] = True
-            fix_template.set_template(template, check_id, check)
+
+            # Low UID
+            if check_id == "check_13":
+                # Retrieve UID from original template
+                original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
+                uid = get_original_uid(original_template, check["resource_path"], check["obj_path"])
+                if not uid:
+                    uid = 1001
+                check["value"] = uid
+
+            # Low GID
+            elif check_id == "check_14":
+                # Retrieve GID from original template
+                # original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
+                # gid = get_original_gid(original_template, check["resource_path"], check["obj_path"])
+                # check["value"] = gid
+                pass
+
+            # Docker Socket
+            elif check_id == "check_15":
+                pass
+
+            # hostPath
+            elif check_id == "check_47" and check['value'] is False:
+                for host_path in check["hostPaths"]:
+                    check["value"] = host_path
+
+            if check_id != "check_27" and check_id != "check_28":
+                fix_template.set_template(template, check_id, check)
+
+            # Read-only FS, RunAsNonRoot
+            else:
+                check["value"] = True
+                fix_template.set_template(template, check_id, check)
 
     return all_checks

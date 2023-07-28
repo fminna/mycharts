@@ -605,10 +605,10 @@ spec:
         image: gcr.io/datadoghq/cluster-agent:7.45.0
         imagePullPolicy: IfNotPresent
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         ports:

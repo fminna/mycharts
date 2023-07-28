@@ -150,16 +150,16 @@ spec:
       terminationGracePeriodSeconds: 60
       hostNetwork: false
       containers:
-      - image: docker.io/traefik:2.10.3-windowsservercore-1809@sha256:04cf9d1feba10cb60fbf505c56970efb6d21391a19cf284d4181bfba73d619e9
+      - image: docker.io/traefik:2.10@sha256:cda187e491fd290c16c972a7c2bba6dd20a3ffa8af101d84992f8f863ca0fa75
         imagePullPolicy: IfNotPresent
         name: release-name-traefik
         resources:
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
         readinessProbe:
           httpGet:
             path: /ping
@@ -199,10 +199,10 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
         volumeMounts:
         - name: data
           mountPath: /data

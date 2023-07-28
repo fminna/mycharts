@@ -152,7 +152,6 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1001
       serviceAccountName: release-name-kafka
       containers:
       - name: kafka
@@ -162,7 +161,7 @@ spec:
           allowPrivilegeEscalation: false
           runAsNonRoot: false
           runAsUser: 1001
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           runAsGroup: 25000
         command:
         - /scripts/setup.sh

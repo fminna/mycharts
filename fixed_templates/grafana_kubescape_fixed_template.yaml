@@ -319,8 +319,6 @@ metadata:
   annotations:
     helm.sh/hook: test-success
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
-    container.apparmor.security.beta.kubernetes.io/release-name-test: runtime/default
   namespace: test-ns
 spec:
   serviceAccountName: release-name-grafana-test
@@ -336,15 +334,13 @@ spec:
     - mountPath: /tests
       name: tests
       readOnly: true
-    securityContext:
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      capabilities:
-        drop:
-        - ALL
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
     resources:
       limits:
         memory: 128Mi
@@ -359,13 +355,8 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
+    securityContext:
+      readOnlyRootFilesystem: true
   volumes:
   - name: tests
     configMap:
@@ -374,9 +365,6 @@ spec:
   metadata:
     labels:
       app: MyApp
-  securityContext:
-    seccompProfile:
-      type: RuntimeDefault
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

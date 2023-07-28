@@ -3232,11 +3232,11 @@ spec:
             cpu: 50m
             memory: 50Mi
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
       volumes:
       - name: certs
         secret:
@@ -3304,19 +3304,19 @@ spec:
         - name: config
           mountPath: /bootstrap/config
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -3479,6 +3479,7 @@ spec:
             cpu: 100m
             memory: 100Mi
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
@@ -3486,7 +3487,6 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
         livenessProbe:
           exec:
             command:
@@ -3792,18 +3792,11 @@ spec:
       \ != $(grep consul-server members.txt | grep -c alive) ]\nthen\n  echo \"Failed\
       \ because not all consul servers are available\"\n  exit 1\nfi\n"
     securityContext:
+      readOnlyRootFilesystem: true
       allowPrivilegeEscalation: false
       capabilities:
         drop:
         - ALL
-      readOnlyRootFilesystem: true
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     resources:
       requests:
         memory: 128Mi
@@ -3812,6 +3805,13 @@ spec:
         memory: 128Mi
         cpu: 250m
     readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    livenessProbe:
       exec:
         command:
         - ls

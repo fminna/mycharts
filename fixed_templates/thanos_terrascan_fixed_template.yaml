@@ -197,8 +197,8 @@ spec:
             memory: 128Mi
             cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
         volumeMounts: null
       volumes: null
 ---

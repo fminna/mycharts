@@ -307,8 +307,8 @@ spec:
           timeoutSeconds: 5
         resources:
           limits:
-            cpu: 300m
             memory: 512Mi
+            cpu: 300m
           requests:
             cpu: 300m
             memory: 512Mi
@@ -428,8 +428,8 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m

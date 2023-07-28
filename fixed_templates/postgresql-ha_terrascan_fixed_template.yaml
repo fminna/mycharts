@@ -286,8 +286,8 @@ spec:
               -h /opt/bitnami/pgpool/tmp -tA -c "SELECT 1" >/dev/null
         resources:
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           requests:
             cpu: 250m
             memory: 128Mi
@@ -470,8 +470,8 @@ spec:
               127.0.0.1 -p 5432 -c "SELECT 1"
         resources:
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           requests:
             cpu: 250m
             memory: 128Mi

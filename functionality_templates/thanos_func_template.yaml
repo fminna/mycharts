@@ -115,7 +115,7 @@ metadata:
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
   selector:
@@ -131,9 +131,11 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: query-frontend
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/query-frontend: runtime/default
     spec:
       serviceAccountName: release-name-thanos-query-frontend
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
       affinity:
         podAffinity: null
         podAntiAffinity:
@@ -151,7 +153,6 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
       containers:
       - name: query-frontend
         image: docker.io/bitnami/thanos:0.31.0-scratch-r5
@@ -160,10 +161,7 @@ spec:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
-          capabilities:
-            drop:
-            - ALL
+          runAsUser: 1001
         args:
         - query-frontend
         - --log.level=info
@@ -197,8 +195,11 @@ spec:
         resources:
           limits:
             memory: 128Mi
+            cpu: 250m
           requests:
+            cpu: 250m
             memory: 128Mi
+        volumeMounts: null
       volumes: null
 ---
 apiVersion: apps/v1
@@ -215,7 +216,7 @@ metadata:
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
   selector:
@@ -231,9 +232,11 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: query
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/query: runtime/default
     spec:
       serviceAccountName: release-name-thanos-query
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -249,20 +252,15 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1001
       containers:
       - name: query
         image: docker.io/bitnami/thanos:0.31.0-scratch-r5
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsUser: 1001
-          capabilities:
-            drop:
-            - ALL
-          runAsGroup: 25000
         args:
         - query
         - --log.level=info

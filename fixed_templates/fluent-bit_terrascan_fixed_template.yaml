@@ -164,6 +164,12 @@ spec:
         - mountPath: /etc/machine-id
           name: etcmachineid
           readOnly: true
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         resources:
           limits:
             memory: 128Mi
@@ -171,22 +177,16 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
       volumes:
       - name: config
         configMap:
           name: release-name-fluent-bit
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: v1
 kind: Pod
@@ -212,13 +212,12 @@ spec:
     - wget
     args:
     - release-name-fluent-bit:2020
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
     resources:
       limits:
         memory: 128Mi
@@ -226,12 +225,13 @@ spec:
       requests:
         memory: 128Mi
         cpu: 250m
-    securityContext:
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
     readinessProbe:
       exec:
         command:
@@ -241,8 +241,8 @@ spec:
       periodSeconds: 10
   restartPolicy: Never
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
-    seccompProfile:
-      type: RuntimeDefault

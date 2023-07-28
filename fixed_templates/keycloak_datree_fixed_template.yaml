@@ -218,9 +218,9 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       hostNetwork: false
       hostIPC: false
       containers:
@@ -229,13 +229,13 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -387,9 +387,9 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       enableServiceLinks: true
       containers:
       - name: keycloak
@@ -398,11 +398,11 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 25000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

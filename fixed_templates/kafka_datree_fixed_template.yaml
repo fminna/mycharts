@@ -149,9 +149,9 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
-        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsUser: 25000
       serviceAccountName: release-name-kafka
       containers:
       - name: kafka
@@ -161,10 +161,10 @@ spec:
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
         command:
         - /scripts/setup.sh
         env:

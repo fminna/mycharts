@@ -48,7 +48,6 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1000
       volumes:
       - name: kibana-tokens
         emptyDir: {}
@@ -65,11 +64,10 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsUser: 1000
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsGroup: 25000
         image: docker.elastic.co/kibana/kibana:7.17.10@sha256:d829548dd28a5cc3f3aa0879800f43ac47d4a823cde01c5e7adc25d8c5d8cf67
         imagePullPolicy: IfNotPresent
         env:
@@ -348,13 +346,13 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
-        livenessProbe:
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
@@ -367,7 +365,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -387,11 +385,11 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: batch/v1
 kind: Job
@@ -432,13 +430,13 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
-        livenessProbe:
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
@@ -451,7 +449,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -471,8 +469,8 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault

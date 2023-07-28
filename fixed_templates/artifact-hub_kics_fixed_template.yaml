@@ -611,7 +611,7 @@ spec:
       - ReadWriteOnce
       resources: {}
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: Job
 metadata:
   name: db-migrator-install
@@ -697,7 +697,7 @@ spec:
         container.apparmor.security.beta.kubernetes.io/db-migrator: runtime/default
         container.apparmor.security.beta.kubernetes.io/check-db-ready: runtime/default
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: CronJob
 metadata:
   name: scanner
@@ -782,7 +782,7 @@ spec:
           automountServiceAccountToken: false
   startingDeadlineSeconds: 100
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: CronJob
 metadata:
   name: tracker

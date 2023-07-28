@@ -124,9 +124,9 @@ spec:
         securityContext:
           runAsUser: 1001
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -185,8 +185,8 @@ spec:
               '
         resources:
           limits:
-            memory: 256Mi
             cpu: 250m
+            memory: 256Mi
           requests:
             cpu: 250m
             memory: 256Mi

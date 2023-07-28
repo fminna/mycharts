@@ -17245,10 +17245,10 @@ spec:
           containerPort: 7000
           protocol: TCP
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17256,12 +17256,10 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-          runAsUser: 1001
-          runAsGroup: 25000
         volumeMounts:
         - mountPath: /app/config/ssh
           name: ssh-known-hosts
@@ -17276,14 +17274,14 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -17319,11 +17317,11 @@ spec:
       dnsPolicy: ClusterFirst
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1001
+        runAsUser: 25000
         runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -17377,10 +17375,10 @@ spec:
           containerPort: 9001
           protocol: TCP
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17398,14 +17396,14 @@ spec:
           mountPath: /app/config/tls
         - name: argocd-repo-server-tls
           mountPath: /app/config/reposerver/tls
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -17550,10 +17548,10 @@ spec:
           seccompProfile:
             type: RuntimeDefault
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
       initContainers:
@@ -17578,10 +17576,10 @@ spec:
         - mountPath: /var/run/argocd
           name: var-files
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
       affinity:
@@ -17723,10 +17721,10 @@ spec:
           successThreshold: 1
           failureThreshold: 3
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17851,10 +17849,10 @@ spec:
           containerPort: 5558
           protocol: TCP
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17876,14 +17874,14 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -17905,10 +17903,10 @@ spec:
         - mountPath: /tmp
           name: dexconfig
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -17920,14 +17918,14 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -18022,10 +18020,10 @@ spec:
           containerPort: 6379
           protocol: TCP
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -18033,18 +18031,18 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
           runAsUser: 25000
-          runAsGroup: 25000
           readOnlyRootFilesystem: true
-        readinessProbe:
+          runAsNonRoot: true
+          runAsGroup: 25000
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -18122,10 +18120,10 @@ spec:
           successThreshold: 1
           failureThreshold: 3
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         securityContext:

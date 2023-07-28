@@ -219,7 +219,6 @@ spec:
             - ALL
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

@@ -122,13 +122,13 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          runAsNonRoot: true
-          runAsGroup: 25000
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          runAsNonRoot: true
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'

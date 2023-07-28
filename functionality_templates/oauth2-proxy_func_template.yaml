@@ -162,12 +162,12 @@ spec:
           successThreshold: 1
           periodSeconds: 10
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - mountPath: /etc/oauth2_proxy/oauth2_proxy.cfg
           name: configmain
@@ -176,11 +176,11 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         securityContext:
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
-          runAsUser: 1001
+          runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       volumes:
       - configMap:
           defaultMode: 420
@@ -194,5 +194,5 @@ spec:
         seccompProfile:
           type: RuntimeDefault
         runAsNonRoot: true
-        runAsUser: 1001
+        runAsUser: 25000
         runAsGroup: 25000

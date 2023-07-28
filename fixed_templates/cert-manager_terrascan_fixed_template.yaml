@@ -1192,13 +1192,13 @@ spec:
           runAsGroup: 25000
           readOnlyRootFilesystem: true
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
-        livenessProbe:
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
@@ -1209,7 +1209,7 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -1294,13 +1294,13 @@ spec:
           readOnlyRootFilesystem: true
         env: []
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
-        livenessProbe:
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
@@ -1311,7 +1311,7 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -1415,12 +1415,12 @@ spec:
           readOnlyRootFilesystem: true
         env: []
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: secret-volume
           readOnly: true
@@ -1647,20 +1647,20 @@ spec:
           runAsGroup: 25000
           readOnlyRootFilesystem: true
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
-        livenessProbe:
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls

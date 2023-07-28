@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: hub
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 ---
 apiVersion: v1
 kind: Secret
@@ -213,10 +213,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 1.14.0
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: hub
@@ -271,43 +269,10 @@ spec:
         - name: http
           containerPort: 8000
           protocol: TCP
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       volumes:
       - name: hub-config
         secret:
           secretName: hub-config
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 25000
-        runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -320,10 +285,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 1.14.0
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -356,42 +319,9 @@ spec:
         - name: http
           containerPort: 8081
           protocol: TCP
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       volumes:
       - name: trivy
         emptyDir: {}
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 25000
-        runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -402,8 +332,6 @@ metadata:
     chart: postgresql-8.2.1
     release: release-name
     heritage: Helm
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   serviceName: release-name-postgresql-headless
   replicas: 1
@@ -426,9 +354,6 @@ spec:
     spec:
       securityContext:
         fsGroup: 1001
-        runAsUser: 25000
-        seccompProfile:
-          type: RuntimeDefault
       initContainers:
       - name: init-chmod-data
         image: docker.io/bitnami/minideb:stretch
@@ -444,7 +369,7 @@ spec:
           \ 1 -not -name \".snapshot\" -not -name \"lost+found\" | \\\n  xargs chown\
           \ -R 1001:1001\nchmod -R 777 /dev/shm\n"
         securityContext:
-          runAsUser: 25000
+          runAsUser: 0
         volumeMounts:
         - name: data
           mountPath: /data
@@ -459,17 +384,8 @@ spec:
           requests:
             cpu: 250m
             memory: 256Mi
-          limits:
-            memory: 256Mi
         securityContext:
-          runAsUser: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsGroup: 25000
-          capabilities:
-            drop:
-            - ALL
+          runAsUser: 1001
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -481,6 +397,11 @@ spec:
           value: /data/pgdata
         - name: POSTGRES_USER
           value: postgres
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-postgresql
+              key: postgresql-password
         - name: POSTGRES_DB
           value: hub
         - name: POSTGRESQL_ENABLE_LDAP
@@ -516,17 +437,14 @@ spec:
         volumeMounts:
         - name: dshm
           mountPath: /dev/shm
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+        - name: data
+          mountPath: /data
+          subPath: null
       volumes:
       - name: dshm
         emptyDir:
           medium: Memory
           sizeLimit: 1Gi
-      - name: secret-volume
-        secret:
-          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -537,12 +455,10 @@ spec:
         requests:
           storage: 8Gi
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: Job
 metadata:
   name: db-migrator-install
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   ttlSecondsAfterFinished: null
   template:
@@ -576,53 +492,15 @@ spec:
           readOnly: true
         command:
         - ./migrate.sh
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          capabilities:
-            drop:
-            - ALL
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       volumes:
       - name: db-migrator-config
         secret:
           secretName: db-migrator-config
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 25000
-        runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: CronJob
 metadata:
   name: scanner
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   schedule: 15,45 * * * *
   successfulJobsHistoryLimit: 1
@@ -656,53 +534,15 @@ spec:
             - name: scanner-config
               mountPath: /home/scanner/.cfg
               readOnly: true
-            securityContext:
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
-              runAsNonRoot: true
-              runAsUser: 25000
-              runAsGroup: 25000
-              capabilities:
-                drop:
-                - ALL
-            livenessProbe:
-              exec:
-                command:
-                - ls
-                - /
-              initialDelaySeconds: 30
-              periodSeconds: 10
-            resources:
-              requests:
-                memory: 128Mi
-                cpu: 250m
-              limits:
-                memory: 128Mi
-                cpu: 250m
-            readinessProbe:
-              exec:
-                command:
-                - ls
-                - /
-              initialDelaySeconds: 30
-              periodSeconds: 10
           volumes:
           - name: scanner-config
             secret:
               secretName: scanner-config
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 25000
-            runAsGroup: 25000
-            seccompProfile:
-              type: RuntimeDefault
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: CronJob
 metadata:
   name: tracker
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   schedule: 1,30 * * * *
   successfulJobsHistoryLimit: 1
@@ -736,46 +576,10 @@ spec:
             - name: tracker-config
               mountPath: /home/tracker/.cfg
               readOnly: true
-            securityContext:
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
-              runAsNonRoot: true
-              runAsUser: 25000
-              runAsGroup: 25000
-              capabilities:
-                drop:
-                - ALL
-            livenessProbe:
-              exec:
-                command:
-                - ls
-                - /
-              initialDelaySeconds: 30
-              periodSeconds: 10
-            resources:
-              requests:
-                memory: 128Mi
-                cpu: 250m
-              limits:
-                memory: 128Mi
-                cpu: 250m
-            readinessProbe:
-              exec:
-                command:
-                - ls
-                - /
-              initialDelaySeconds: 30
-              periodSeconds: 10
           volumes:
           - name: tracker-config
             secret:
               secretName: tracker-config
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 25000
-            runAsGroup: 25000
-            seccompProfile:
-              type: RuntimeDefault
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

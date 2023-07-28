@@ -127,6 +127,7 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
+        volumeMounts: null
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -402,9 +403,9 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
         command:
         - /scripts/post-delete-hook.sh
         volumeMounts:
@@ -419,6 +420,13 @@ spec:
           value: '120'
         - name: IGNORETIMEOUTERROR
           value: 'false'
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         livenessProbe:
           exec:
             command:
@@ -433,13 +441,6 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       volumes:
       - name: config-volume
         configMap:

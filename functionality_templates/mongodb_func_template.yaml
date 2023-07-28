@@ -163,8 +163,8 @@ spec:
         securityContext:
           runAsNonRoot: false
           runAsUser: 1001
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
           runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
@@ -210,11 +210,11 @@ spec:
             - /bitnami/scripts/readiness-probe.sh
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: datadir
           mountPath: /bitnami/mongodb

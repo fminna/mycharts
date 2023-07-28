@@ -284,8 +284,8 @@ spec:
             - curl -f --user user:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/local-alarms
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           requests:
             cpu: 250m
             memory: 128Mi

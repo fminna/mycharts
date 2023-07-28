@@ -383,9 +383,9 @@ spec:
             - NET_BIND_SERVICE
           runAsUser: 101
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
         env:
         - name: LD_PRELOAD
           value: /usr/local/lib/libmimalloc.so
@@ -431,8 +431,8 @@ spec:
             cpu: 100m
             memory: 90Mi
           limits:
-            memory: 90Mi
             cpu: 100m
+            memory: 90Mi
       nodeSelector:
         kubernetes.io/os: linux
       serviceAccountName: release-name-ingress-nginx
@@ -445,13 +445,13 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 101
-        runAsNonRoot: true
-        runAsGroup: 25000
-      hostPID: true
-      automountServiceAccountToken: true
+      hostPID: false
+      automountServiceAccountToken: false
 ---
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
@@ -663,21 +663,10 @@ spec:
         env: []
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -685,6 +674,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         readinessProbe:
           exec:
             command:
@@ -692,6 +688,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       restartPolicy: OnFailure
       serviceAccountName: release-name-ingress-nginx-admission
       nodeSelector:
@@ -753,21 +753,10 @@ spec:
         env: []
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -775,6 +764,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         readinessProbe:
           exec:
             command:
@@ -782,6 +778,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       restartPolicy: OnFailure
       serviceAccountName: release-name-ingress-nginx-admission
       nodeSelector:

@@ -4188,6 +4188,7 @@ spec:
         app: longhorn-manager
       annotations:
         container.apparmor.security.beta.kubernetes.io/longhorn-manager: runtime/default
+        container.apparmor.security.beta.kubernetes.io/wait-longhorn-admission-webhook: runtime/default
     spec:
       containers:
       - name: longhorn-manager
@@ -4195,14 +4196,11 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - -d
@@ -4250,13 +4248,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4264,6 +4255,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       volumes:
       - name: longhorn-grpc-tls
         secret:
@@ -4354,22 +4352,6 @@ spec:
           value: longhornio/csi-snapshotter:v5.0.1
         - name: CSI_LIVENESS_PROBE_IMAGE
           value: longhornio/livenessprobe:v2.8.0
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          capabilities:
-            drop:
-            - ALL
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4384,11 +4366,25 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       serviceAccountName: longhorn-service-account
       securityContext:
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
+        runAsUser: 0
         seccompProfile:
           type: RuntimeDefault
 ---
@@ -4441,13 +4437,11 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 2000
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - recovery-backend
@@ -4470,13 +4464,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4484,13 +4471,20 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       serviceAccountName: longhorn-service-account
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4554,22 +4548,6 @@ spec:
           value: http://longhorn-backend:9500
         - name: LONGHORN_UI_PORT
           value: '8000'
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          capabilities:
-            drop:
-            - ALL
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4584,6 +4562,22 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       volumes:
       - emptyDir: {}
         name: nginx-cache
@@ -4644,13 +4638,11 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 2000
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - conversion-webhook
@@ -4667,13 +4659,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4681,13 +4666,20 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       serviceAccountName: longhorn-service-account
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4750,13 +4742,11 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 2000
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - admission-webhook
@@ -4777,13 +4767,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4791,13 +4774,20 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       serviceAccountName: longhorn-service-account
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: batch/v1
 kind: Job
@@ -4837,14 +4827,11 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - post-upgrade
@@ -4853,13 +4840,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4874,6 +4854,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       restartPolicy: OnFailure
       serviceAccountName: longhorn-service-account
       securityContext:
@@ -4918,14 +4905,11 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - uninstall
@@ -4935,13 +4919,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4956,6 +4933,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       restartPolicy: Never
       serviceAccountName: longhorn-service-account
       securityContext:

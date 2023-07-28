@@ -161,12 +161,18 @@ spec:
           successThreshold: 1
           periodSeconds: 10
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
         - name: secret-volume
           readOnly: true
@@ -177,12 +183,6 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
       volumes:
       - configMap:
           defaultMode: 420
@@ -199,8 +199,8 @@ spec:
           secretName: my-secret
       tolerations: []
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault

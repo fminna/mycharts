@@ -563,6 +563,17 @@ spec:
             port: http-metrics
           initialDelaySeconds: 15
           timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -570,17 +581,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        resources:
-          limits:
-            cpu: 250m
-            memory: 128Mi
-          requests:
-            cpu: 250m
-            memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       volumes:
       - name: secret-volume
         secret:
@@ -620,19 +620,6 @@ spec:
         imagePullPolicy: IfNotPresent
         args:
         - --kubelet-service=default/kubelet
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         readinessProbe:
           exec:
             command:
@@ -641,18 +628,31 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
         resources:
-          limits:
-            cpu: 250m
-            memory: 128Mi
           requests:
             cpu: 250m
             memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -729,10 +729,10 @@ spec:
         - name: docker-entrypoint-d-override
           mountPath: /docker-entrypoint.d
         resources:
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
@@ -804,7 +804,7 @@ spec:
         fsGroup: 10001
         runAsGroup: 10001
         runAsNonRoot: true
-        runAsUser: 1001
+        runAsUser: 10001
         seccompProfile:
           type: RuntimeDefault
       terminationGracePeriodSeconds: 30
@@ -832,9 +832,9 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
-          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
         readinessProbe:
           httpGet:
@@ -852,10 +852,10 @@ spec:
         - name: data
           mountPath: /var/loki
         resources:
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
@@ -984,10 +984,10 @@ spec:
         - name: data
           mountPath: /var/loki
         resources:
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
@@ -1116,10 +1116,10 @@ spec:
         - name: data
           mountPath: /var/loki
         resources:
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
@@ -1325,19 +1325,6 @@ spec:
     - wget
     args:
     - grafana-agent-test-operated:8080/-/healthy
-    securityContext:
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     readinessProbe:
       exec:
         command:
@@ -1346,12 +1333,25 @@ spec:
       initialDelaySeconds: 30
       periodSeconds: 10
     resources:
-      limits:
-        cpu: 250m
-        memory: 128Mi
       requests:
         cpu: 250m
         memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   initContainers:
   - name: sleep
     image: busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
@@ -1359,19 +1359,6 @@ spec:
     command:
     - sleep
     - '60'
-    securityContext:
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     readinessProbe:
       exec:
         command:
@@ -1380,19 +1367,32 @@ spec:
       initialDelaySeconds: 30
       periodSeconds: 10
     resources:
-      limits:
-        cpu: 250m
-        memory: 128Mi
       requests:
         cpu: 250m
         memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
-    seccompProfile:
-      type: RuntimeDefault
 ---
 apiVersion: v1
 kind: Pod
@@ -1421,19 +1421,6 @@ spec:
       value: 1m
     args:
     - -test.v
-    securityContext:
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
     readinessProbe:
       exec:
         command:
@@ -1442,19 +1429,32 @@ spec:
       initialDelaySeconds: 30
       periodSeconds: 10
     resources:
-      limits:
-        cpu: 250m
-        memory: 128Mi
       requests:
         cpu: 250m
         memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
-    seccompProfile:
-      type: RuntimeDefault
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
 kind: GrafanaAgent

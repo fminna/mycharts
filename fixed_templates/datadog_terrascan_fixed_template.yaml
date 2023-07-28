@@ -687,29 +687,29 @@ spec:
         - name: config
           mountPath: /opt/datadog-agent
         securityContext:
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
       containers:
       - name: cluster-agent
         image: gcr.io/datadoghq/cluster-agent:7.45.0
         imagePullPolicy: IfNotPresent
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         ports:
         - containerPort: 5005
           name: agentport

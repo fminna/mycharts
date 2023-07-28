@@ -271,11 +271,11 @@ spec:
             - NET_BIND_SERVICE
             - DAC_READ_SEARCH
             - SYS_RESOURCE
-          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
           runAsUser: 1001
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
-          allowPrivilegeEscalation: false
         args:
         - -provisioner=cluster.local/release-name-nfs-server-provisioner
         env:
@@ -287,13 +287,6 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
         readinessProbe:
           exec:
             command:
@@ -308,6 +301,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       volumes:
       - name: data
         emptyDir: {}
@@ -315,9 +315,9 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 1001
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false

@@ -338,8 +338,8 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
           runAsUser: 25000
+          runAsNonRoot: true
           runAsGroup: 25000
         readinessProbe:
           failureThreshold: 5
@@ -350,13 +350,6 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
-        resources:
-          limits:
-            cpu: 250m
-            memory: 128Mi
-          requests:
-            cpu: 250m
-            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -364,6 +357,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
       tolerations:
       - effect: NoSchedule
         key: node-role.kubernetes.io/master
@@ -457,10 +457,10 @@ spec:
             port: http-metrics
           initialDelaySeconds: 45
         resources:
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
         securityContext:
@@ -488,8 +488,8 @@ kind: Pod
 metadata:
   annotations:
     helm.sh/hook: test-success
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
     container.apparmor.security.beta.kubernetes.io/test: runtime/default
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
   labels:
     app: loki-stack
     chart: loki-stack-2.9.10
@@ -511,19 +511,6 @@ spec:
     volumeMounts:
     - name: tests
       mountPath: /var/lib/loki
-    resources:
-      limits:
-        cpu: 250m
-        memory: 128Mi
-      requests:
-        cpu: 250m
-        memory: 128Mi
-    securityContext:
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
     livenessProbe:
       exec:
         command:
@@ -531,6 +518,19 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
+    securityContext:
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
+    resources:
+      requests:
+        cpu: 250m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
     readinessProbe:
       exec:
         command:

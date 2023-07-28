@@ -1452,10 +1452,10 @@ spec:
               apiVersion: v1
               fieldPath: metadata.name
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         ports:
@@ -1558,10 +1558,10 @@ spec:
         - name: BASE_HREF
           value: /
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         volumeMounts:

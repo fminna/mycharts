@@ -1573,11 +1573,11 @@ spec:
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
       volumes:
       - name: secret-volume
         secret:
@@ -1683,8 +1683,8 @@ spec:
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault

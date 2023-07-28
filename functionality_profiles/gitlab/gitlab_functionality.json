@@ -209,7 +209,8 @@
             "check_1": {
               "description": "Ensure each container has a configured memory request",
               "resource_path": "Deployment/default/release-name-gitlab-runner",
-              "obj_path": "spec/template/spec/containers/0"
+              "obj_path": "spec/template/spec/containers/0",
+              "value": "1Gi"
             },
             "check_2": {
               "description": "Ensure each container has a configured memory limit",

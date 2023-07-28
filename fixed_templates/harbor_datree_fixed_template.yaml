@@ -518,18 +518,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
       volumes:
       - name: config
         configMap:
@@ -628,18 +628,18 @@ spec:
         ports:
         - containerPort: 8080
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         volumeMounts:
         - name: secret-volume
           readOnly: true
@@ -722,18 +722,18 @@ spec:
         - name: MIGRATIONS_PATH
           value: migrations/server/postgresql
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         volumeMounts:
         - name: secret-volume
           readOnly: true
@@ -814,18 +814,18 @@ spec:
         - name: NOTARY_SIGNER_DEFAULTALIAS
           value: defaultalias
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         volumeMounts:
         - name: secret-volume
           readOnly: true
@@ -899,18 +899,18 @@ spec:
         ports:
         - containerPort: 8080
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
       volumes:
       - name: portal-config
         configMap:
@@ -987,18 +987,18 @@ spec:
         - containerPort: 5000
         - containerPort: 5001
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         volumeMounts:
         - name: secret-volume
           readOnly: true
@@ -1039,18 +1039,18 @@ spec:
         ports:
         - containerPort: 8080
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         volumeMounts:
         - name: secret-volume
           readOnly: true
@@ -1197,21 +1197,21 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
       volumes:
       - name: shm-volume
         emptyDir:
@@ -1289,21 +1289,21 @@ spec:
           initialDelaySeconds: 1
           periodSeconds: 10
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -1364,12 +1364,12 @@ spec:
         securityContext:
           privileged: false
           allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
           readOnlyRootFilesystem: true
         env:
         - name: HTTP_PROXY

@@ -4217,10 +4217,10 @@ spec:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         resources:
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
@@ -4235,12 +4235,12 @@ spec:
         image: longhornio/longhorn-manager:v1.4.2
         imagePullPolicy: IfNotPresent
         securityContext:
-          privileged: true
-          runAsNonRoot: false
+          privileged: false
+          runAsNonRoot: true
           runAsUser: 1001
           runAsGroup: 25000
-          allowPrivilegeEscalation: true
-          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - -d
@@ -4284,10 +4284,10 @@ spec:
           mountPath: /etc/secret-volume
         env: []
         resources:
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
@@ -4315,7 +4315,7 @@ spec:
         runAsNonRoot: true
         runAsUser: 1001
         runAsGroup: 25000
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
   updateStrategy:
     rollingUpdate:
       maxUnavailable: 100%
@@ -4365,21 +4365,21 @@ spec:
           runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
           exec:
             command:
             - ls
@@ -4417,24 +4417,6 @@ spec:
           runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         readinessProbe:
           exec:
             command:
@@ -4442,6 +4424,24 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       serviceAccountName: longhorn-service-account
       securityContext:
         runAsUser: 25000
@@ -4522,16 +4522,12 @@ spec:
           periodSeconds: 5
         env: []
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
             cpu: 250m
             memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+          requests:
+            cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -4539,6 +4535,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       serviceAccountName: longhorn-service-account
       securityContext:
         seccompProfile:
@@ -4619,21 +4619,21 @@ spec:
           runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
           exec:
             command:
             - ls
@@ -4720,16 +4720,12 @@ spec:
             port: 9443
         env: []
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
             cpu: 250m
             memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+          requests:
+            cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -4737,6 +4733,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       serviceAccountName: longhorn-service-account
       securityContext:
         seccompProfile:
@@ -4809,10 +4809,10 @@ spec:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         resources:
-          requests:
+          limits:
             cpu: 250m
             memory: 128Mi
-          limits:
+          requests:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
@@ -4845,16 +4845,12 @@ spec:
             port: 9443
         env: []
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
             cpu: 250m
             memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
+          requests:
+            cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -4862,6 +4858,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       serviceAccountName: longhorn-service-account
       securityContext:
         seccompProfile:
@@ -4919,24 +4919,6 @@ spec:
         - longhorn-manager
         - post-upgrade
         env: []
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         readinessProbe:
           exec:
             command:
@@ -4944,6 +4926,24 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       restartPolicy: OnFailure
       serviceAccountName: longhorn-service-account
       securityContext:
@@ -5003,24 +5003,6 @@ spec:
         - uninstall
         - --force
         env: []
-        resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         readinessProbe:
           exec:
             command:
@@ -5028,6 +5010,24 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       restartPolicy: Never
       serviceAccountName: longhorn-service-account
       securityContext:

@@ -254,11 +254,11 @@ spec:
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         args:
         - -provisioner=cluster.local/release-name-nfs-server-provisioner
         env:
@@ -275,6 +275,13 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /export
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         readinessProbe:
           exec:
             command:
@@ -289,13 +296,6 @@ spec:
           limits:
             memory: 128Mi
             cpu: 250m
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
       volumes:
       - name: data
         emptyDir: {}

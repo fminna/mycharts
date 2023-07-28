@@ -173,17 +173,17 @@ spec:
         resources:
           limits:
             cpu: 100m
-            memory: 1024Mi
+            memory: 512Mi
           requests:
             cpu: 100m
-            memory: 1024Mi
+            memory: 512Mi
         securityContext:
           privileged: true
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
         args:
         - /usr/bin/falco
         - --cri
@@ -253,11 +253,11 @@ spec:
         - follow
         - --verbose
         securityContext:
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
         volumeMounts:
         - mountPath: /plugins
           name: plugins-install-dir
@@ -271,13 +271,6 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           limits:
             cpu: 250m
@@ -292,17 +285,24 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       initContainers:
       - name: falco-driver-loader
         image: docker.io/falcosecurity/falco-driver-loader:0.34.1
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
         volumeMounts:
         - mountPath: /root/.falco
           name: root-falco-fs
@@ -320,13 +320,6 @@ spec:
         - mountPath: /host/etc
           name: etc-fs
           readOnly: true
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           limits:
             cpu: 250m
@@ -335,6 +328,13 @@ spec:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
           exec:
             command:
             - ls
@@ -355,19 +355,12 @@ spec:
           name: rulesfiles-install-dir
         - mountPath: /etc/falcoctl
           name: falcoctl-config-volume
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         securityContext:
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
         resources:
           limits:
             cpu: 250m
@@ -376,6 +369,13 @@ spec:
             cpu: 250m
             memory: 128Mi
         livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
           exec:
             command:
             - ls
@@ -405,10 +405,10 @@ spec:
         secret:
           secretName: my-secret
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
   updateStrategy:
     type: RollingUpdate

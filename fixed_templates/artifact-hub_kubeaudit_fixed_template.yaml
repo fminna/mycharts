@@ -526,12 +526,10 @@ spec:
         requests:
           storage: 8Gi
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: Job
 metadata:
   name: db-migrator-install
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   ttlSecondsAfterFinished: null
   template:
@@ -552,15 +550,6 @@ spec:
         - sh
         - -c
         - until pg_isready; do echo waiting for database; sleep 2; done;
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
       containers:
       - name: db-migrator
         image: artifacthub/db-migrator:v1.14.0
@@ -574,29 +563,12 @@ spec:
           readOnly: true
         command:
         - ./migrate.sh
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
       volumes:
       - name: db-migrator-config
         secret:
           secretName: db-migrator-config
-      automountServiceAccountToken: false
-      securityContext:
-        seccompProfile:
-          type: RuntimeDefault
-    metadata:
-      annotations:
-        container.apparmor.security.beta.kubernetes.io/db-migrator: runtime/default
-        container.apparmor.security.beta.kubernetes.io/check-db-ready: runtime/default
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: CronJob
 metadata:
   name: scanner
@@ -638,7 +610,7 @@ spec:
             secret:
               secretName: scanner-config
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1
 kind: CronJob
 metadata:
   name: tracker

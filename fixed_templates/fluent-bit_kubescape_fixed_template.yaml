@@ -164,8 +164,8 @@ spec:
           name: etcmachineid
           readOnly: true
         securityContext:
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
@@ -194,11 +194,10 @@ metadata:
   namespace: default
   labels:
     helm.sh/chart: fluent-bit-0.30.3
-    app.kubernetes.io/name: MyApp
+    app.kubernetes.io/name: fluent-bit
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/version: 2.1.4
     app.kubernetes.io/managed-by: Helm
-    app: MyApp
   annotations:
     helm.sh/hook: test-success
 spec:
@@ -211,12 +210,8 @@ spec:
     args:
     - release-name-fluent-bit:2020
     securityContext:
-      readOnlyRootFilesystem: true
       allowPrivilegeEscalation: false
   restartPolicy: Never
-  metadata:
-    labels:
-      app: MyApp
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

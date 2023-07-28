@@ -242,7 +242,6 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1001
       serviceAccountName: release-name-kubernetes-dashboard
       containers:
       - name: kubernetes-dashboard
@@ -280,10 +279,10 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           runAsGroup: 2001
           runAsUser: 1001
-          runAsNonRoot: false
+          runAsNonRoot: true
         readinessProbe:
           exec:
             command:
@@ -297,4 +296,4 @@ spec:
           secretName: release-name-kubernetes-dashboard-certs
       - name: tmp-volume
         emptyDir: {}
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false

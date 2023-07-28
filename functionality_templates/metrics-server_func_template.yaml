@@ -180,12 +180,11 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsUser: 1000
           seccompProfile:
             type: RuntimeDefault
-          runAsGroup: 25000
         image: registry.k8s.io/metrics-server/metrics-server:v0.6.3
         imagePullPolicy: IfNotPresent
         args:
@@ -219,21 +218,21 @@ spec:
           mountPath: /tmp
         resources:
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
       volumes:
       - name: tmp
         emptyDir: {}
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 25000
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
 ---
 apiVersion: apiregistration.k8s.io/v1
 kind: APIService

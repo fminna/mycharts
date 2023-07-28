@@ -226,9 +226,9 @@ spec:
       - name: tmp
         emptyDir: {}
       securityContext:
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
 ---
 apiVersion: apiregistration.k8s.io/v1
 kind: APIService

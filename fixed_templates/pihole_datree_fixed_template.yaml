@@ -169,8 +169,8 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
@@ -252,6 +252,12 @@ spec:
     - sh
     - -c
     - curl http://release-name-pihole-web:80/
+    securityContext:
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
     resources:
       limits:
         memory: 128Mi
@@ -259,20 +265,14 @@ spec:
       requests:
         memory: 128Mi
         cpu: 250m
-    readinessProbe:
+    livenessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    securityContext:
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop:
-        - ALL
-    livenessProbe:
+    readinessProbe:
       exec:
         command:
         - ls
@@ -281,10 +281,10 @@ spec:
       periodSeconds: 10
   restartPolicy: Never
   terminationGracePeriodSeconds: 0
-  automountServiceAccountToken: false
   securityContext:
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
     seccompProfile:
       type: RuntimeDefault
+  automountServiceAccountToken: false

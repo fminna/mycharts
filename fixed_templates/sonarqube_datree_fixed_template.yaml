@@ -215,13 +215,13 @@ spec:
             memory: 200Mi
         securityContext:
           runAsUser: 25000
-          runAsNonRoot: true
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -443,13 +443,13 @@ spec:
           timeoutSeconds: 1
         securityContext:
           runAsUser: 25000
-          runAsNonRoot: true
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
           allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /tmp
           name: tmp-dir
@@ -526,10 +526,10 @@ spec:
     - --tap
     - /tests/run.sh
     resources:
-      limits:
+      requests:
         memory: 128Mi
         cpu: 250m
-      requests:
+      limits:
         memory: 128Mi
         cpu: 250m
     volumeMounts:
@@ -538,12 +538,6 @@ spec:
       readOnly: true
     - mountPath: /tools
       name: tools
-    securityContext:
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop:
-        - ALL
-      allowPrivilegeEscalation: false
     readinessProbe:
       exec:
         command:
@@ -558,6 +552,12 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
   volumes:
   - name: tests
     configMap:
@@ -565,10 +565,10 @@ spec:
   - name: tools
     emptyDir: {}
   restartPolicy: Never
+  automountServiceAccountToken: false
   securityContext:
     seccompProfile:
       type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
-  automountServiceAccountToken: false

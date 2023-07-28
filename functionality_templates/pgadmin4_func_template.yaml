@@ -112,16 +112,16 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          readOnlyRootFilesystem: false
-          allowPrivilegeEscalation: true
-          runAsNonRoot: false
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsUser: 1001
           runAsGroup: 25000
           capabilities:
@@ -152,9 +152,9 @@ spec:
         fsGroup: 5050
         runAsGroup: 5050
         runAsUser: 1001
+        runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
-        runAsNonRoot: true
 ---
 apiVersion: v1
 kind: Pod
@@ -198,10 +198,10 @@ spec:
 
       '
     resources:
-      requests:
+      limits:
         memory: 128Mi
         cpu: 250m
-      limits:
+      requests:
         memory: 128Mi
         cpu: 250m
     securityContext:
@@ -210,14 +210,14 @@ spec:
       runAsNonRoot: true
       runAsUser: 25000
       runAsGroup: 25000
-    livenessProbe:
+    readinessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    readinessProbe:
+    livenessProbe:
       exec:
         command:
         - ls

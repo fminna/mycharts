@@ -2053,9 +2053,6 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
         volumeMounts:
         - name: memberlist
           mountPath: /etc/ml_secret_key
@@ -2078,9 +2075,6 @@ spec:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           privileged: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
         image: quay.io/frrouting/frr:8.4.2
         env:
         - name: TINI_SUBREAPER
@@ -2108,13 +2102,6 @@ spec:
             port: 7473
           failureThreshold: 30
           periodSeconds: 5
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           limits:
             memory: 128Mi
@@ -2122,6 +2109,13 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       - name: reloader
         image: quay.io/frrouting/frr:8.4.2
         command:
@@ -2134,21 +2128,14 @@ spec:
         - name: reloader
           mountPath: /etc/frr_reloader
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           limits:
             memory: 128Mi
@@ -2156,6 +2143,13 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         livenessProbe:
           exec:
             command:
@@ -2180,21 +2174,14 @@ spec:
         - name: metrics
           mountPath: /etc/frr_metrics
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         resources:
           limits:
             memory: 128Mi
@@ -2202,6 +2189,13 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
         livenessProbe:
           exec:
             command:

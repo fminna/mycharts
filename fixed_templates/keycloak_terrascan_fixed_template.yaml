@@ -298,8 +298,8 @@ spec:
               '
         resources:
           limits:
-            cpu: 250m
             memory: 256Mi
+            cpu: 250m
           requests:
             cpu: 250m
             memory: 256Mi
@@ -401,8 +401,8 @@ spec:
           value: /
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           requests:
             cpu: 250m
             memory: 128Mi

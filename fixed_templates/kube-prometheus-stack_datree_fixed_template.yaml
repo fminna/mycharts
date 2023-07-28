@@ -19955,21 +19955,21 @@ spec:
           mountPropagation: HostToContainer
           readOnly: true
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
       hostNetwork: false
       hostPID: false
       tolerations:
@@ -20060,18 +20060,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         livenessProbe:
           exec:
             command:
@@ -20126,18 +20126,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         livenessProbe:
           exec:
             command:
@@ -20211,18 +20211,18 @@ spec:
             path: /api/health
             port: 3000
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
       volumes:
       - name: config
         configMap:
@@ -20321,18 +20321,18 @@ spec:
           initialDelaySeconds: 5
           timeoutSeconds: 5
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -20390,10 +20390,10 @@ spec:
         - containerPort: 10250
           name: https
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         securityContext:
@@ -23990,18 +23990,18 @@ spec:
       name: tests
       readOnly: true
     resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
       limits:
         memory: 128Mi
         cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
     securityContext:
-      allowPrivilegeEscalation: false
       capabilities:
         drop:
         - ALL
       readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
     livenessProbe:
       exec:
         command:
@@ -24021,13 +24021,13 @@ spec:
     configMap:
       name: release-name-grafana-test
   restartPolicy: Never
+  automountServiceAccountToken: false
   securityContext:
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
     seccompProfile:
       type: RuntimeDefault
-  automountServiceAccountToken: false
 ---
 apiVersion: batch/v1
 kind: Job
@@ -24071,19 +24071,19 @@ spec:
         - --namespace=default
         - --secret-name=release-name-kube-promethe-admission
         securityContext:
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         livenessProbe:
@@ -24152,19 +24152,19 @@ spec:
         - --secret-name=release-name-kube-promethe-admission
         - --patch-failure-policy=
         securityContext:
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
         livenessProbe:

@@ -527,11 +527,11 @@ spec:
         memory: 128Mi
         cpu: 250m
     securityContext:
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
       capabilities:
         drop:
         - ALL
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
     livenessProbe:
       exec:
         command:

@@ -17,10 +17,9 @@ output=$2
 
 if [ "$output" = "output" ]
 then
-    # Clear the content of output_final.txt
-    > output_fix.txt
-    > output_func.txt
-    > output_final.txt
+    > output_fix_${chart_name}.txt
+    > output_func_${chart_name}.txt
+    > output_final_${chart_name}.txt
 fi
 
 # Set up environment variables
@@ -40,10 +39,9 @@ checkov -f templates/${chart_folder}_template.yaml --quiet --compact --framework
 echo -e "\n -------------------------- \n"
 echo "Step 2 - Fix issues"
 python .github/scripts/main.py --check
-# If output is provided, append output of --check to output_final.txt
 if [ "$output" = "output" ]
 then
-    python .github/scripts/main.py --check >> output_fix.txt
+    python .github/scripts/main.py --check >> output_fix_${chart_name}.txt
 fi
 
 # Step 3 - Debug
@@ -59,7 +57,7 @@ export iteration="3"
 python .github/scripts/main.py --add-func
 if [ "$output" = "output" ]
 then
-    python .github/scripts/main.py --add-func >> output_func.txt
+    python .github/scripts/main.py --add-func >> output_func_${chart_name}.txt
 fi
 
 # Step 5 - Run all tools on functional template
@@ -70,7 +68,7 @@ export second_tool="checkov"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    python .github/scripts/main.py --count-checks >> output_final.txt
+    python .github/scripts/main.py --count-checks >> output_final_${chart_name}.txt
 fi
 
 # Datree
@@ -80,8 +78,8 @@ export second_tool="datree"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final.txt
-    python .github/scripts/main.py --count-checks >> output_final.txt
+    echo -e "" >> output_final_${chart_name}.txt
+    python .github/scripts/main.py --count-checks >> output_final_${chart_name}.txt
 fi
 
 # KICS
@@ -92,8 +90,8 @@ export second_tool="kics"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final.txt
-    python .github/scripts/main.py --count-checks >> output_final.txt
+    echo -e "" >> output_final_${chart_name}.txt
+    python .github/scripts/main.py --count-checks >> output_final_${chart_name}.txt
 fi
 
 # Kubelinter
@@ -103,8 +101,8 @@ export second_tool="kubelinter"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final.txt
-    python .github/scripts/main.py --count-checks >> output_final.txt
+    echo -e "" >> output_final_${chart_name}.txt
+    python .github/scripts/main.py --count-checks >> output_final_${chart_name}.txt
 fi
 
 # Kubeaudit
@@ -114,8 +112,8 @@ export second_tool="kubeaudit"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final.txt
-    python .github/scripts/main.py --count-checks >> output_final.txt
+    echo -e "" >> output_final_${chart_name}.txt
+    python .github/scripts/main.py --count-checks >> output_final_${chart_name}.txt
 fi
 
 # Kubescape
@@ -125,8 +123,8 @@ export second_tool="kubescape"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final.txt
-    python .github/scripts/main.py --count-checks >> output_final.txt
+    echo -e "" >> output_final_${chart_name}.txt
+    python .github/scripts/main.py --count-checks >> output_final_${chart_name}.txt
 fi
 
 # Terrascan
@@ -136,8 +134,8 @@ export second_tool="terrascan"
 python .github/scripts/main.py --count-checks
 if [ "$output" = "output" ]
 then
-    echo -e "" >> output_final.txt
-    python .github/scripts/main.py --count-checks >> output_final.txt
+    echo -e "" >> output_final_${chart_name}.txt
+    python .github/scripts/main.py --count-checks >> output_final_${chart_name}.txt
 fi
 
 # Delete result files

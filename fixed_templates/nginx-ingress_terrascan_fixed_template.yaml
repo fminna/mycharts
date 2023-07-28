@@ -266,8 +266,8 @@ spec:
             cpu: 100m
             memory: 128Mi
           limits:
-            cpu: 100m
             memory: 128Mi
+            cpu: 100m
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -315,10 +315,6 @@ spec:
         - -ready-status=true
         - -ready-status-port=8081
         - -enable-latency-metrics=false
-        volumeMounts:
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -326,6 +322,10 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       volumes:
       - name: secret-volume
         secret:

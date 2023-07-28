@@ -209,10 +209,10 @@ spec:
             - ALL
           seccompProfile:
             type: RuntimeDefault
+          readOnlyRootFilesystem: true
           runAsUser: 25000
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
         volumeMounts:
         - name: config
           mountPath: /etc/grafana/grafana.ini
@@ -253,10 +253,10 @@ spec:
             path: /api/health
             port: 3000
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
       volumes:
@@ -333,26 +333,6 @@ spec:
     - mountPath: /tests
       name: tests
       readOnly: true
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
-      limits:
-        memory: 128Mi
-        cpu: 250m
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
     livenessProbe:
       exec:
         command:
@@ -360,14 +340,34 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
+    resources:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    securityContext:
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      runAsUser: 25000
+      runAsGroup: 25000
   volumes:
   - name: tests
     configMap:
       name: release-name-grafana-test
   restartPolicy: Never
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
-    seccompProfile:
-      type: RuntimeDefault

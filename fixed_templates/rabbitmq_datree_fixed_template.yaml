@@ -200,11 +200,11 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 25000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
         lifecycle:
           preStop:
             exec:

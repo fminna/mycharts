@@ -262,9 +262,9 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
-          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
-          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false

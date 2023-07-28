@@ -1961,9 +1961,9 @@ spec:
         securityContext:
           runAsUser: 25000
           runAsGroup: 101
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
         command:
         - /bin/sh
         - -c
@@ -1974,12 +1974,12 @@ spec:
         - name: frr-conf
           mountPath: /etc/frr
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -2003,19 +2003,19 @@ spec:
         volumeMounts:
         - name: reloader
           mountPath: /etc/frr_reloader
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
         securityContext:
-          runAsUser: 25000
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -2039,19 +2039,19 @@ spec:
         volumeMounts:
         - name: metrics
           mountPath: /etc/frr_metrics
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
         securityContext:
-          runAsUser: 25000
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -2115,8 +2115,8 @@ spec:
           capabilities:
             add:
             - NET_RAW
-          runAsUser: 25000
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
         volumeMounts:
         - name: memberlist
@@ -2129,12 +2129,12 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
       - name: frr
         securityContext:
           capabilities:
@@ -2143,11 +2143,11 @@ spec:
             - NET_RAW
             - SYS_ADMIN
             - NET_BIND_SERVICE
-          runAsUser: 25000
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
         image: quay.io/frrouting/frr:8.4.2
         env:
         - name: TINI_SUBREAPER
@@ -2180,12 +2180,12 @@ spec:
           failureThreshold: 30
           periodSeconds: 5
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         readinessProbe:
           exec:
             command:
@@ -2207,19 +2207,19 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
         securityContext:
-          runAsUser: 25000
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -2253,19 +2253,19 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
-          limits:
-            memory: 128Mi
-            cpu: 250m
         securityContext:
-          runAsUser: 25000
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
         livenessProbe:
           exec:
             command:
@@ -2290,11 +2290,11 @@ spec:
         effect: NoSchedule
         operator: Exists
       securityContext:
+        runAsNonRoot: true
         runAsUser: 25000
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsNonRoot: true
-        runAsGroup: 25000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2386,12 +2386,12 @@ spec:
           runAsUser: 25000
           runAsGroup: 25000
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
       nodeSelector:
         kubernetes.io/os: linux
       volumes:

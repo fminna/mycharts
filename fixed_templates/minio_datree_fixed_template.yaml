@@ -113,9 +113,9 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        runAsUser: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
       containers:
       - name: minio
         image: docker.io/bitnami/minio:2023.5.18-debian-11-r2
@@ -123,10 +123,10 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 25000
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG

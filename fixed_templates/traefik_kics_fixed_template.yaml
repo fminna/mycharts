@@ -137,7 +137,7 @@ spec:
       terminationGracePeriodSeconds: 60
       hostNetwork: false
       containers:
-      - image: docker.io/traefik:2.10.3-windowsservercore-1809@sha256:04cf9d1feba10cb60fbf505c56970efb6d21391a19cf284d4181bfba73d619e9
+      - image: docker.io/traefik:2.10@sha256:cda187e491fd290c16c972a7c2bba6dd20a3ffa8af101d84992f8f863ca0fa75
         imagePullPolicy: Always
         name: release-name-traefik
         resources:

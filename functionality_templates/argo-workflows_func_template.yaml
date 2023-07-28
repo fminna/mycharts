@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-argo-workflows-workflow-controller
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-workflows-0.29.2
     app.kubernetes.io/name: argo-workflows-workflow-controller
@@ -15,7 +15,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-argo-workflows-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-workflows-0.29.2
     app.kubernetes.io/name: argo-workflows-server
@@ -28,7 +28,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-argo-workflows-workflow-controller-configmap
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-workflows-0.29.2
     app.kubernetes.io/name: argo-workflows-cm
@@ -1391,7 +1391,7 @@ metadata:
     app.kubernetes.io/component: workflow-controller
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: argo-workflows
-  namespace: test-ns
+  namespace: default
 rules:
 - apiGroups:
   - ''
@@ -1447,7 +1447,7 @@ metadata:
     app.kubernetes.io/component: workflow-controller
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: argo-workflows
-  namespace: test-ns
+  namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -1461,7 +1461,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-argo-workflows-server
-  namespace: test-ns
+  namespace: default
   labels:
     helm.sh/chart: argo-workflows-0.29.2
     app.kubernetes.io/name: argo-workflows-server
@@ -1511,6 +1511,8 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: argo-workflows
         app.kubernetes.io/version: v3.4.8
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/controller: runtime/default
     spec:
       serviceAccountName: release-name-argo-workflows-workflow-controller
       containers:
@@ -1535,28 +1537,16 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
-          runAsUser: 1001
-          runAsGroup: 25000
-        env:
-        - name: ARGO_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
-        - name: LEADER_ELECTION_IDENTITY
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+        env: []
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
         ports:
         - name: metrics
           containerPort: 9090
@@ -1576,15 +1566,22 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1001
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: my-secret
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1617,6 +1614,8 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: argo-workflows
         app.kubernetes.io/version: v3.4.8
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/argo-server: runtime/default
     spec:
       serviceAccountName: release-name-argo-workflows-server
       containers:
@@ -1630,7 +1629,6 @@ spec:
             - ALL
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 25000
         args:
         - server
         - --configmap=release-name-argo-workflows-workflow-controller-configmap
@@ -1654,23 +1652,21 @@ spec:
         env:
         - name: IN_CLUSTER
           value: 'true'
-        - name: ARGO_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
         - name: BASE_HREF
           value: /
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: tmp
           mountPath: /tmp
+        - name: secret-volume
+          readOnly: true
+          mountPath: /etc/secret-volume
         livenessProbe:
           exec:
             command:
@@ -1681,100 +1677,14 @@ spec:
       volumes:
       - name: tmp
         emptyDir: {}
+      - name: secret-volume
+        secret:
+          secretName: my-secret
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 25000
+        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
-      automountServiceAccountToken: false
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-spec:
-  podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978

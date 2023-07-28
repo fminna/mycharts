@@ -105,7 +105,7 @@
               "description": "Prevent containers from mounting Docker socket",
               "resource_path": "StatefulSet/default/release-name-rabbitmq",
               "obj_path": "",
-              "value": false,
+              "value": true,
               "failed_check": "test_case_1"
             },
             "check_21": {

@@ -300,9 +300,8 @@ spec:
       serviceAccountName: release-name-promtail
       enableServiceLinks: true
       securityContext:
-        runAsGroup: 25000
-        runAsUser: 25000
-        runAsNonRoot: true
+        runAsGroup: 0
+        runAsUser: 0
       containers:
       - name: promtail
         image: docker.io/grafana/promtail:2.7.4
@@ -347,13 +346,6 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -361,6 +353,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
       tolerations:
       - effect: NoSchedule
         key: node-role.kubernetes.io/master
@@ -461,9 +460,6 @@ spec:
             cpu: 250m
         securityContext:
           readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
           capabilities:
             drop:
@@ -487,12 +483,15 @@ kind: Deployment
 metadata:
   annotations:
     helm.sh/hook: test-success
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/test: runtime/default
   labels:
     app: loki-stack
     chart: loki-stack-2.9.10
     release: release-name
     heritage: Helm
   name: release-name-loki-stack-test
+  namespace: test-ns
 spec:
   containers:
   - name: test
@@ -508,11 +507,27 @@ spec:
     volumeMounts:
     - name: tests
       mountPath: /var/lib/loki
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
   restartPolicy: Never
   volumes:
   - name: tests
     configMap:
       name: release-name-loki-stack-test
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

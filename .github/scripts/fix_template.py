@@ -1,4 +1,4 @@
-# Copyright 2023 AssureMOSS
+# Copyright 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -253,11 +253,6 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
         if process_func is not None:
             # Iterate with index through the document dictionaries
             for document in template:
-
-                if check["resource_path"].split("/")[0] == "CronJob":
-                    if check_id == "check_30":
-                        print(check_resource_path(check["resource_path"].split("/"), document))
-
                 # If the resource to fix is in the current YAML document
                 if check_resource_path(check["resource_path"].split("/"), document):
 

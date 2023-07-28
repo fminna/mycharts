@@ -104,18 +104,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         securityContext:
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
       volumes:
       - name: secret-volume
         secret:
           secretName: my-secret
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault

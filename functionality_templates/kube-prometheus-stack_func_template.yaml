@@ -19955,7 +19955,7 @@ spec:
         fsGroup: 65534
         runAsGroup: 65534
         runAsNonRoot: true
-        runAsUser: 1001
+        runAsUser: 65534
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: release-name-prometheus-node-exporter
@@ -20019,11 +20019,11 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
-          runAsNonRoot: false
-          runAsUser: 1001
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          readOnlyRootFilesystem: true
       hostNetwork: false
       hostPID: false
       tolerations:
@@ -20072,9 +20072,9 @@ spec:
         fsGroup: 472
         runAsGroup: 472
         runAsUser: 25000
-        runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
       enableServiceLinks: true
       containers:
       - name: grafana-sc-dashboard
@@ -20109,19 +20109,19 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -20160,19 +20160,19 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -20239,10 +20239,10 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       volumes:
       - name: config
@@ -20303,9 +20303,9 @@ spec:
         fsGroup: 65534
         runAsGroup: 65534
         runAsUser: 65534
-        runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
       containers:
       - name: kube-state-metrics
         args:
@@ -20336,10 +20336,10 @@ spec:
             memory: 128Mi
             cpu: 250m
         securityContext:
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
 ---
 apiVersion: apps/v1
@@ -20416,14 +20416,14 @@ spec:
         - name: tls-secret
           mountPath: /cert
           readOnly: true
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -23988,8 +23988,8 @@ metadata:
   annotations:
     helm.sh/hook: test-success
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
-    container.apparmor.security.beta.kubernetes.io/release-name-test: runtime/default
     seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/release-name-test: runtime/default
   namespace: test-ns
 spec:
   serviceAccountName: release-name-grafana-test
@@ -24013,19 +24013,19 @@ spec:
         memory: 128Mi
         cpu: 250m
     securityContext:
+      allowPrivilegeEscalation: false
       runAsNonRoot: true
       runAsUser: 25000
       runAsGroup: 25000
-      allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
-    readinessProbe:
+    livenessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    livenessProbe:
+    readinessProbe:
       exec:
         command:
         - ls
@@ -24038,11 +24038,11 @@ spec:
       name: release-name-grafana-test
   restartPolicy: Never
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
-    seccompProfile:
-      type: RuntimeDefault
 ---
 apiVersion: batch/v1
 kind: Job
@@ -24088,10 +24088,10 @@ spec:
         - --namespace=default
         - --secret-name=release-name-kube-promethe-admission
         securityContext:
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         resources:
           limits:
@@ -24100,14 +24100,14 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -24168,10 +24168,10 @@ spec:
         - --secret-name=release-name-kube-promethe-admission
         - --patch-failure-policy=
         securityContext:
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         resources:
           limits:
@@ -24180,14 +24180,14 @@ spec:
           requests:
             memory: 128Mi
             cpu: 250m
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls

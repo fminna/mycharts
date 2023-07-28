@@ -298,8 +298,8 @@ spec:
               '
         resources:
           limits:
-            cpu: 250m
             memory: 256Mi
+            cpu: 250m
           requests:
             cpu: 250m
             memory: 256Mi
@@ -383,7 +383,6 @@ spec:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1001
       enableServiceLinks: true
       initContainers: null
       containers:
@@ -391,9 +390,9 @@ spec:
         image: docker.io/bitnami/keycloak:21.1.1-debian-11-r8
         imagePullPolicy: IfNotPresent
         securityContext:
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsUser: 1001
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsGroup: 25000
         env:
@@ -403,8 +402,8 @@ spec:
           value: /
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           requests:
             cpu: 250m
             memory: 128Mi

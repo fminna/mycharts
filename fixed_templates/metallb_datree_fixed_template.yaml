@@ -1991,10 +1991,10 @@ spec:
         - name: metallb-excludel2
           mountPath: /etc/metallb
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
       - name: frr
@@ -2002,11 +2002,11 @@ spec:
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          allowPrivilegeEscalation: false
         image: quay.io/frrouting/frr:8.4.2
         env:
         - name: TINI_SUBREAPER
@@ -2035,10 +2035,10 @@ spec:
           failureThreshold: 30
           periodSeconds: 5
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         readinessProbe:
@@ -2059,20 +2059,11 @@ spec:
           mountPath: /etc/frr
         - name: reloader
           mountPath: /etc/frr_reloader
-        securityContext:
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         livenessProbe:
@@ -2082,6 +2073,15 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           exec:
             command:
@@ -2105,20 +2105,11 @@ spec:
           mountPath: /etc/frr
         - name: metrics
           mountPath: /etc/frr_metrics
-        securityContext:
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
-          allowPrivilegeEscalation: false
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
         livenessProbe:
@@ -2128,6 +2119,15 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         readinessProbe:
           exec:
             command:
@@ -2236,10 +2236,10 @@ spec:
             drop:
             - ALL
         resources:
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
       nodeSelector:

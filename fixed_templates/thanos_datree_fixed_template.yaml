@@ -199,6 +199,7 @@ spec:
             memory: 128Mi
           requests:
             memory: 128Mi
+        volumeMounts: null
       volumes: null
 ---
 apiVersion: apps/v1

@@ -151,14 +151,14 @@ spec:
             memory: 512Mi
         securityContext:
           privileged: false
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
         args:
         - /usr/bin/falco
         - --cri
@@ -228,20 +228,20 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
-        readinessProbe:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls

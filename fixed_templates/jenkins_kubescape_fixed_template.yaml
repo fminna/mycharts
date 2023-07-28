@@ -447,14 +447,14 @@ spec:
           mountPath: /var/jenkins_home/casc_configs
         - name: jenkins-home
           mountPath: /var/jenkins_home
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        livenessProbe:
+        readinessProbe:
           exec:
             command:
             - ls
@@ -507,8 +507,6 @@ metadata:
   namespace: default
   annotations:
     helm.sh/hook: test-success
-  labels:
-    app: MyApp
 spec:
   initContainers:
   - name: test-framework
@@ -540,6 +538,13 @@ spec:
       readOnly: true
     - mountPath: /tools
       name: tools
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   volumes:
   - name: tests
     configMap:
@@ -547,9 +552,6 @@ spec:
   - name: tools
     emptyDir: {}
   restartPolicy: Never
-  metadata:
-    labels:
-      app: MyApp
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

@@ -3246,6 +3246,7 @@ spec:
             cpu: 50m
             memory: 50Mi
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities:
             drop:
@@ -3253,7 +3254,6 @@ spec:
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
       volumes:
       - name: certs
         secret:
@@ -3320,21 +3320,8 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /bootstrap/config
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities:
             drop:
@@ -3342,7 +3329,20 @@ spec:
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
       terminationGracePeriodSeconds: 10
       serviceAccountName: release-name-consul-webhook-cert-manager
       volumes:
@@ -3498,6 +3498,12 @@ spec:
           requests:
             cpu: 100m
             memory: 100Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         livenessProbe:
           exec:
             command:
@@ -3505,15 +3511,6 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
   volumeClaimTemplates:
   - metadata:
       name: data-default
@@ -3785,7 +3782,7 @@ apiVersion: v1
 kind: Deployment
 metadata:
   name: release-name-consul-test
-  namespace: test-ns
+  namespace: default
   labels:
     app: MyApp
     chart: consul-helm
@@ -3794,8 +3791,6 @@ metadata:
     app.kubernetes.io/name: MyApp
   annotations:
     helm.sh/hook: test-success
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
-    container.apparmor.security.beta.kubernetes.io/consul-test: runtime/default
 spec:
   containers:
   - name: consul-test
@@ -3813,29 +3808,6 @@ spec:
     - "consul members | tee members.txt\nif [ $(grep -c consul-server members.txt)\
       \ != $(grep consul-server members.txt | grep -c alive) ]\nthen\n  echo \"Failed\
       \ because not all consul servers are available\"\n  exit 1\nfi\n"
-    readinessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    securityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-        - ALL
-      runAsNonRoot: true
-      runAsUser: 25000
-      runAsGroup: 25000
-      readOnlyRootFilesystem: true
     resources:
       limits:
         memory: 128Mi
@@ -3843,13 +3815,13 @@ spec:
       requests:
         memory: 128Mi
         cpu: 250m
+    securityContext:
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
   restartPolicy: Never
   metadata:
     labels:
       app: MyApp
-  securityContext:
-    seccompProfile:
-      type: RuntimeDefault
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

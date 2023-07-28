@@ -1174,7 +1174,6 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1001
       containers:
       - name: cert-manager-cainjector
         image: quay.io/jetstack/cert-manager-cainjector:v1.12.1
@@ -1188,18 +1187,18 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: false
-          runAsUser: 1001
+          runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
-        livenessProbe:
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
@@ -1210,7 +1209,7 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -1223,7 +1222,7 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1296,13 +1295,13 @@ spec:
           readOnlyRootFilesystem: true
         env: []
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
-        livenessProbe:
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
@@ -1313,7 +1312,7 @@ spec:
         - name: secret-volume
           readOnly: true
           mountPath: /etc/secret-volume
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls
@@ -1367,7 +1366,6 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1001
       containers:
       - name: cert-manager-webhook
         image: quay.io/jetstack/cert-manager-webhook:v1.12.1
@@ -1412,18 +1410,18 @@ spec:
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: false
-          runAsUser: 1001
+          runAsNonRoot: true
+          runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
         env: []
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: secret-volume
           readOnly: true
@@ -1434,7 +1432,7 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
@@ -1651,20 +1649,20 @@ spec:
           runAsGroup: 25000
           readOnlyRootFilesystem: true
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
-            memory: 128Mi
             cpu: 250m
-        livenessProbe:
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        readinessProbe:
           exec:
             command:
             - ls
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
+        livenessProbe:
           exec:
             command:
             - ls

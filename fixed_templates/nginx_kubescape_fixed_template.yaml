@@ -106,14 +106,14 @@ spec:
           requests: {}
         volumeMounts: null
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
       volumes: null
       securityContext:
         seccompProfile:

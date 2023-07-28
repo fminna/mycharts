@@ -219,10 +219,10 @@ spec:
             memory: 200Mi
         securityContext:
           runAsUser: 1001
-          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -351,7 +351,7 @@ spec:
       securityContext:
         fsGroup: 1000
         runAsNonRoot: true
-        runAsUser: 1000
+        runAsUser: 25000
         runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
@@ -360,40 +360,40 @@ spec:
         image: busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
         imagePullPolicy: IfNotPresent
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         command:
         - /bin/sh
         - -c
         - for i in $(seq 1 200); do nc -z -w3 release-name-postgresql 5432 && exit
           0 || sleep 2; done; exit 1
         securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
           readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
       - name: init-sysctl
         image: busybox:1-uclibc@sha256:3dcd6bcb75d6ca5b23642482809ea3dbba4de07d277326454f443b9dcb14b012
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 25000
           readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
+          allowPrivilegeEscalation: false
         resources:
-          requests:
-            cpu: 250m
-            memory: 128Mi
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         command:
         - sh
         - -e
@@ -403,7 +403,7 @@ spec:
           mountPath: /tmp/scripts/
       containers:
       - name: sonarqube
-        image: sonarqube:datacenter-search@sha256:d1c1e4561863f74ce6a50bd154017f4cf41567f628e2b26838ad1ff4d4c70016
+        image: sonarqube:datacenter-search@sha256:2e42e41cc9d3dc1bbbe33fe8894490263f48f354fb36d843c3336c6931e0d0b0
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -411,10 +411,10 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 800m
+            cpu: 400m
             memory: 2Gi
           requests:
-            cpu: 800m
+            cpu: 400m
             memory: 2Gi
         env:
         - name: SONAR_WEB_JAVAOPTS
@@ -466,10 +466,10 @@ spec:
           timeoutSeconds: 1
         securityContext:
           runAsUser: 1000
-          allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
         volumeMounts:
         - mountPath: /opt/sonarqube/data
           name: sonarqube
@@ -539,29 +539,29 @@ spec:
 
       cp -R /opt/bats /tools/bats/'
     resources:
-      requests:
-        cpu: 250m
-        memory: 128Mi
       limits:
-        cpu: 250m
         memory: 128Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
     volumeMounts:
     - mountPath: /tools
       name: tools
     securityContext:
-      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
       runAsNonRoot: true
       runAsUser: 25000
       runAsGroup: 25000
-      readOnlyRootFilesystem: true
-    readinessProbe:
+      allowPrivilegeEscalation: false
+    livenessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    livenessProbe:
+    readinessProbe:
       exec:
         command:
         - ls
@@ -577,12 +577,12 @@ spec:
     - --tap
     - /tests/run.sh
     resources:
-      requests:
-        cpu: 250m
-        memory: 128Mi
       limits:
-        cpu: 250m
         memory: 128Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
     volumeMounts:
     - mountPath: /tests
       name: tests
@@ -590,19 +590,19 @@ spec:
     - mountPath: /tools
       name: tools
     securityContext:
-      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
       runAsNonRoot: true
       runAsUser: 25000
       runAsGroup: 25000
-      readOnlyRootFilesystem: true
-    readinessProbe:
+      allowPrivilegeEscalation: false
+    livenessProbe:
       exec:
         command:
         - ls
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    livenessProbe:
+    readinessProbe:
       exec:
         command:
         - ls

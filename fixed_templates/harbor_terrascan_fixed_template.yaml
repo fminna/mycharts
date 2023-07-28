@@ -522,18 +522,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       volumes:
       - name: config
         configMap:
@@ -637,18 +637,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       volumes:
       - name: jobservice-config
         configMap:
@@ -735,18 +735,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       volumes:
       - name: config
         secret:
@@ -837,18 +837,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       volumes:
       - name: config
         secret:
@@ -923,18 +923,18 @@ spec:
           mountPath: /etc/nginx/nginx.conf
           subPath: nginx.conf
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       volumes:
       - name: portal-config
         configMap:
@@ -1026,18 +1026,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       - name: registryctl
         image: goharbor/harbor-registryctl:v2.8.2
         imagePullPolicy: IfNotPresent
@@ -1072,18 +1072,18 @@ spec:
           readOnly: true
           mountPath: /etc/secret-volume
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       volumes:
       - name: registry-htpasswd
         secret:
@@ -1160,18 +1160,18 @@ spec:
           mountPath: /var/lib/postgresql/data
           subPath: null
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsUser: 25000
-          runAsNonRoot: true
-          runAsGroup: 25000
       - name: data-permissions-ensurer
         image: goharbor/harbor-db:v2.8.2
         imagePullPolicy: IfNotPresent
@@ -1185,18 +1185,18 @@ spec:
           mountPath: /var/lib/postgresql/data
           subPath: null
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsUser: 25000
-          runAsNonRoot: true
-          runAsGroup: 25000
       containers:
       - name: database
         image: goharbor/harbor-db:v2.8.2
@@ -1228,18 +1228,18 @@ spec:
         - name: shm-volume
           mountPath: /dev/shm
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsUser: 25000
-          runAsNonRoot: true
-          runAsGroup: 25000
       volumes:
       - name: shm-volume
         emptyDir:
@@ -1320,18 +1320,18 @@ spec:
           mountPath: /var/lib/redis
           subPath: null
         resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
+          runAsNonRoot: true
+          runAsUser: 25000
+          runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          runAsUser: 25000
-          runAsNonRoot: true
-          runAsGroup: 25000
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -1393,10 +1393,10 @@ spec:
         securityContext:
           privileged: false
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          readOnlyRootFilesystem: true
         env:
         - name: HTTP_PROXY
           value: ''

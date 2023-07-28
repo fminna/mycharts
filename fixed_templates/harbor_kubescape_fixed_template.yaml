@@ -537,14 +537,11 @@ spec:
         - name: psc
           mountPath: /etc/core/token
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             memory: 128Mi
@@ -662,14 +659,11 @@ spec:
           mountPath: /var/log/jobs
           subPath: null
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             memory: 128Mi
@@ -765,14 +759,11 @@ spec:
           mountPath: /etc/ssl/notary/ca.crt
           subPath: ca.crt
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             memory: 128Mi
@@ -872,14 +863,11 @@ spec:
           mountPath: /etc/ssl/notary/tls.key
           subPath: tls.key
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             memory: 128Mi
@@ -961,14 +949,11 @@ spec:
           mountPath: /etc/nginx/nginx.conf
           subPath: nginx.conf
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             memory: 128Mi
@@ -1071,14 +1056,11 @@ spec:
           mountPath: /etc/registry/config.yml
           subPath: config.yml
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             memory: 128Mi
@@ -1134,14 +1116,11 @@ spec:
           mountPath: /etc/registryctl/config.yml
           subPath: ctl-config.yml
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             memory: 128Mi
@@ -1267,14 +1246,11 @@ spec:
         - name: shm-volume
           mountPath: /dev/shm
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             memory: 128Mi
@@ -1365,14 +1341,11 @@ spec:
           mountPath: /var/lib/redis
           subPath: null
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             memory: 128Mi
@@ -1444,10 +1417,10 @@ spec:
         securityContext:
           privileged: false
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
         env:
         - name: HTTP_PROXY
           value: ''

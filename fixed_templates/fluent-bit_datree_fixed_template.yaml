@@ -156,20 +156,20 @@ spec:
           name: etcmachineid
           readOnly: true
         resources:
-          requests:
-            memory: 128Mi
-            cpu: 250m
           limits:
             memory: 128Mi
             cpu: 250m
+          requests:
+            memory: 128Mi
+            cpu: 250m
         securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
       volumes:
       - name: config
@@ -206,17 +206,17 @@ spec:
     args:
     - release-name-fluent-bit:2020
     resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
       limits:
         memory: 128Mi
         cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
     securityContext:
-      allowPrivilegeEscalation: false
       capabilities:
         drop:
         - ALL
+      allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
     readinessProbe:
       exec:
@@ -233,10 +233,10 @@ spec:
       initialDelaySeconds: 30
       periodSeconds: 10
   restartPolicy: Never
+  automountServiceAccountToken: false
   securityContext:
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
     seccompProfile:
       type: RuntimeDefault
-  automountServiceAccountToken: false

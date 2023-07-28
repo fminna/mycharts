@@ -117,17 +117,17 @@ spec:
             cpu: 100m
             memory: 128Mi
         securityContext:
-          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
       securityContext:
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
+        seccompProfile:
+          type: RuntimeDefault
 ---
 apiVersion: v1
 kind: Pod
@@ -150,6 +150,12 @@ spec:
     - wget
     args:
     - release-name-kubeview:80
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
     readinessProbe:
       exec:
         command:
@@ -157,12 +163,13 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    securityContext:
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop:
-        - ALL
-      allowPrivilegeEscalation: false
+    resources:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
     livenessProbe:
       exec:
         command:
@@ -170,18 +177,11 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
-      limits:
-        memory: 128Mi
-        cpu: 250m
   restartPolicy: Never
-  automountServiceAccountToken: false
   securityContext:
-    seccompProfile:
-      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 25000
     runAsGroup: 25000
+    seccompProfile:
+      type: RuntimeDefault
+  automountServiceAccountToken: false

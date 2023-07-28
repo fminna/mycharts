@@ -4192,11 +4192,11 @@ spec:
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         command:
         - longhorn-manager
         - -d
@@ -4244,13 +4244,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4258,6 +4251,13 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       volumes:
       - name: longhorn-grpc-tls
         secret:
@@ -4348,22 +4348,8 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -4371,13 +4357,27 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       serviceAccountName: longhorn-service-account
       securityContext:
         runAsUser: 25000
-        runAsNonRoot: true
-        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
+        runAsGroup: 25000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4429,8 +4429,8 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - recovery-backend
@@ -4453,13 +4453,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4467,13 +4460,20 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       serviceAccountName: longhorn-service-account
       securityContext:
-        runAsNonRoot: true
         runAsUser: 25000
-        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
+        runAsGroup: 25000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4539,22 +4539,8 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          readOnlyRootFilesystem: true
         readinessProbe:
           exec:
             command:
@@ -4562,6 +4548,20 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       volumes:
       - emptyDir: {}
         name: nginx-cache
@@ -4570,11 +4570,11 @@ spec:
       - emptyDir: {}
         name: var-run
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 25000
         runAsGroup: 25000
-        seccompProfile:
-          type: RuntimeDefault
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4626,8 +4626,8 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - conversion-webhook
@@ -4644,13 +4644,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4658,13 +4651,20 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       serviceAccountName: longhorn-service-account
       securityContext:
-        runAsNonRoot: true
         runAsUser: 25000
-        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
+        runAsGroup: 25000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -4727,8 +4727,8 @@ spec:
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - longhorn-manager
         - admission-webhook
@@ -4749,13 +4749,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
         livenessProbe:
           exec:
             command:
@@ -4763,13 +4756,20 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       serviceAccountName: longhorn-service-account
       securityContext:
-        runAsNonRoot: true
         runAsUser: 25000
-        runAsGroup: 25000
         seccompProfile:
           type: RuntimeDefault
+        runAsNonRoot: true
+        runAsGroup: 25000
 ---
 apiVersion: batch/v1
 kind: Job
@@ -4808,11 +4808,11 @@ spec:
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         command:
         - longhorn-manager
         - post-upgrade
@@ -4821,20 +4821,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         readinessProbe:
           exec:
             command:
@@ -4842,6 +4828,20 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       restartPolicy: OnFailure
       serviceAccountName: longhorn-service-account
       securityContext:
@@ -4885,11 +4885,11 @@ spec:
           capabilities:
             drop:
             - ALL
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 25000
           runAsGroup: 25000
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         command:
         - longhorn-manager
         - uninstall
@@ -4899,20 +4899,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        resources:
-          limits:
-            memory: 128Mi
-            cpu: 250m
-          requests:
-            memory: 128Mi
-            cpu: 250m
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 30
-          periodSeconds: 10
         readinessProbe:
           exec:
             command:
@@ -4920,6 +4906,20 @@ spec:
             - /
           initialDelaySeconds: 30
           periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 128Mi
+            cpu: 250m
       restartPolicy: Never
       serviceAccountName: longhorn-service-account
       securityContext:

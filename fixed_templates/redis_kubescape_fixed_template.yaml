@@ -303,13 +303,11 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsGroup: 25000
         command:
         - /bin/bash
         args:
@@ -472,13 +470,11 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsGroup: 25000
         command:
         - /bin/bash
         args:

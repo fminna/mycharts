@@ -299,9 +299,9 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         command:
         - /bin/bash

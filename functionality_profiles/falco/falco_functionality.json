@@ -162,7 +162,19 @@
               "resource_path": "DaemonSet/default/release-name-falco",
               "obj_path": "",
               "value": false,
-              "failed_check": "test_case_1"
+              "failed_check": "test_case_1",
+              "hostPaths": [
+                "/boot",
+                "/lib/modules",
+                "/usr",
+                "etc",
+                "/dev",
+                "/sys/module/falco",
+                "/var/run/docker.sock",
+                "/run/containerd/containerd.sock",
+                "/run/crio/crio.sock",
+                "/proc"
+              ]
             },
             "check_31": {
               "description": "Ensure that the seccomp profile is set to docker/default or runtime/default",

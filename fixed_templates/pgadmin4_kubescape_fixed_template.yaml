@@ -128,9 +128,6 @@ spec:
             drop:
             - ALL
           allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 25000
-          runAsGroup: 25000
       volumes:
       - name: pgadmin-data
         persistentVolumeClaim:
@@ -139,9 +136,9 @@ spec:
         fsGroup: 5050
         runAsGroup: 5050
         runAsUser: 5050
+        runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
-        runAsNonRoot: true
 ---
 apiVersion: v1
 kind: Deployment
@@ -180,9 +177,29 @@ spec:
       0 ]]; then echo "Response OK"; else exit 1; fi
 
       '
-    resources: {}
+    resources:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
     securityContext:
       readOnlyRootFilesystem: true
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
   restartPolicy: Never
 ---
 apiVersion: networking.k8s.io/v1

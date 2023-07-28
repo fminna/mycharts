@@ -413,7 +413,7 @@ spec:
           mountPath: /tmp/scripts/
       containers:
       - name: sonarqube
-        image: sonarqube:datacenter-search@sha256:d1c1e4561863f74ce6a50bd154017f4cf41567f628e2b26838ad1ff4d4c70016
+        image: sonarqube:datacenter-search@sha256:2e42e41cc9d3dc1bbbe33fe8894490263f48f354fb36d843c3336c6931e0d0b0
         imagePullPolicy: Always
         ports:
         - name: http

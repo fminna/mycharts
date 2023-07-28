@@ -250,10 +250,10 @@ spec:
             path: /api/health
             port: 3000
         resources:
-          requests:
+          limits:
             memory: 128Mi
             cpu: 250m
-          limits:
+          requests:
             memory: 128Mi
             cpu: 250m
       volumes:
@@ -333,12 +333,6 @@ spec:
     - mountPath: /tests
       name: tests
       readOnly: true
-    securityContext:
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-        - ALL
     readinessProbe:
       exec:
         command:
@@ -346,13 +340,12 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
-    resources:
-      requests:
-        memory: 128Mi
-        cpu: 250m
-      limits:
-        memory: 128Mi
-        cpu: 250m
+    securityContext:
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
     livenessProbe:
       exec:
         command:
@@ -360,6 +353,13 @@ spec:
         - /
       initialDelaySeconds: 30
       periodSeconds: 10
+    resources:
+      limits:
+        memory: 128Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 250m
   volumes:
   - name: tests
     configMap:

@@ -122,10 +122,10 @@ spec:
         image: docker.io/bitnami/minio:2023.5.18-debian-11-r2
         imagePullPolicy: IfNotPresent
         securityContext:
-          runAsNonRoot: false
+          runAsNonRoot: true
           runAsUser: 1001
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           runAsGroup: 25000
         env:
         - name: BITNAMI_DEBUG
