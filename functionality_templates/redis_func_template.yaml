@@ -1,6 +1,6 @@
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-redis
   namespace: default
@@ -248,8 +248,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: master
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -273,12 +271,9 @@ spec:
         checksum/health: 95a49434bdd1144e7de35e352bc8ae0052beeef68c90647bece9831ee472dc29
         checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
         checksum/secret: 4d843dbc55b577c8529cb4a32b3ce894c77415c44a22bd10766078e4dd11b043
-        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
     spec:
       securityContext:
         fsGroup: 1001
-        seccompProfile:
-          type: RuntimeDefault
         runAsUser: 1001
       serviceAccountName: release-name-redis
       affinity:
@@ -295,14 +290,14 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: redis
-        image: docker.io/bitnami/redis:6-alpine3.18@sha256:f9fd65500e22bff9ebcd214268f3f03b80a45cffa91d24d7313b242d6750bebc
+        image: docker.io/bitnami/redis:7.0.11-debian-11-r12
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsGroup: 25000
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
         command:
         - /bin/bash
         args:
@@ -315,6 +310,11 @@ spec:
           value: master
         - name: ALLOW_EMPTY_PASSWORD
           value: 'no'
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-redis
+              key: redis-password
         - name: REDIS_TLS_ENABLED
           value: 'no'
         - name: REDIS_PORT
@@ -347,10 +347,10 @@ spec:
         resources:
           limits:
             memory: 128Mi
-            cpu: 250m
+            cpu: 1000m
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 1000m
         volumeMounts:
         - name: start-scripts
           mountPath: /opt/bitnami/scripts/start-scripts
@@ -364,9 +364,6 @@ spec:
           mountPath: /opt/bitnami/redis/etc/
         - name: tmp
           mountPath: /tmp
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       volumes:
       - name: start-scripts
         configMap:
@@ -383,9 +380,6 @@ spec:
         emptyDir: {}
       - name: tmp
         emptyDir: {}
-      - name: secret-volume
-        secret:
-          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: redis-data
@@ -411,8 +405,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: replica
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 3
   selector:
@@ -436,12 +428,10 @@ spec:
         checksum/health: 95a49434bdd1144e7de35e352bc8ae0052beeef68c90647bece9831ee472dc29
         checksum/scripts: 3cc61b9290c99809e19309677285149da1b23005f1b75806ede62685b60d84f9
         checksum/secret: 8d4067e74965347a3a26439056e4a77d4c1000c4bb14e9380730e294eb8d2e54
-        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
     spec:
       securityContext:
         fsGroup: 1001
-        seccompProfile:
-          type: RuntimeDefault
+        runAsUser: 25000
       serviceAccountName: release-name-redis
       automountServiceAccountToken: false
       affinity:
@@ -459,14 +449,12 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: redis
-        image: docker.io/bitnami/redis:6-alpine3.18@sha256:f9fd65500e22bff9ebcd214268f3f03b80a45cffa91d24d7313b242d6750bebc
+        image: docker.io/bitnami/redis:7.0.11-debian-11-r12
         imagePullPolicy: IfNotPresent
         securityContext:
-          runAsUser: 1001
-          runAsNonRoot: true
-          runAsGroup: 25000
-          readOnlyRootFilesystem: true
+          runAsUser: 25000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         command:
         - /bin/bash
         args:
@@ -483,6 +471,16 @@ spec:
           value: '6379'
         - name: ALLOW_EMPTY_PASSWORD
           value: 'no'
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-redis
+              key: redis-password
+        - name: REDIS_MASTER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-redis
+              key: redis-password
         - name: REDIS_TLS_ENABLED
           value: 'no'
         - name: REDIS_PORT
@@ -523,9 +521,7 @@ spec:
         resources:
           limits:
             memory: 128Mi
-            cpu: 250m
           requests:
-            cpu: 250m
             memory: 128Mi
         volumeMounts:
         - name: start-scripts
@@ -538,9 +534,6 @@ spec:
           mountPath: /opt/bitnami/redis/mounted-etc
         - name: redis-tmp-conf
           mountPath: /opt/bitnami/redis/etc
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       volumes:
       - name: start-scripts
         configMap:
@@ -555,9 +548,6 @@ spec:
           name: release-name-redis-configuration
       - name: redis-tmp-conf
         emptyDir: {}
-      - name: secret-volume
-        secret:
-          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: redis-data
