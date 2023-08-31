@@ -2,14 +2,14 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
   annotations: null
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 secrets:
 - name: release-name-mysql
 ---
@@ -17,7 +17,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -32,7 +32,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -102,7 +102,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql-headless
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -126,7 +126,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql
-  namespace: default
+  namespace: test-ns
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -176,7 +176,6 @@ spec:
     metadata:
       annotations:
         checksum/configuration: 74f6d694934e49250ce5cfc5e93637df13431c704ef8367a3f69b565dd4aee71
-        container.apparmor.security.beta.kubernetes.io/mysql: runtime/default
       labels:
         app.kubernetes.io/name: mysql
         helm.sh/chart: mysql-9.7.1
@@ -205,11 +204,14 @@ spec:
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8-oracle@sha256:1da5cf22e7177925fa4d2a707936ca4ade59ba10b40b23550b0ffc12f8340600
-        imagePullPolicy: IfNotPresent
+        image: docker.io/bitnami/mysql:5@sha256:aaa1374f1e6c24d73e9dfa8f2cdae81c8054e6d1d80c32da883a9050258b6e83
+        imagePullPolicy: Always
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsGroup: 25000
@@ -283,6 +285,7 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
+      automountServiceAccountToken: false
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -297,3 +300,47 @@ spec:
       resources:
         requests:
           storage: 8Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: test-ns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
