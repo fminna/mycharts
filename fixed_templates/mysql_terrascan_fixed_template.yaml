@@ -204,7 +204,7 @@ spec:
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8-oracle@sha256:1da5cf22e7177925fa4d2a707936ca4ade59ba10b40b23550b0ffc12f8340600
+        image: docker.io/bitnami/mysql:5@sha256:aaa1374f1e6c24d73e9dfa8f2cdae81c8054e6d1d80c32da883a9050258b6e83
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsNonRoot: true
@@ -263,8 +263,8 @@ spec:
             cpu: 250m
             memory: 128Mi
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
