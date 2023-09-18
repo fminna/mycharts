@@ -125,18 +125,18 @@ def iterate_functionalities(chart_folder: str, json_path: str, tool: str) -> Non
             aux_checks = add_functionality(container, template, chart_folder)
             all_checks.extend(aux_checks)
 
-    # print("\nAll functionalities added!")
+    print("\nAll functionalities added!")
     all_checks = [x for x in all_checks if x is not None]
     all_checks.sort()
-    # print("")
-    # print(f"Total number of checks: {len(all_checks)}")
-    # print(", ".join(all_checks))
-    # print("")
+    print("")
+    print(f"Total number of checks: {len(all_checks)}")
+    print(", ".join(all_checks))
+    print("")
 
     # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
     # occurrences of each check in all_checks, all in one line
-    for i in range(0, 67):
-        print(f"{all_checks.count(f'check_{i}')}", end=" ")
+    # for i in range(0, 67):
+    #     print(f"{all_checks.count(f'check_{i}')}", end=" ")
 
     name = f"functionality_templates/{chart_folder}_func"
     fix_template.save_yaml_template(template, name)
@@ -221,12 +221,11 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> list
                 for host_path in check["hostPaths"]:
                     check["value"] = host_path
 
-            if check_id != "check_27" and check_id != "check_28":
-                fix_template.set_template(template, check_id, check)
+            # if check_id != "check_27" and check_id != "check_28":
+            #     fix_template.set_template(template, check_id, check)
 
-            # Read-only FS, RunAsNonRoot
             else:
-                check["value"] = True
+                # check["value"] = True
                 fix_template.set_template(template, check_id, check)
 
     return all_checks

@@ -39,18 +39,18 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     all_checks = []
 
     if "Reports" in results:
-        # print("Starting to fix chart's issues ...\n")
+        print("Starting to fix chart's issues ...\n")
 
         if "Reports" not in results or results["Reports"] is None or not results["Reports"]:
             pass
 
         else:
             for check in results["Reports"]:
-                # print(f"{check['Check']}: {check['Diagnostic']['Message']}")
+                print(f"{check['Check']}: {check['Diagnostic']['Message']}")
                 check_id = fix_issue(check, template)
                 all_checks.append(check_id)
 
-    # print("\nAll issues fixed!\n")
+    print("\nAll issues fixed!\n")
 
     # Print all found checks
     all_checks = [str(x) for x in all_checks if x is not None]
@@ -59,12 +59,12 @@ def iterate_checks(chart_folder: str, json_path: str) -> None:
     all_checks.sort()
 
     # Print info
-    # print(f"Total number of checks: {len(all_checks)}")
-    # print(", ".join(all_checks))
+    print(f"Total number of checks: {len(all_checks)}")
+    print(", ".join(all_checks))
     # For check_ from 0 to 66 (i.e., check_0, check_1, ..., check_66), print the
-    # occurrences of each check in all_checks, all in one line
-    for i in range(0, 67):
-        print(f"{all_checks.count(f'check_{i}')}", end=" ")
+    # # occurrences of each check in all_checks, all in one line
+    # for i in range(0, 67):
+    #     print(f"{all_checks.count(f'check_{i}')}", end=" ")
 
     name = f"fixed_{chart_folder}_kubelinter_fixed"
     fix_template.save_yaml_template(template, name)

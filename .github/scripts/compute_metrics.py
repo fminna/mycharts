@@ -23,6 +23,7 @@ import scikit_posthocs as sp
 import pandas as pd
 import numpy as np
 import math
+import statistics
 import matplotlib.pyplot as plt
 
 
@@ -33,7 +34,7 @@ def parse_excel_file(file_path) -> pd.DataFrame:
     return df
 
 
-def get_column_values(tool_list: dict, df: pd.DataFrame, column_name: str) -> dict:
+def get_column_values(tool_list: dict, df: pd.DataFrame, column_name: str, value_column: str) -> dict:
     """ Get the values of a specific column based on tool names."""
 
     tools_dict = {}
@@ -42,13 +43,19 @@ def get_column_values(tool_list: dict, df: pd.DataFrame, column_name: str) -> di
 
     for _, row in df.iterrows():
 
-        if row["Chart"] == "gitlab":
-            continue
+        if isinstance(row[column_name], str):
+            # tools = row[column_name].split("-")
+            # first_tool = tool[0]
 
-        if row["Tool Pairs"] in tools_dict.keys():
-            value = row[column_name]
-            if not math.isnan(value):
-                tools_dict[row["Tool Pairs"]].append(value)
+            # if first_tool == tools[1]:
+
+            first_tool = row[column_name]
+            if first_tool in tools_dict.keys():
+
+                value = row[value_column]
+                if not math.isnan(value):
+                    tools_dict[first_tool].append(value)
+
     return tools_dict
 
 
@@ -56,13 +63,16 @@ def print_average(tools_dict: dict, tool_list: list):
     """ Print the average of each tool."""
     for tool_name in tool_list:
         tool = tool_name
-        if "-" not in tool_name:
-            tool = f"{tool_name}-{tool_name}"
-        print("AVG ", tool_name, ":", np.mean(tools_dict[tool]))
-        # print(round(np.mean(tools_dict[tool]), 2))
+        # if "-" not in tool_name:
+        #     tool = f"{tool_name}-{tool_name}"
+        # print("AVG ", tool_name, ":", np.mean(tools_dict[tool]))
+        # print("SD ", tool_name, ":", np.std(tools_dict[tool]))
 
-        max_value = max(tools_dict[tool])
-        min_value = min(tools_dict[tool])
+        print(round(np.mean(tools_dict[tool]), 2), end=" ")
+        print(round(np.std(tools_dict[tool])))
+
+        # max_value = max(tools_dict[tool])
+        # min_value = min(tools_dict[tool])
         # print("MaX:", max_value, "Min:", min_value, "Diff:", max_value - min_value)
         # print(round(min_value, 2))
         # print(round(np.mean(tools_dict[tool]), 2), ", ", round(min_value, 2), ", ", round(max_value, 2))
@@ -73,8 +83,8 @@ def analyze_results(result_dict, tool_list, msg):
     print(msg)
     print("")
 
-    # print_average(result_dict, tool_list)
-    # print("")
+    print_average(result_dict, tool_list)
+    print("")
     run_statistical_tests(result_dict)
 
     print("")
@@ -92,7 +102,7 @@ def run_statistical_tests(tools_dict: dict):
     df = pd.DataFrame()
     for idx, result in enumerate(result_lists):
         df[tool_names[idx]] = result
-    print(df.head())
+    # print(df.head())
 
     # # Plot Mean
     # fig, ax = plt.subplots(1, 1)
@@ -113,15 +123,15 @@ def run_statistical_tests(tools_dict: dict):
         print("Data is not normally distributed")
 
     # Perform one-way ANOVA using scipy.stats.f_oneway
-    print(stats.f_oneway(*result_lists))
-    _, p_value_anova = stats.f_oneway(*result_lists)
-    p_value_anova = f"{p_value_anova:.20f}"
-    print(p_value_anova)
+    # print(stats.f_oneway(*result_lists))
+    # _, p_value_anova = stats.f_oneway(*result_lists)
+    # p_value_anova = f"{p_value_anova:.20f}"
+    # print(p_value_anova)
 
-    # Perform Tukey's HSD test using statsmodels if ANOVA is statistically significant
-    if float(p_value_anova) < 0.05:
-        tukey_result = stats.tukey_hsd(*result_lists)
-        print(tukey_result)
+    # # Perform Tukey's HSD test using statsmodels if ANOVA is statistically significant
+    # if float(p_value_anova) < 0.05:
+    #     tukey_result = stats.tukey_hsd(*result_lists)
+    #     print(tukey_result)
 
     ############################################
 
@@ -131,17 +141,17 @@ def run_statistical_tests(tools_dict: dict):
     p_value_kruskal = f"{p_value_kruskal:.20f}"
     print(p_value_kruskal)
 
-    if float(p_value_kruskal) < 0.05:
-        # Perform Dunn's test using Bonferroni correction for multiple comparisons
-        posthoc_results = sp.posthoc_dunn(result_lists, p_adjust="bonferroni")
+    # if float(p_value_kruskal) < 0.05:
+    #     # Perform Dunn's test using Bonferroni correction for multiple comparisons
+    #     posthoc_results = sp.posthoc_dunn(result_lists, p_adjust="bonferroni")
 
-        print(posthoc_results)
-        print(posthoc_results > 0.05)
+    #     print(posthoc_results)
+    #     print(posthoc_results > 0.05)
 
 
 def main():
     """ Main function."""
-    file_path = "/Users/.../Desktop/Chart_Evaluation.xlsx"
+    file_path = "/Users/francescominna/Desktop/Chart_Evaluation.xlsx"
     excel_df = parse_excel_file(file_path)
 
     # Drop rows with empty values
@@ -157,46 +167,55 @@ def main():
     pair_tools_list = [x for x in pair_tools_list if str(x) != 'nan']
 
     # Get the list of same tool pairs (e.g., "Checkov-Checkov, Datree-Datree, KICS-KICS, etc.")
-    single_pair_tool_list = ["Checkov-Checkov", "Datree-Datree", "KICS-KICS", "Kubelinter-Kubelinter", \
-                             "Kubeaudit-Kubeaudit", "Kubescape-Kubescape", "Terrascan-Terrascan"]
+    # single_pair_tool_list = ["Checkov-Checkov", "Datree-Datree", "KICS-KICS", "Kubelinter-Kubelinter", \
+                        #    "Kubeaudit-Kubeaudit", "Kubescape-Kubescape", "Terrascan-Terrascan"]
+
     # Get the list of tools (e.g., "Checkov, Datree, etc.")
     single_tool_list = list(set([aux.split("-")[0] for aux in pair_tools_list]))
     single_tool_list.sort()
 
-    # Step 2 --- # Issues on original chart template
-    step_2_dict = get_column_values(single_pair_tool_list, excel_df, "Step 2")
-    msg = "Analysing # of issues found on the original template --- Step 2"
-    analyze_results(step_2_dict, single_tool_list, msg) 
+    # # Step 2 --- # Issues on original chart template
+    # step_2_dict = get_column_values(single_tool_list, excel_df, "Tool Pairs", "Step 2")
+    # msg = "Analysing # of issues found on the original template --- Step 2"
+    # analyze_results(step_2_dict, single_tool_list, msg)
 
-    # df = pd.DataFrame()
-    # tool_names = list(step_2_dict.keys())
-    # aux_tool_names = [x.split("-")[0] for x in tool_names]
-    # for idx, result in enumerate(list(step_2_dict.values())):
-    #     df[aux_tool_names[idx]] = result
-    # # Save df to csv file
-    # df.to_csv("step_2.csv", index=False)
+    # # Step 4 --- # of broken functionalities
+    # step_4_dict = get_column_values(single_tool_list, excel_df, "Tool Pairs", "Step 4")
+    # msg = "Analysing # of broken functionalities --- Step 4"
+    # analyze_results(step_4_dict, single_tool_list, msg)
 
-    # Step 4 --- # of broken functionalities
-    step_4_dict = get_column_values(single_pair_tool_list, excel_df, "Step 4")
-    msg = "Analysing # of broken functionalities --- Step 4"
-    analyze_results(step_4_dict, single_tool_list, msg)
+    # # # Step 5 --- # of issues on updated template
+    # step_5_dict = get_column_values(single_tool_list, excel_df, "Tool Pairs", "Step 5")
+    # msg = "Analysing # of issues on updated template --- Step 5"
+    # analyze_results(step_5_dict, single_tool_list, msg)
 
-    # Step 5 --- # of issues on updated template
-    step_5_dict = get_column_values(single_pair_tool_list, excel_df, "Step 5")
-    msg = "Analysing # of issues on updated template --- Step 5"
-    analyze_results(step_5_dict, single_tool_list, msg)
 
     ###########################################################################
 
     # SAW --- Step_2 - Step_4 + Step_5
-    saw_dict = get_column_values(pair_tools_list, excel_df, "SAW")
-    msg = "Analysing of SAW values --- Step_2 + Step_4 + Step_5"
-    analyze_results(saw_dict, pair_tools_list, msg)
+    # saw_dict = get_column_values(pair_tools_list, excel_df, "SAW")
+    # msg = "Analysing of SAW values --- Step_2 + Step_4 + Step_5"
+    # analyze_results(saw_dict, pair_tools_list, msg)
 
-    # MCDA --- Step_2*0.6 + Step_4*0.6 + Step_5*0.2
-    mcda_dict = get_column_values(pair_tools_list, excel_df, "MCDA")
-    msg = "Analysing of MCDA value --- Step_2*0.2 + Step_4*0.6 + Step_5*0.2"
-    analyze_results(mcda_dict, pair_tools_list, msg)
+    # Tool 1 dict
+    saw_dict_1 = get_column_values(single_tool_list, excel_df, "Tool 1", "SAW")
+
+    # Tool 2 dict
+    saw_dict_2 = get_column_values(single_tool_list, excel_df, "Tool 2", "SAW")
+
+
+    all_sums = []
+    for first_tool in single_tool_list:
+        for second_tool in single_tool_list:
+
+            tools_sum = saw_dict_1[first_tool] + saw_dict_2[second_tool]
+            round_sum = round(statistics.mean(tools_sum), 2)
+            print(round_sum, end=" ")
+            all_sums.append(round_sum)
+        print("\n")
+
+    all_sums.sort(reverse=True)
+    print(all_sums[:3])
 
 
 if __name__ == "__main__":

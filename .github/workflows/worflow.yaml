@@ -65,10 +65,10 @@ jobs:
       second_tool: ${{ inputs.second_tool }}
     secrets: inherit
 
-  step_5:
-    needs: [step_1, step_2, debug, step_3, step_4]
-    uses: ./.github/workflows/count_checks.yaml
-    with:
-      iteration: 3
-      second_tool: ${{ inputs.second_tool }}
-    secrets: inherit
+  # step_5:
+  #   needs: [step_1, step_2, debug, step_3, step_4]
+  #   uses: ./.github/workflows/count_checks.yaml
+  #   with:
+  #     iteration: 3
+  #     second_tool: ${{ inputs.second_tool }}
+  #   secrets: inherit

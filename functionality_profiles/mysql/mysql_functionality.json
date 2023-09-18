@@ -124,15 +124,13 @@
               "description": "Use read-only filesystem for containers where possible",
               "resource_path": "StatefulSet/default/release-name-mysql",
               "obj_path": "spec/template/spec/containers/0",
-              "value": false,
-              "failed_check": "test_case_1"
+              "value": false
             },
             "check_28": {
               "description": "Containers should not run as root",
               "resource_path": "StatefulSet/default/release-name-mysql",
               "obj_path": "spec/template/spec/containers/0",
-              "value": false,
-              "failed_check": "test_case_1"
+              "value": false
             },
             "check_35": {
               "description": "Ensure that Service Account Tokens are only mounted where necessary",

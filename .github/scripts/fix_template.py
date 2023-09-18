@@ -936,6 +936,8 @@ def set_root(obj: dict, value=True, uid=25000, gid=25000):
         fsg (int): The value to set the fsGroup to.
     """
 
+    print("MADONNA PUTTANA X20")
+
     if "spec" in obj:
         obj = obj["spec"]
         if "template" in obj:
@@ -1345,6 +1347,8 @@ def set_read_only(obj: dict, value=True):
     # elIf readOnlyRootFilesystem is set to false, set it to true
     else:
         obj["securityContext"]["readOnlyRootFilesystem"] = value
+
+    print(obj["securityContext"])
 
 
 def set_subpath(obj: dict):
