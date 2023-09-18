@@ -1,6 +1,6 @@
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: false
+automountServiceAccountToken: true
 metadata:
   name: release-name-redis
   namespace: default
@@ -248,8 +248,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: master
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 1
   selector:
@@ -276,8 +274,6 @@ spec:
     spec:
       securityContext:
         fsGroup: 1001
-        seccompProfile:
-          type: RuntimeDefault
         runAsUser: 25000
       serviceAccountName: release-name-redis
       affinity:
@@ -298,13 +294,8 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          runAsNonRoot: true
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
         command:
         - /bin/bash
         args:
@@ -317,6 +308,11 @@ spec:
           value: master
         - name: ALLOW_EMPTY_PASSWORD
           value: 'no'
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-redis
+              key: redis-password
         - name: REDIS_TLS_ENABLED
           value: 'no'
         - name: REDIS_PORT
@@ -364,9 +360,6 @@ spec:
           mountPath: /opt/bitnami/redis/etc/
         - name: tmp
           mountPath: /tmp
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       volumes:
       - name: start-scripts
         configMap:
@@ -383,9 +376,6 @@ spec:
         emptyDir: {}
       - name: tmp
         emptyDir: {}
-      - name: secret-volume
-        secret:
-          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: redis-data
@@ -411,8 +401,6 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: replica
-  annotations:
-    seccomp.security.alpha.kubernetes.io/pod: runtime/default
 spec:
   replicas: 3
   selector:
@@ -439,8 +427,6 @@ spec:
     spec:
       securityContext:
         fsGroup: 1001
-        seccompProfile:
-          type: RuntimeDefault
         runAsUser: 25000
       serviceAccountName: release-name-redis
       automountServiceAccountToken: false
@@ -463,13 +449,8 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 25000
-          runAsNonRoot: true
-          runAsGroup: 25000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
         command:
         - /bin/bash
         args:
@@ -486,6 +467,16 @@ spec:
           value: '6379'
         - name: ALLOW_EMPTY_PASSWORD
           value: 'no'
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-redis
+              key: redis-password
+        - name: REDIS_MASTER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: release-name-redis
+              key: redis-password
         - name: REDIS_TLS_ENABLED
           value: 'no'
         - name: REDIS_PORT
@@ -539,12 +530,6 @@ spec:
           mountPath: /opt/bitnami/redis/mounted-etc
         - name: redis-tmp-conf
           mountPath: /opt/bitnami/redis/etc
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
-        - name: secret-volume
-          readOnly: true
-          mountPath: /etc/secret-volume
       volumes:
       - name: start-scripts
         configMap:
@@ -559,12 +544,6 @@ spec:
           name: release-name-redis-configuration
       - name: redis-tmp-conf
         emptyDir: {}
-      - name: secret-volume
-        secret:
-          secretName: my-secret
-      - name: secret-volume
-        secret:
-          secretName: my-secret
   volumeClaimTemplates:
   - metadata:
       name: redis-data
