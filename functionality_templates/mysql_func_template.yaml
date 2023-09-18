@@ -198,9 +198,9 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        runAsUser: 1000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1000
       initContainers: null
       containers:
       - name: mysql
@@ -209,11 +209,11 @@ spec:
         securityContext:
           runAsNonRoot: false
           runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
           runAsGroup: 1000
         env:
         - name: BITNAMI_DEBUG
@@ -266,7 +266,6 @@ spec:
           limits:
             cpu: 250m
             memory: 128Mi
-            cpu: 250m
           requests:
             memory: 128Mi
             cpu: 250m
