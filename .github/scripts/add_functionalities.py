@@ -198,19 +198,18 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> list
             # Low UID
             if check_id == "check_13":
                 # Retrieve UID from original template
-                original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
-                uid = get_original_uid(original_template, check["resource_path"], check["obj_path"])
-                if not uid:
-                    uid = 1001
+                # original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
+                # uid = get_original_uid(original_template, check["resource_path"], check["obj_path"])
+                uid = 1000
                 check["value"] = uid
 
             # Low GID
-            elif check_id == "check_14":
-                # Retrieve GID from original template
-                # original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
-                # gid = get_original_gid(original_template, check["resource_path"], check["obj_path"])
-                # check["value"] = gid
-                pass
+            # elif check_id == "check_14":
+            #     # Retrieve GID from original template
+            #     # original_template = fix_template.parse_yaml_template(f"templates/{chart_folder}")
+            #     # gid = get_original_gid(original_template, check["resource_path"], check["obj_path"])
+            #     gid = 1000
+            #     check["value"] = gid
 
             # Docker Socket
             elif check_id == "check_15":
@@ -221,11 +220,6 @@ def add_functionality(container: str, template: dict, chart_folder: str) -> list
                 for host_path in check["hostPaths"]:
                     check["value"] = host_path
 
-            # if check_id != "check_27" and check_id != "check_28":
-            #     fix_template.set_template(template, check_id, check)
-
-            else:
-                # check["value"] = True
-                fix_template.set_template(template, check_id, check)
+            fix_template.set_template(template, check_id, check)
 
     return all_checks

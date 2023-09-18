@@ -92,15 +92,13 @@
               "description": "Prevent containers from accessing host files by using high UIDs",
               "resource_path": "StatefulSet/default/release-name-mysql",
               "obj_path": "spec/template/spec/containers/0",
-              "value": false,
-              "failed_check": "test_case_1"
+              "value": false
             },
             "check_14": {
               "description": "Prevent containers from accessing host files by using high GIDs",
               "resource_path": "StatefulSet/default/release-name-mysql",
               "obj_path": "spec/template/spec/containers/0",
-              "value": false,
-              "failed_check": "test_case_1"
+              "value": false
             },
             "check_15": {
               "description": "Prevent containers from mounting Docker socket",
