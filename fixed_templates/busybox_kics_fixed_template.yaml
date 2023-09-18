@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox-pod
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    container.apparmor.security.beta.kubernetes.io/busybox-container: runtime/default
+  namespace: test-ns
+spec:
+  containers:
+  - name: busybox-container
+    image: docker.io/busybox:1@sha256:5cd228af7cde277502487da780b34ba111b8fcdcf37ca518d68c5ba565002b36
+    command:
+    - /bin/sh
+    args:
+    - -c
+    - while true; do echo "Hello, World!"; sleep 10; done
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsUser: 25000
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsGroup: 25000
+      readOnlyRootFilesystem: true
+    resources:
+      limits:
+        cpu: 250m
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+    readinessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    imagePullPolicy: Always
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+  securityContext:
+    runAsUser: 25000
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: true
+    runAsGroup: 25000
+  serviceAccountName: SAtest0
+  automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: test-ns
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: default
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: test-ns
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: default
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high

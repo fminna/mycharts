@@ -45,6 +45,8 @@ then
     python .github/scripts/main.py --check >> output_fix_${chart_name}.txt
 fi
 
+exit(0)
+
 # Step 3 - Debug
 echo -e "\n -------------------------- \n"
 echo "Step 3 - Debug"
