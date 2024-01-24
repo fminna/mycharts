@@ -204,16 +204,16 @@ spec:
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:5@sha256:aaa1374f1e6c24d73e9dfa8f2cdae81c8054e6d1d80c32da883a9050258b6e83
+        image: docker.io/bitnami/mysql:8.3-oraclelinux8@sha256:6d5a11994be8ca5e4cfaf4d370219f6eb6ef8fb41d57f9ed1568a93ffd5471ef
         imagePullPolicy: Always
         securityContext:
           runAsNonRoot: true
           runAsUser: 25000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
         env:
         - name: BITNAMI_DEBUG
           value: 'false'
@@ -263,11 +263,11 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
