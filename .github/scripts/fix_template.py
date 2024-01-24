@@ -162,6 +162,10 @@ def check_resource_path(path_list: str, document: dict) -> bool:
                 # If the namespace was added during fixing, ignore it
                 elif document["metadata"]["namespace"] == "test-ns":
                     return document["metadata"]["name"] == path_list[-1]
+                
+                # If the namespace was added during fixing, ignore it
+                elif document["metadata"]["namespace"] == "busybox-namespace":
+                    return document["metadata"]["name"] == path_list[-1]
 
                 elif document["metadata"]["namespace"] == "kube-system":
                     return document["metadata"]["name"] == path_list[-1]
@@ -233,11 +237,16 @@ def set_template(template: dict, check_id: str, check: dict) -> None:
 
     # If Network Policy missing issue, create and append one
     elif check_id == "check_40":
+
+        pass
+
         # app = get_app_label(template, check["resource_path"])
         # Append Network Policy to the template
         net_policy1, net_policy2 = set_net_policy()
         template.append(net_policy1)
-        template.append(net_policy2)
+
+        # BusyBox Helm Chart
+        # template.append(net_policy2)
 
         # Set global variable to True
         global network_policy
@@ -514,6 +523,9 @@ def set_cpu_limit(obj: dict, value="250m"):
         if "cpu" in obj["resources"]["requests"]:
             value = obj["resources"]["requests"]["cpu"]
 
+    if not value:
+        value = "250m"
+
     # If resources is set, but limits is not, Set it
     if "limits" not in obj["resources"] or \
         obj["resources"]["limits"] is None:
@@ -553,6 +565,9 @@ def set_cpu_request(obj: dict, value="250m"):
             obj["resources"]["limits"]:
         if "cpu" in obj["resources"]["limits"]:
             value = obj["resources"]["limits"]["cpu"]
+
+    if not value:
+        value = "250m"
 
     # If resources is set, but requests is not, Set it
     if "requests" not in obj["resources"] or \
@@ -1638,6 +1653,9 @@ def set_k8s_ns(obj: dict, value="test-ns"):
         value (str): The value to set the namespace to.
     """
 
+    # For BusyBoxHelmChart
+    value = "busybox-namespace"
+
     obj["metadata"]["namespace"] = value
 
 
@@ -1885,8 +1903,7 @@ def set_net_policy(name="test-network-policy") -> dict:
         },
         'spec': {
             'podSelector': {},
-            'ingress': [{}],
-            'policyTypes': ['Ingress']
+            'policyTypes': []
         }
     }
 
