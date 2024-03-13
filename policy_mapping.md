@@ -1,6 +1,6 @@
 # Tool Policies Mapping
 
-This page shows that proposed mapping between the policies of the tools Checkov, Datree, KICS, Kubeaudit, Kubelinter, Kubescape, and Terrascan. For example, for eeach policy, it is possible to see how many tools support it (what policies are unique and what are in common between all tools), and the corresponding tool's ID.
+This page shows that proposed mapping between the policies of the tools Checkov, Datree, KICS, Kubeaudit, Kubelinter, Kubescape, and Terrascan. For example, for each policy, it is possible to see how many tools support it (what policies are unique and what are in common between all tools), and the corresponding tool's ID.
 Bare in mind that this is not a comprehensive list of all the default policies available in each tool. 
 
 There is also a Google sheet, with such mapping, that you can freely view at the link below.
