@@ -21,7 +21,7 @@ In the functionality_templates/ folder, you can find, for each chart, the corres
 In the functionality_profile/ folder, you can find a folder for each chart, containing the corresponding functionality profile JSON file (e.g., falco_functionality.json).
 
 ## Analyze Chart
-Currently, we only support 7 Helm Chart analyzer tools, namely, Checkov, Datree, KICS, Kubelinter, Kubeaudit, Kubescape, and Terrascan. Also, the assumption to analyze a chart, is that the corresponding functionality profile is already computed and available. For testing purposes, you can use the profiles available in the functionality_profile/ folder.
+Currently, we support 7 Helm Chart analyzer tools, namely, Checkov, Datree, KICS, Kubelinter, Kubeaudit, Kubescape, and Terrascan. Also, the assumption to analyze a chart, is that the corresponding functionality profile is already computed and available. For testing purposes, you can use the profiles available in the functionality_profile/ folder.
 
 ### Github Actions
 To analyze the Helm Charts with a pair of supported tools, you can move to the Actions tab of the repository, select `Main Workflow`, and click Run workflow on the top right by providing the name of a chart and a pair of tool names. The action will automatically scan the chart and generate an updated chart template, that will be committed to the repository at the end. To see the Action status and each step output, you can click on the running Action and further analyze each step (e.g., number of misconfigurations found by the first analyzer).
