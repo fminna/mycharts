@@ -69,7 +69,9 @@ def print_average(tools_dict: dict, tool_list: list):
         # print("SD ", tool_name, ":", np.std(tools_dict[tool]))
 
         print(round(np.mean(tools_dict[tool]), 2), end=" ")
-        print(round(np.std(tools_dict[tool])))
+        
+        # With the previus, I get this error: ValueError: cannot convert float NaN to integer
+        print(round(np.std(tools_dict[tool]), 2), end=" ")
 
         # max_value = max(tools_dict[tool])
         # min_value = min(tools_dict[tool])
@@ -134,6 +136,11 @@ def run_statistical_tests(tools_dict: dict):
     #     print(tukey_result)
 
     ############################################
+        
+    print("Kruskal-Wallis test input")
+    
+    # List with the score of the pair Checkov-Checkov across all 52 charts
+    # print(result_lists[0])
 
     # Perform non-parametric Kruskal-Wallis test
     print(stats.kruskal(*result_lists))
@@ -174,7 +181,7 @@ def main():
     single_tool_list = list(set([aux.split("-")[0] for aux in pair_tools_list]))
     single_tool_list.sort()
 
-    # # Step 2 --- # Issues on original chart template
+    # Step 2 --- # Issues on original chart template
     # step_2_dict = get_column_values(single_tool_list, excel_df, "Tool Pairs", "Step 2")
     # msg = "Analysing # of issues found on the original template --- Step 2"
     # analyze_results(step_2_dict, single_tool_list, msg)
@@ -193,9 +200,13 @@ def main():
     ###########################################################################
 
     # SAW --- Step_2 - Step_4 + Step_5
-    # saw_dict = get_column_values(pair_tools_list, excel_df, "SAW")
-    # msg = "Analysing of SAW values --- Step_2 + Step_4 + Step_5"
-    # analyze_results(saw_dict, pair_tools_list, msg)
+    saw_dict = get_column_values(pair_tools_list, excel_df, "Tool Pairs", "SAW")
+    msg = "Analysing of SAW values --- Step_2 + Step_4 + Step_5"
+    analyze_results(saw_dict, pair_tools_list, msg)
+
+    exit(0)
+
+
 
     # Tool 1 dict
     saw_dict_1 = get_column_values(single_tool_list, excel_df, "Tool 1", "SAW")
