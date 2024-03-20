@@ -198,13 +198,13 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        runAsUser: 1000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1000
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8.3-oraclelinux8@sha256:6d5a11994be8ca5e4cfaf4d370219f6eb6ef8fb41d57f9ed1568a93ffd5471ef
+        image: docker.io/bitnami/mysql:8.0-bookworm@sha256:64cc5bd08559398a5188826b2b7b1b604c9460f1b8fdf6778cb736a211fb706a
         imagePullPolicy: Always
         securityContext:
           runAsNonRoot: false
@@ -264,11 +264,11 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
