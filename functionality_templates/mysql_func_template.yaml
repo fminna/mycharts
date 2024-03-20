@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: busybox-namespace
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -17,7 +17,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: busybox-namespace
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -32,7 +32,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: busybox-namespace
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -102,7 +102,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql-headless
-  namespace: test-ns
+  namespace: busybox-namespace
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -126,7 +126,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: busybox-namespace
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -152,7 +152,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-mysql
-  namespace: test-ns
+  namespace: busybox-namespace
   labels:
     app.kubernetes.io/name: mysql
     helm.sh/chart: mysql-9.7.1
@@ -198,13 +198,13 @@ spec:
         nodeAffinity: null
       securityContext:
         fsGroup: 1001
+        runAsUser: 1000
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 1000
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8.3-oraclelinux8@sha256:6d5a11994be8ca5e4cfaf4d370219f6eb6ef8fb41d57f9ed1568a93ffd5471ef
+        image: docker.io/bitnami/mysql:8.0-bookworm@sha256:64cc5bd08559398a5188826b2b7b1b604c9460f1b8fdf6778cb736a211fb706a
         imagePullPolicy: Always
         securityContext:
           runAsNonRoot: false
@@ -264,11 +264,11 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
           requests:
-            cpu: 250m
             memory: 128Mi
+            cpu: 250m
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
@@ -307,40 +307,4 @@ metadata:
   name: test-network-policy
 spec:
   podSelector: {}
-  ingress:
-  - {}
-  policyTypes:
-  - Ingress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: test-network-policy
-  namespace: test-ns
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 10.0.0.0/24
-    ports:
-    - protocol: TCP
-      port: 5978
+  policyTypes: []
