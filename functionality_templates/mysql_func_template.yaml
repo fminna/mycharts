@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
   annotations: null
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 secrets:
 - name: release-name-mysql
 ---
@@ -176,6 +176,7 @@ spec:
     metadata:
       annotations:
         checksum/configuration: 74f6d694934e49250ce5cfc5e93637df13431c704ef8367a3f69b565dd4aee71
+        container.apparmor.security.beta.kubernetes.io/mysql: runtime/default
       labels:
         app.kubernetes.io/name: mysql
         helm.sh/chart: mysql-9.7.1
@@ -204,16 +205,16 @@ spec:
       initContainers: null
       containers:
       - name: mysql
-        image: docker.io/bitnami/mysql:8.0-bookworm@sha256:64cc5bd08559398a5188826b2b7b1b604c9460f1b8fdf6778cb736a211fb706a
+        image: docker.io/bitnami/mysql:8.3-oraclelinux8@sha256:f9097d95a4ba5451fff79f4110ea6d750ac17ca08840f1190a73320b84ca4c62
         imagePullPolicy: Always
         securityContext:
           runAsNonRoot: false
           runAsUser: 1000
-          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: false
           runAsGroup: 1000
         env:
         - name: BITNAMI_DEBUG
@@ -264,11 +265,11 @@ spec:
               fi\nmysqladmin status -uroot -p\"${password_aux}\"\n"
         resources:
           limits:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
           requests:
-            memory: 128Mi
             cpu: 250m
+            memory: 128Mi
         volumeMounts:
         - name: data
           mountPath: /bitnami/mysql
@@ -285,7 +286,6 @@ spec:
       - name: secret-volume
         secret:
           secretName: my-secret
-      automountServiceAccountToken: false
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -297,14 +297,64 @@ spec:
     spec:
       accessModes:
       - ReadWriteOnce
-      resources:
-        requests:
-          storage: 8Gi
+      resources: {}
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: v1
+kind: LimitRange
 metadata:
-  name: test-network-policy
+  name: cpu-min-max-demo-lr
+  namespace: busybox-namespace
 spec:
-  podSelector: {}
-  policyTypes: []
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max-demo-lr
+  namespace: default
+spec:
+  limits:
+  - max:
+      cpu: 800m
+    min:
+      cpu: 250m
+    type: Container
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: busybox-namespace
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pods-high
+  namespace: default
+spec:
+  hard:
+    cpu: '1000'
+    memory: 200Gi
+    pods: '10'
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values:
+      - high
