@@ -48,12 +48,16 @@ jobs:
           echo "sonar.projectName=mycharts" >> ${{ inputs.chart_folder }}/sonar-project.properties
 
 
-      - name: Set up SonarCloud Scanner
+      - name: Run SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v3.1
         with:
           projectBaseDir: ${{ inputs.chart_folder }} 
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      
+      - name: Clean up sonar-project.properties
+        shell: bash
+        run: rm ${{ inputs.chart_folder }}/sonar-project.properties
 
 
       
