@@ -52,6 +52,10 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v3.1
         with:
           projectBaseDir: ${{ inputs.chart_folder }} 
+          args: >
+            -Dsonar.verbose=true
+            -Dsonar.log_level=DEBUG
+            -Dsonar.scanner.dumpToFile=sonar-scanner-dump.log
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       
