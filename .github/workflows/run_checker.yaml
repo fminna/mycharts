@@ -127,6 +127,7 @@ jobs:
     with:
       iteration: ${{ inputs.iteration }}
       chart_folder: ${{ inputs.chart_folder }}
+    secrets: inherit
 
   run_sonarcloud_second:
     if: ${{ inputs.second_tool == 'sonarcloud' }}
@@ -134,4 +135,5 @@ jobs:
     with:
       iteration: ${{ inputs.iteration }}
       chart_folder: ${{ inputs.chart_folder }}
+    secrets: inherit
 
