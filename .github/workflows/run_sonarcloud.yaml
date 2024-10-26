@@ -40,6 +40,14 @@ jobs:
         if: ${{ inputs.iteration == '3'}}
         run: echo "TEMPLATE=functionality_templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
 
+      - name: Create sonar-project.properties
+        shell: bash
+        run: |
+          echo "sonar.organization=aristsimidakis" > ${{ inputs.chart_folder }}/sonar-project.properties
+          echo "sonar.projectKey=ArisTsimidakis_mycharts" >> ${{ inputs.chart_folder }}/sonar-project.properties
+          echo "sonar.projectName=mycharts" >> ${{ inputs.chart_folder }}/sonar-project.properties
+
+
       - name: Set up SonarCloud Scanner
         uses: sonarsource/sonarcloud-github-action@v3.1
         with:
