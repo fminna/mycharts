@@ -11,6 +11,12 @@ on:
       chart_folder:
         required: true
         type: string
+    
+    secrets:
+      
+        SONAR_TOKEN: 
+          description: 'SonarCloud API token'
+          required: true
 
 jobs:
 
