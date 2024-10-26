@@ -43,7 +43,7 @@ jobs:
       - name: Set up SonarCloud Scanner
         uses: sonarsource/sonarcloud-github-action@v3.1
         with:
-          projectBaseDir: ${{ env.TEMPLATE }} 
+          projectBaseDir: ${{ inputs.chart_folder }} 
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
