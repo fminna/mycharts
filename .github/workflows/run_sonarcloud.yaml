@@ -1,0 +1,45 @@
+name: Run SonarCloud
+
+on:
+  workflow_call:
+    inputs:
+
+      iteration:
+        required: true
+        type: string
+
+      chart_folder:
+        required: true
+        type: string
+
+jobs:
+
+  run_sonarcloud:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+
+      - name: Define template chart folder - original
+        if: ${{ inputs.iteration == '1'}}
+        run: echo "TEMPLATE=templates/${{ inputs.chart_folder }}_template.yaml" >> $GITHUB_ENV
+
+      - name: Define template chart folder - fixed
+        if: ${{ inputs.iteration == '2'}}
+        run: echo "TEMPLATE=fixed_templates/${{ inputs.chart_folder }}_${{ inputs.first_tool }}_fixed_template.yaml" >> $GITHUB_ENV
+
+      - name: Define template chart folder - functionalities
+        if: ${{ inputs.iteration == '3'}}
+        run: echo "TEMPLATE=functionality_templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
+
+      - name: Set up SonarCloud Scanner
+        uses: sonarsource/sonarcloud-github-action@v3.1
+        with:
+          projectBaseDir: ${{ env.TEMPLATE }} 
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+
+
+      
