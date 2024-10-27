@@ -51,6 +51,7 @@ jobs:
       - name: Run SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v3.1
         with:
+          fetch-depth: 0
           projectBaseDir: ${{ inputs.chart_folder }} 
           args: >
             -Dsonar.verbose=true
