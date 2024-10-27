@@ -59,6 +59,17 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       
+        - name: Fetch SonarCloud Report
+          shell: bash
+          env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          run: |
+          PROJECT_KEY="ArisTsimidakis_mycharts"
+          SONAR_API="https://sonarcloud.io/api/issues/search?componentKeys=$PROJECT_KEY"
+
+          curl -u "$SONAR_TOKEN:" "$SONAR_API" > ${{ inputs.chart_folder }}/sonar-results.json
+
+      
       - name: Clean up sonar-project.properties
         shell: bash
         run: rm ${{ inputs.chart_folder }}/sonar-project.properties
