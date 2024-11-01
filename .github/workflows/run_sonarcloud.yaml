@@ -66,11 +66,24 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           PROJECT_KEY="ArisTsimidakis_mycharts"
-          SONAR_API="https://sonarcloud.io/api/issues/search?componentKeys=$PROJECT_KEY"
+          METRIC_KEYS="alert_status,ncloc,ncloc_language_distribution,projects,new_lines,new_accepted_issues,new_bugs,new_reliability_rating,new_vulnerabilities,new_security_rating,new_security_hotspots,new_security_review_rating, new_security_hotspots_reviewed,new_code_smells,new_maintainability_rating,new_technical_debt,new_coverage, new_lines_to_cover,new_duplicated_lines_density,new_lines,coverage,duplicated_lines_density,new_violations,accepted_issues,bugs,reliability_rating,vulnerabilities,security_rating,security_hotspots,security_review_rating,security_hotspots_reviewed,code_smells,sqale_rating,coverage,lines_to_cover,duplicated_lines_density,lines,violations,maintainability_issues,security_issues,reliability_issues"
+          SONAR_API="https://sonarcloud.io/api/measures/component?component=$PROJECT_KEY&metricKeys=$METRIC_KEYS&additionalFields=periods"
 
-          curl -u "$SONAR_TOKEN:" "$SONAR_API" > ${{ inputs.chart_folder }}/sonar-results.json
+          curl --request GET \
+            --url $SONAR_API \
+            --header "Authorization: Bearer $SONAR_TOKEN" \
+            --output "results_${{ inputs.iteration }}.json"
+      
+      - name: Print SonarCloud result
+        shell: bash
+        run: jq . results_${{ inputs.iteration }}.json
 
-
+      - name: Upload the JASON results artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: results_${{ inputs.iteration }}
+          path: results_${{ inputs.iteration }}.json
+          if-no-files-found: error
       
       - name: Clean up sonar-project.properties
         shell: bash
