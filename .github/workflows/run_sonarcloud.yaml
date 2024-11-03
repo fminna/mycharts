@@ -66,13 +66,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           PROJECT_KEY="ArisTsimidakis_mycharts"
-          METRIC_KEYS="alert_status,ncloc,ncloc_language_distribution,projects,new_lines,new_accepted_issues,new_bugs,new_reliability_rating,new_vulnerabilities,new_security_rating,new_security_hotspots,new_security_review_rating, new_security_hotspots_reviewed,new_code_smells,new_maintainability_rating,new_technical_debt,new_coverage, new_lines_to_cover,new_duplicated_lines_density,new_lines,coverage,duplicated_lines_density,new_violations,accepted_issues,bugs,reliability_rating,vulnerabilities,security_rating,security_hotspots,security_review_rating,security_hotspots_reviewed,code_smells,sqale_rating,coverage,lines_to_cover,duplicated_lines_density,lines,violations,maintainability_issues,security_issues,reliability_issues"
+          METRIC_KEYS="alert_status%2Cncloc%2Cncloc_language_distribution%2Cprojects%2Cnew_lines%2Cnew_accepted_issues%2Cnew_bugs%2Cnew_reliability_rating%2Cnew_vulnerabilities%2Cnew_security_rating%2Cnew_security_hotspots%2Cnew_security_review_rating%2C%20new_security_hotspots_reviewed%2Cnew_code_smells%2Cnew_maintainability_rating%2Cnew_technical_debt%2Cnew_coverage%2C%20new_lines_to_cover%2Cnew_duplicated_lines_density%2Cnew_lines%2Ccoverage%2Cduplicated_lines_density%2Cnew_violations%2Caccepted_issues%2Cbugs%2Creliability_rating%2Cvulnerabilities%2Csecurity_rating%2Csecurity_hotspots%2Csecurity_review_rating%2Csecurity_hotspots_reviewed%2Ccode_smells%2Csqale_rating%2Ccoverage%2Clines_to_cover%2Cduplicated_lines_density%2Clines%2Cviolations%2Cmaintainability_issues%2Csecurity_issues%2Creliability_issues"
           SONAR_API="https://sonarcloud.io/api/measures/component?metricKeys=$METRIC_KEYS&component=$PROJECT_KEY"
 
-          curl --request GET \
-            --url $SONAR_API \
-            --header "Authorization: Bearer $SONAR_TOKEN" \
-            --output "results_${{ inputs.iteration }}.json"
+          curl --request GET --url $SONAR_API --header 'Authorization: Bearer $SONAR_TOKEN' 
       
       - name: Print SonarCloud result
         shell: bash
