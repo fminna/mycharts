@@ -79,7 +79,7 @@ jobs:
         run: jq . results_${{ inputs.iteration }}.json
 
       - name: Upload the JASON results artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: results_${{ inputs.iteration }}
           path: results_${{ inputs.iteration }}.json
