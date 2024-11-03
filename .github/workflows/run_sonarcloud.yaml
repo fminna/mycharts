@@ -67,7 +67,7 @@ jobs:
         run: |
           PROJECT_KEY="ArisTsimidakis_mycharts"
           METRIC_KEYS="alert_status,ncloc,ncloc_language_distribution,projects,new_lines,new_accepted_issues,new_bugs,new_reliability_rating,new_vulnerabilities,new_security_rating,new_security_hotspots,new_security_review_rating, new_security_hotspots_reviewed,new_code_smells,new_maintainability_rating,new_technical_debt,new_coverage, new_lines_to_cover,new_duplicated_lines_density,new_lines,coverage,duplicated_lines_density,new_violations,accepted_issues,bugs,reliability_rating,vulnerabilities,security_rating,security_hotspots,security_review_rating,security_hotspots_reviewed,code_smells,sqale_rating,coverage,lines_to_cover,duplicated_lines_density,lines,violations,maintainability_issues,security_issues,reliability_issues"
-          SONAR_API="https://sonarcloud.io/api/measures/component?component=$PROJECT_KEY&metricKeys=$METRIC_KEYS&additionalFields=periods"
+          SONAR_API="https://sonarcloud.io/api/measures/component?metricKeys=$METRIC_KEYS&component=$PROJECT_KEY"
 
           curl --request GET \
             --url $SONAR_API \
