@@ -27,6 +27,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: 'main'
+          fetch-depth: 0
 
       - name: Define template chart folder - original
         if: ${{ inputs.iteration == '1'}}
@@ -47,11 +48,9 @@ jobs:
           echo "sonar.projectKey=ArisTsimidakis_mycharts" >> ${{ inputs.chart_folder }}/sonar-project.properties
           echo "sonar.projectName=mycharts" >> ${{ inputs.chart_folder }}/sonar-project.properties
 
-
       - name: Run SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v3.1
         with:
-          fetch-depth: 0
           projectBaseDir: ${{ inputs.chart_folder }} 
           args: >
             -Dsonar.verbose=true
