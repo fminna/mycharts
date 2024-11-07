@@ -44,17 +44,18 @@ jobs:
       - name: Run SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v3.1
         with:
-          projectBaseDir: templates/mysql_template.yaml
+          projectBaseDir: mysql/
           args: >
             -Dsonar.organization=fminna
             -Dsonar.projectKey=fminna_mycharts
             -Dsonar.python.coverage.reportPaths=coverage.xml
             -Dsonar.verbose=true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       # -Dsonar.projectName=mycharts
       # -Dsonar.log_level=DEBUG
       # -Dsonar.scanner.dumpToFile=sonar-scanner-dump.log
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       
       # - name: Fetch SonarCloud Report
       #   shell: bash
