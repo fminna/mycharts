@@ -120,3 +120,20 @@ jobs:
     with:
       iteration: ${{ inputs.iteration }}
       chart_folder: ${{ inputs.chart_folder }}
+
+  run_sonarcloud_first:
+    if: ${{ inputs.first_tool == 'sonarcloud' }}
+    uses: ./.github/workflows/run_sonarcloud.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+    secrets: inherit
+
+  run_sonarcloud_second:
+    if: ${{ inputs.second_tool == 'sonarcloud' }}
+    uses: ./.github/workflows/run_sonarcloud.yaml
+    with:
+      iteration: ${{ inputs.iteration }}
+      chart_folder: ${{ inputs.chart_folder }}
+    secrets: inherit
+
