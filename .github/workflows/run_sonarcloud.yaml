@@ -50,8 +50,6 @@ jobs:
             -Dsonar.projectKey=fminna_mycharts
             -Dsonar.python.coverage.reportPaths=coverage.xml
             -Dsonar.sources=lib/
-            -Dsonar.test.exclusions=tests/**
-            -Dsonar.tests=tests/
             -Dsonar.verbose=true
       # -Dsonar.projectName=mycharts
       # -Dsonar.verbose=true
