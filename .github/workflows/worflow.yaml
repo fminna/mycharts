@@ -13,13 +13,13 @@ on:
       first_tool:
         description: 'The first tool to analyze the chart'
         required: true
-        default: 'checkov'
+        default: 'sonarcloud'
         type: string
       
       second_tool:
         description: 'The second tool to analyze the chart'
         required: true
-        default: 'checkov'
+        default: 'sonarcloud'
         type: string 
 
 jobs:
