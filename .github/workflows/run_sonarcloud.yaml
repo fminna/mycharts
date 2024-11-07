@@ -44,7 +44,7 @@ jobs:
       - name: Run SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v3.1
         with:
-          projectBaseDir: mysql/
+          projectBaseDir: templates/mysql_template.yaml
           args: >
             -Dsonar.organization=fminna
             -Dsonar.projectKey=fminna_mycharts
