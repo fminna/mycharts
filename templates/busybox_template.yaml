@@ -6,9 +6,18 @@ metadata:
 spec:
   containers:
   - name: busybox-container
-    image: docker.io/busybox:1.36
-    command:
-    - /bin/sh
-    args:
-    - -c
-    - while true; do echo "Hello, World!"; sleep 10; done
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "250m"
+      limits:
+        memory: "64Mi"
+        cpu: "500m"
+---
+
+
+
+
+
+
+
