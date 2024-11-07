@@ -41,24 +41,24 @@ jobs:
         if: ${{ inputs.iteration == '3'}}
         run: echo "TEMPLATE=functionality_templates/${{ inputs.chart_folder }}_func_template.yaml" >> $GITHUB_ENV
 
-      - name: Create sonar-project.properties
-        shell: bash
-        run: |
-          echo "sonar.organization=fminna" > ${{ inputs.chart_folder }}/sonar-project.properties
-          echo "sonar.projectKey=fminna_mycharts" >> ${{ inputs.chart_folder }}/sonar-project.properties
-          echo "sonar.projectName=mycharts" >> ${{ inputs.chart_folder }}/sonar-project.properties
-          cat ${{ inputs.chart_folder }}/sonar-project.properties
-
-      # - name: Run SonarCloud Scan
-      #   uses: sonarsource/sonarcloud-github-action@v3.1
-      #   with:
-      #     projectBaseDir: ${{ inputs.chart_folder }} 
-      #     args: >
-      #       -Dsonar.verbose=true
-      #       -Dsonar.log_level=DEBUG
-      #       -Dsonar.scanner.dumpToFile=sonar-scanner-dump.log
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Run SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@v3.1
+        with:
+          projectBaseDir: ${{ inputs.chart_folder }} 
+          args: >
+            -Dsonar.organization=fminna
+            -Dsonar.projectKey=fminna_mycharts
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.sources=lib/
+            -Dsonar.test.exclusions=tests/**
+            -Dsonar.tests=tests/
+            -Dsonar.verbose=true
+      # -Dsonar.projectName=mycharts
+      # -Dsonar.verbose=true
+      # -Dsonar.log_level=DEBUG
+      # -Dsonar.scanner.dumpToFile=sonar-scanner-dump.log
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       
       # - name: Fetch SonarCloud Report
       #   shell: bash
