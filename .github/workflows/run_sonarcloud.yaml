@@ -49,10 +49,8 @@ jobs:
             -Dsonar.organization=fminna
             -Dsonar.projectKey=fminna_mycharts
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.sources=lib/
             -Dsonar.verbose=true
       # -Dsonar.projectName=mycharts
-      # -Dsonar.verbose=true
       # -Dsonar.log_level=DEBUG
       # -Dsonar.scanner.dumpToFile=sonar-scanner-dump.log
         env:
