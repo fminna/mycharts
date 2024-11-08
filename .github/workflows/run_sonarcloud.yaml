@@ -49,7 +49,7 @@ jobs:
             -Dsonar.organization=fminna
             -Dsonar.projectKey=fminna_mycharts
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.verbose=true
+        # -Dsonar.verbose=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
