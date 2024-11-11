@@ -44,11 +44,10 @@ jobs:
       - name: Run SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v3.1
         with:
-          projectBaseDir: mysql/
+          projectBaseDir: harbor/
           args: >
             -Dsonar.organization=fminna
             -Dsonar.projectKey=fminna_mycharts
-            -Dsonar.python.coverage.reportPaths=coverage.xml
         # -Dsonar.verbose=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
